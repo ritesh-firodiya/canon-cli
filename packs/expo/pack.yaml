@@ -1,0 +1,5 @@
+name: expo
+description: Expo / React Native — versioned SDK docs
+kinds: [expo-app]
+docs:
+  - https://docs.expo.dev/llms.txt

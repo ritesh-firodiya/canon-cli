@@ -1,0 +1,5 @@
+name: react
+description: React — components, hooks, rendering
+kinds: [expo-app, web]
+docs:
+  - https://react.dev/llms.txt

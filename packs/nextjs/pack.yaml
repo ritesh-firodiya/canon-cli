@@ -1,0 +1,5 @@
+name: nextjs
+description: Next.js — app router, server components, routing
+kinds: [web]
+docs:
+  - https://nextjs.org/docs/llms.txt
