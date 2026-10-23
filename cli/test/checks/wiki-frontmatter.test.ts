@@ -1,0 +1,70 @@
+import { describe, expect, test } from "vitest";
+import { wikiFrontmatter } from "../../src/checks/wiki-frontmatter.ts";
+import { makeTree, wikiPage } from "../helpers/fixture.ts";
+import { contextFor } from "../helpers/context.ts";
+
+const TODAY = new Date("2026-10-23");
+const good = { id: "CONCEPT.UPLOAD-ONLY", type: "concept", status: "canonical", "last-verified": "2026-10-01" };
+
+function run(files: Record<string, string>) {
+  return wikiFrontmatter.run(contextFor(makeTree(files), { today: TODAY }));
+}
+
+describe("wiki-frontmatter", () => {
+  test("a well-formed page passes", () => {
+    expect(run({ ".context/wiki/concepts/upload-only.md": wikiPage(good) })).toEqual([]);
+  });
+
+  test("index.md and CLAUDE.md are not pages", () => {
+    expect(run({ ".context/wiki/index.md": "# Index", ".context/wiki/CLAUDE.md": "# Schema" })).toEqual([]);
+  });
+
+  test("a page with no frontmatter is an error", () => {
+    const findings = run({ ".context/wiki/concepts/upload-only.md": "# Upload only\n" });
+    expect(findings).toEqual([expect.objectContaining({ level: "error", message: expect.stringMatching(/frontmatter/) })]);
+  });
+
+  test("a missing required field is an error naming the field", () => {
+    const { status: _, ...noStatus } = good;
+    const findings = run({ ".context/wiki/concepts/upload-only.md": wikiPage(noStatus) });
+    expect(findings[0].message).toMatch(/status/);
+  });
+
+  test("type must match its folder", () => {
+    const findings = run({ ".context/wiki/entities/upload-only.md": wikiPage(good) });
+    expect(findings[0].message).toMatch(/concept.*entities/);
+  });
+
+  test("stale pages are one warning per product: count, then the oldest first", () => {
+    const stale = (date: string, id: string) => wikiPage({ ...good, id, "last-verified": date });
+    const findings = run({
+      ".context/wiki/concepts/a.md": stale("2026-06-01", "CONCEPT.A"),
+      ".context/wiki/concepts/b.md": stale("2026-05-01", "CONCEPT.B"),
+      ".context/wiki/concepts/c.md": wikiPage({ ...good, id: "CONCEPT.C" }),
+    });
+    expect(findings).toEqual([
+      expect.objectContaining({
+        level: "warn",
+        file: ".context/wiki",
+        message: "2 pages last verified over 90 days ago — oldest: concepts/b.md (175d), concepts/a.md (144d)",
+      }),
+    ]);
+  });
+
+  test("superseded without superseded-by is an error", () => {
+    const page = wikiPage({ ...good, status: "superseded", "superseded-by": "null" });
+    expect(run({ ".context/wiki/concepts/upload-only.md": page })[0].message).toMatch(/superseded-by/);
+  });
+
+  test("two pages with the same id is an error", () => {
+    const findings = run({
+      ".context/wiki/concepts/upload-only.md": wikiPage(good),
+      ".context/wiki/concepts/upload-only-2.md": wikiPage(good),
+    });
+    expect(findings.some((f) => /duplicate id/.test(f.message))).toBe(true);
+  });
+
+  test("a product with no wiki has nothing to check", () => {
+    expect(run({ "README.md": "" })).toEqual([]);
+  });
+});

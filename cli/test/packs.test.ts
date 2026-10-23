@@ -1,0 +1,101 @@
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, test } from "vitest";
+import { addPack, fetchPackDocs, listPacks } from "../src/packs.ts";
+import { makeTree } from "./helpers/fixture.ts";
+
+const zeno = () =>
+  makeTree({
+    "packs/expo/pack.yaml": "name: expo\ndescription: Expo\nkinds: [expo-app]\nskill: expo-app\ndocs:\n  - https://docs.expo.dev/llms.txt\n",
+    "packs/react/pack.yaml": "name: react\ndescription: React\nkinds: [web]\ndocs: [https://react.dev/llms.txt]\n",
+  });
+
+describe("listPacks", () => {
+  test("reads every pack.yaml, sorted by name", () => {
+    expect(listPacks(zeno()).map((pack) => pack.name)).toEqual(["expo", "react"]);
+  });
+
+  test("a pack.yaml whose name differs from its folder is an error", () => {
+    const root = makeTree({ "packs/expo/pack.yaml": "name: other\ndescription: x\nkinds: [web]\ndocs: []\n" });
+    expect(() => listPacks(root)).toThrow(/expo.*other/);
+  });
+});
+
+describe("addPack", () => {
+  test("adds the pack to the product zeno.yaml, keeping its other keys and comments", () => {
+    const repo = makeTree({ ".claude/zeno.yaml": "# mine\nkind: expo-app\n" });
+    const result = addPack(repo, "expo", { zenoRoot: zeno() });
+    expect(result).toEqual({ file: join(repo, ".claude/zeno.yaml"), added: true });
+    const text = readFileSync(join(repo, ".claude/zeno.yaml"), "utf8");
+    expect(text).toContain("# mine");
+    expect(text).toMatch(/packs:\n\s+- expo/);
+  });
+
+  test("adding a pack twice changes nothing", () => {
+    const repo = makeTree({ ".claude/zeno.yaml": "packs: [expo]\n" });
+    expect(addPack(repo, "expo", { zenoRoot: zeno() }).added).toBe(false);
+  });
+
+  test("an unknown pack names the ones that exist", () => {
+    expect(() => addPack(makeTree({}), "vue", { zenoRoot: zeno() })).toThrow(/vue.*expo, react/);
+  });
+
+  test("a product with no zeno.yaml is told to run init", () => {
+    expect(() => addPack(makeTree({}), "expo", { zenoRoot: zeno() })).toThrow(/zeno init/);
+  });
+
+  test("--global writes the estate zeno.yaml, creating it if needed", () => {
+    const estate = makeTree({});
+    const result = addPack("/unused", "react", { zenoRoot: zeno(), global: true, estateRoot: estate });
+    expect(result.file).toBe(join(estate, ".claude/zeno.yaml"));
+    expect(readFileSync(result.file, "utf8")).toMatch(/packs:\n\s+- react/);
+  });
+});
+
+describe("fetchPackDocs", () => {
+  test("saves each doc as markdown under the cache and indexes the folder once", async () => {
+    const cache = makeTree({});
+    const calls: string[][] = [];
+    const [pack] = listPacks(zeno());
+    await fetchPackDocs(pack, {
+      cacheDir: cache,
+      fetchText: async (url) => `# docs from ${url}`,
+      run: (command, args) => {
+        calls.push([command, ...args]);
+        return { status: 0, output: "" };
+      },
+    });
+    const saved = join(cache, "packs/expo/docs.expo.dev-llms.md");
+    expect(existsSync(saved)).toBe(true);
+    expect(readFileSync(saved, "utf8")).toContain("docs from https://docs.expo.dev/llms.txt");
+    expect(calls[0]).toEqual(["qmd", "collection", "add", join(cache, "packs/expo"), "--name", "pack-expo"]);
+    expect(calls[1]).toEqual(["qmd", "context", "add", "qmd://pack-expo", "Expo — vendor docs index (expo pack)"]);
+  });
+
+  test("a failed download is an error naming the url", async () => {
+    const [pack] = listPacks(zeno());
+    await expect(
+      fetchPackDocs(pack, {
+        cacheDir: makeTree({}),
+        fetchText: async () => {
+          throw new Error("HTTP 404");
+        },
+        run: () => ({ status: 0, output: "" }),
+      }),
+    ).rejects.toThrow(/docs\.expo\.dev.*404/);
+  });
+
+  test("an already-indexed collection is refreshed, not an error", async () => {
+    const calls: string[][] = [];
+    const [pack] = listPacks(zeno());
+    await fetchPackDocs(pack, {
+      cacheDir: makeTree({}),
+      fetchText: async () => "x",
+      run: (command, args) => {
+        calls.push([command, ...args]);
+        return args[1] === "add" && args[0] === "collection" ? { status: 1, output: "Collection 'pack-expo' already exists" } : { status: 0, output: "" };
+      },
+    });
+    expect(calls.map((call) => call.slice(1, 3).join(" "))).toEqual(["collection add", "update"]);
+  });
+});
