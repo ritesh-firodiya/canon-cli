@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { parseDocument } from "yaml";
 
@@ -19,9 +19,20 @@ function relink(target: string, link: string): void {
   symlinkSync(target, link);
 }
 
-function galleryPath(designs: string): string | undefined {
-  const surface = SURFACES.find((name) => existsSync(join(designs, name, "index.html")));
-  return surface && `${surface}/index.html`;
+// routes.js comes in two styles (`architecture: "…"` and `"architecture": "…"`);
+// a regex reads both without executing the manifest.
+const ARCHITECTURE_KEY = /["']?architecture["']?\s*:\s*["']([^"']+)["']/;
+
+/** The views a drawn surface offers — flow chart, screenshots, architecture — as relative paths that exist. */
+function surfaceViews(designs: string, surface: string): Array<[string, string]> {
+  const dir = join(designs, surface);
+  if (!existsSync(join(dir, "index.html"))) return [];
+  const views: Array<[string, string]> = [["flow chart", "index.html"]];
+  if (existsSync(join(dir, "screenshots.html"))) views.push(["screenshots", "screenshots.html"]);
+  const routes = join(dir, "routes.js");
+  const architecture = existsSync(routes) ? ARCHITECTURE_KEY.exec(readFileSync(routes, "utf8"))?.[1] : undefined;
+  if (architecture && existsSync(join(dir, architecture))) views.push(["architecture", architecture]);
+  return views.map(([label, path]) => [label, `${surface}/${path}`]);
 }
 
 /** Lays out the content Quartz renders and the folder the design server serves. */
@@ -39,17 +50,20 @@ export function buildSite(products: string[], options: SiteOptions): void {
       relink(wiki, join(options.siteDir, name));
       links.push(`[[${name}/index|${name}]]`);
     }
-    const gallery = existsSync(designs) ? galleryPath(designs) : undefined;
-    if (gallery) {
-      relink(designs, join(options.designsDir, name));
-      links.push(`[designs](${options.designsUrl}/${name}/${gallery})`);
+    const surfaces = SURFACES.map((surface) => [surface, surfaceViews(designs, surface)] as const).filter(
+      ([, views]) => views.length > 0,
+    );
+    if (surfaces.length > 0) relink(designs, join(options.designsDir, name));
+    if (links.length > 0 || surfaces.length > 0) rows.push(`- ${links.join(" · ") || name}`);
+    for (const [surface, views] of surfaces) {
+      const linked = views.map(([label, path]) => `[${label}](${options.designsUrl}/${name}/${path})`);
+      rows.push(`  - ${surface}: ${linked.join(" · ")}`);
     }
-    if (links.length > 0) rows.push(`- ${links.join(" · ")}`);
   }
 
   writeFileSync(
     join(options.siteDir, "index.md"),
-    `---\ntitle: zeno\n---\n\nEvery product's wiki, searchable and linked. Designs open the HTML gallery.\n\n${rows.join("\n")}\n\n[[zeno-check|Standards check]]\n`,
+    `---\ntitle: zeno\n---\n\nEvery product's wiki, searchable and linked. Each surface opens its flow chart, screenshots and architecture overview.\n\n${rows.join("\n")}\n\n[[zeno-check|Standards check]]\n`,
   );
   writeFileSync(
     join(options.siteDir, "zeno-check.md"),

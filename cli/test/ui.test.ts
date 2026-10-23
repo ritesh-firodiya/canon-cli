@@ -28,9 +28,29 @@ describe("buildSite", () => {
     buildSite([join(root, "alpha"), join(root, "beta")], { siteDir: out, designsDir: join(out, "_designs"), designsUrl: "http://127.0.0.1:8081", report: "alpha  ok" });
     const home = readFileSync(join(out, "index.md"), "utf8");
     expect(home).toContain("[[alpha/index|alpha]]");
-    expect(home).toContain("[designs](http://127.0.0.1:8081/alpha/mobile/index.html)");
+    expect(home).toContain("mobile: [flow chart](http://127.0.0.1:8081/alpha/mobile/index.html)");
     expect(home).not.toContain("http://127.0.0.1:8081/beta");
     expect(readFileSync(join(out, "zeno-check.md"), "utf8")).toContain("alpha  ok");
+  });
+
+  test("links every drawn surface to its flow chart, screenshots and architecture overview", () => {
+    const root = makeTree({
+      "both/.context/wiki/index.md": "# both",
+      "both/.context/designs/mobile/index.html": "<html>",
+      "both/.context/designs/mobile/screenshots.html": "<html>",
+      "both/.context/designs/mobile/routes.js": 'window.ROUTES = {\n  architecture: "architecture/overview.html",\n};',
+      "both/.context/designs/mobile/architecture/overview.html": "<html>",
+      "both/.context/designs/web/index.html": "<html>",
+      "both/.context/designs/web/routes.js": 'window.ROUTES = {\n  "architecture": "architecture/gone.html"\n};',
+    });
+    const out = makeTree({});
+    buildSite([join(root, "both")], { siteDir: out, designsDir: join(out, "_d"), designsUrl: "http://d", report: "" });
+    const home = readFileSync(join(out, "index.md"), "utf8");
+    expect(home).toContain(
+      "mobile: [flow chart](http://d/both/mobile/index.html) · [screenshots](http://d/both/mobile/screenshots.html) · [architecture](http://d/both/mobile/architecture/overview.html)",
+    );
+    expect(home).toContain("web: [flow chart](http://d/both/web/index.html)");
+    expect(home).not.toContain("architecture/gone.html");
   });
 
   test("rebuilding replaces old links instead of failing", () => {
