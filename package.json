@@ -1,0 +1,46 @@
+{
+  "name": "zeno-ai",
+  "version": "0.7.0",
+  "description": "zeno CLI: set up, check and sync product repos against the shared standards.",
+  "license": "MIT",
+  "author": "Ritesh Firodiya",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ritesh-firodiya/zeno-ai.git"
+  },
+  "type": "module",
+  "bin": {
+    "zeno": "./cli/dist/index.js"
+  },
+  "files": [
+    "cli/dist",
+    "standards",
+    "skills",
+    "packs",
+    ".claude-plugin"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@12.3.4",
+  "scripts": {
+    "zeno": "node cli/src/index.ts",
+    "build": "rm -rf cli/dist && tsc -p cli/tsconfig.build.json",
+    "test": "vitest run --root cli",
+    "coverage": "vitest run --root cli --coverage",
+    "typecheck": "tsc -p cli",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.8.1",
+    "commander": "^15.0.0",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

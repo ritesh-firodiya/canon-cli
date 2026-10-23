@@ -37,9 +37,8 @@ It has two halves that read the same config:
 claude plugin marketplace add ritesh-firodiya/zeno-ai
 claude plugin install zeno@zeno
 
-# CLI (Node 23.6+; runs TypeScript directly, no build step)
-git clone https://github.com/ritesh-firodiya/zeno-ai && cd zeno-ai/cli && pnpm install
-ln -s "$PWD/src/index.ts" ~/.local/bin/zeno
+# CLI (Node 22+)
+npm install -g zeno-ai
 
 # search
 npm install -g @tobilu/qmd --allow-scripts=node-llama-cpp,tree-sitter-go,tree-sitter-python,tree-sitter-rust,tree-sitter-typescript,tree-sitter-javascript
@@ -50,6 +49,9 @@ claude plugin marketplace add DietrichGebert/ponytail && claude plugin install p
 
 For local development of zeno itself, link the repo as a skills-dir plugin so
 edits apply on the next session: `ln -s "$PWD" ~/.claude/skills/zeno`.
+Run the CLI from source (Node 23.6+ runs the TypeScript directly):
+`pnpm install && ln -s "$PWD/cli/src/index.ts" ~/.local/bin/zeno`.
+`pnpm test`, `pnpm typecheck` and `pnpm build` run from the repo root.
 
 ## CLI
 
@@ -137,6 +139,6 @@ hooks/            session start: constitution titles, qmd refresh
 standards/        default standards
 packs/            vendor doc packs
 scripts/          log-verdict.mjs — append-only override log
-cli/              the zeno CLI (TypeScript, vitest)
+cli/              the zeno CLI (TypeScript, vitest; built to cli/dist for npm)
 evals/            plugin evals and the fixture product
 ```
