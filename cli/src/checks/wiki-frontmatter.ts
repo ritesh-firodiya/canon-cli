@@ -2,17 +2,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { listFiles } from "../lib/files.ts";
 import { parseFrontmatter } from "../lib/frontmatter.ts";
+import { WIKI_FOLDER_BY_TYPE } from "../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 
 const REQUIRED_FIELDS = ["id", "type", "status", "last-verified"];
-const FOLDER_BY_TYPE: Record<string, string> = {
-  concept: "concepts",
-  entity: "entities",
-  surface: "surfaces",
-  flow: "flows",
-  decision: "decisions",
-  synthesis: "synthesis",
-};
 const STALE_AFTER_DAYS = 90;
 const DAY_MS = 86_400_000;
 const NOT_PAGES = ["index.md", "CLAUDE.md"];
@@ -31,7 +24,8 @@ export const wikiFrontmatter: Check = {
   id: "wiki-frontmatter",
   module: "docs",
   description: "every wiki page has id, type, status and last-verified; type matches folder; ids are unique; nothing stale",
-  run({ repo, today }) {
+  run({ repo, config, today }) {
+    const folderByType = { ...WIKI_FOLDER_BY_TYPE, ...Object.fromEntries(config.wiki.types.map((entry) => [entry.type, entry.folder])) };
     const findings: Finding[] = [];
     const add = (level: Finding["level"], file: string, message: string) =>
       findings.push({ check: "wiki-frontmatter", level, file, message });
@@ -48,7 +42,7 @@ export const wikiFrontmatter: Check = {
       if (missing.length > 0) add("error", file, `missing ${missing.join(", ")}`);
 
       const folder = file.split("/")[2];
-      const expected = FOLDER_BY_TYPE[String(data.type)];
+      const expected = folderByType[String(data.type)];
       if (data.type && expected !== folder) add("error", file, `type ${data.type} does not belong in ${folder}/`);
 
       if (data.status === "superseded" && !data["superseded-by"]) add("error", file, "superseded without superseded-by");

@@ -42,7 +42,7 @@ It has two halves that read the same config:
 
 ```bash
 # plugin (from GitHub)
-claude plugin marketplace add ritesh-firodiya/zeno-ai
+claude plugin marketplace add ritesh-firodiya/zeno
 claude plugin install zeno@zeno
 
 # CLI (Node 22+)
@@ -83,6 +83,11 @@ Run the CLI from source (Node 23.6+ runs the TypeScript directly):
 `pnpm install && ln -s "$PWD/cli/src/index.ts" ~/.local/bin/zeno`.
 `pnpm test`, `pnpm typecheck` and `pnpm build` run from the repo root.
 
+**Releasing.** Bump `version` in `package.json` and `.claude-plugin/plugin.json`,
+then push or merge to `main`. The `release` workflow runs the tests, publishes
+`@freetesh/zeno` to npm, tags `vX.Y.Z` and creates the GitHub release. A push
+without a bump releases nothing. It needs the `NPM_TOKEN` Actions secret.
+
 ## CLI
 
 ```bash
@@ -117,13 +122,19 @@ commands:                           # your own checkers, run by `zeno check`
 doctor:
   tools:
     - { tool: pnpm, why: product scripts, hint: npm i -g pnpm }
+wiki:
+  types:                            # added to the six built-in page types
+    - { type: bug, folder: bugs, reason: postmortems need their own shape }
+context:
+  folders:                          # added to the ten .context folders
+    - { folder: research, reason: interview notes, kept apart from raw/ }
 ```
 
 ```yaml
 # <repo>/.claude/zeno.yaml — written by `zeno init`
 zeno: 0.6.0
 kind: expo-app                      # expo-app | web | content
-modules: [docs, knowledge, metrics, code, listing]   # all optional; design is added when .context/designs exists
+modules: [docs, knowledge, code, listing]   # all optional; design is added when .context/designs exists, metrics only when asked
 packs: [expo]
 checks:
   stale-copies: { enabled: false, reason: "Cursor is still used here" }
@@ -132,7 +143,8 @@ weigh:
 ```
 
 Scalars: the most specific layer wins. `packs` and `standards` add up across
-layers; `commands` and `doctor.tools` merge by id. A check turned off must
+layers; `commands`, `doctor.tools`, `wiki.types` and `context.folders` merge
+by name. Built-in types and folders cannot be removed or redefined. A check turned off must
 carry a `reason:`, and `zeno check` lists every override.
 
 ## Standards

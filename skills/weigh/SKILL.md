@@ -52,6 +52,10 @@ product's `.claude/zeno.yaml` may tighten this under `weigh.trivial`.
      test, store review risk.
    - Value: name the user or the metric it moves (`metrics/definitions.yml` if
      the product has one). If neither can be named, say "value unproven".
+     When a number would settle it, check the product's `SOURCE.*` entity pages
+     for where that data lives and query it rather than guess.
+   - Evidence: say which evidence from `dev-methods.md` the work must leave — a
+     feature page, a failing test first, or a metric and snapshot.
 
 6. **Write less.** Climb the ladder and stop at the first rung that works:
    delete it → reuse something in this repo → reuse from a sibling product or

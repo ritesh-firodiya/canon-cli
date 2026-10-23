@@ -6,7 +6,7 @@
   "author": "Ritesh Firodiya",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ritesh-firodiya/zeno-ai.git"
+    "url": "git+https://github.com/ritesh-firodiya/zeno.git"
   },
   "type": "module",
   "bin": {

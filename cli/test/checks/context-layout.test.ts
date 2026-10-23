@@ -36,6 +36,11 @@ describe("context-layout", () => {
     expect(findings).toEqual([expect.objectContaining({ file: ".context/documents" })]);
   });
 
+  test("a folder added under context.folders is allowed", () => {
+    const yaml = "context:\n  folders:\n    - { folder: research, reason: interviews }\n";
+    expect(contextLayout.run(contextFor(makeTree({ ...VALID_CONTEXT, ".context/research/a.md": "x", ".claude/zeno.yaml": yaml })))).toEqual([]);
+  });
+
   test("a repo with no .context at all gets one error, not one per folder", () => {
     const findings = contextLayout.run(contextFor(makeTree({ "README.md": "" })));
     expect(findings).toHaveLength(1);

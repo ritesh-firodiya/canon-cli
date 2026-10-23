@@ -9,6 +9,7 @@ describe("loadConfig", () => {
     expect(config.kind).toBe("expo-app");
     expect(config.modules).toContain("code");
     expect(config.modules).not.toContain("design");
+    expect(config.modules).not.toContain("metrics");
   });
 
   test("infers kind web from next.config and content when there is no code", () => {
@@ -104,6 +105,29 @@ describe("loadConfig", () => {
       { id: "designs", run: "c", if: "x" },
       { id: "lint", run: "b" },
     ]);
+  });
+
+  test("wiki types and context folders add up across layers, merged by name", () => {
+    const estate = makeTree({
+      ".claude/zeno.yaml":
+        "estate: true\nwiki:\n  types:\n    - { type: bug, folder: bugs, reason: postmortems }\ncontext:\n  folders:\n    - { folder: research, reason: interviews }\n",
+      "app/.claude/zeno.yaml": "wiki:\n  types:\n    - { type: bug, folder: bug-reports, reason: renamed here }\n",
+    });
+    const { config } = loadConfig(`${estate}/app`, { estateRoot: estate });
+    expect(config.wiki.types).toEqual([{ type: "bug", folder: "bug-reports", reason: "renamed here" }]);
+    expect(config.context.folders).toEqual([{ folder: "research", reason: "interviews" }]);
+  });
+
+  test("the specs module is gone", () => {
+    expect(() => loadConfig(makeTree({ ".claude/zeno.yaml": "modules: [specs]\n" }))).toThrow(/modules/);
+  });
+
+  test("a wiki type or context folder needs a reason, and cannot redefine a built-in", () => {
+    const load = (yaml: string) => () => loadConfig(makeTree({ ".claude/zeno.yaml": yaml }));
+    expect(load("wiki:\n  types:\n    - { type: bug, folder: bugs }\n")).toThrow(/reason/);
+    expect(load("context:\n  folders:\n    - { folder: research }\n")).toThrow(/reason/);
+    expect(load("wiki:\n  types:\n    - { type: concept, folder: ideas, reason: x }\n")).toThrow(/built-in/);
+    expect(load("wiki:\n  types:\n    - { type: bug, folder: concepts, reason: x }\n")).toThrow(/built-in/);
   });
 
   test("doctor tools merge by tool name", () => {

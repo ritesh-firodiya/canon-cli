@@ -25,7 +25,7 @@ async function askAnswers(inferred: InitPlan, packs: Pack[]): Promise<Choices | 
   });
   if (cancelled(kind)) return null;
   const modules = await prompts.multiselect({
-    message: "Which modules? All optional. (docs = wiki, design = HTML designs, knowledge = search, specs, metrics, code = LSP, architecture, listing)",
+    message: "Which modules? All optional. (docs = wiki, design = HTML designs, knowledge = search, metrics = definitions.yml, code = LSP, architecture, listing)",
     initialValues: inferred.config.modules,
     options: MODULES.map((value) => ({ value, label: value })),
     required: false,

@@ -9,5 +9,6 @@ replaces it; a configured `constitution.md` adds principles instead.
 |---|---|
 | `constitution.md` | The principles a request is weighed against (C-01 to C-13) |
 | `wiki-schema.md` | Wiki page types, frontmatter, required sections, lint rules |
-| `context-layout.md` | The `.context/` ten-folder layout, `features/` and `tasks.md` formats |
+| `context-layout.md` | The `.context/` ten-folder layout, where each kind of document lives, `features/` and `tasks.md` formats |
+| `dev-methods.md` | The evidence spec-, test- and data-driven work leaves behind |
 | `agent-contract.md` | What every agent does before, during and after work |

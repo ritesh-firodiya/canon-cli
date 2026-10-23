@@ -9,7 +9,7 @@ Source to ingest: `$ARGUMENTS`
 
 ## Steps
 
-1. **Read the wiki schema (`../../standards/wiki-schema.md`, relative to this skill) first.** It defines page types, frontmatter, required sections, ID conventions, and lint rules. Every page you write must conform.
+1. **Read the wiki schema (the `wiki-schema.md` that `zeno standards` lists — a team's own replaces zeno's; without the CLI, `../../standards/wiki-schema.md` relative to this skill) first.** It defines page types, frontmatter, required sections, ID conventions, and lint rules. Every page you write must conform.
 
 2. **Read the raw source** at the path in `$ARGUMENTS`. Accepted: anything under `.context/raw/` or `.context/designs/`, and application source in this repository. Refuse paths outside the repo.
 
@@ -20,12 +20,13 @@ Source to ingest: `$ARGUMENTS`
    - A new tier / product / canonical value → `entity` page
    - A user journey description → `flow` page
    - Don't force one source into one page — a meeting note can produce multiple pages.
+   - Page types are the six in the schema plus any listed under `wiki.types` in the repo's or the estate's `.claude/zeno.yaml`, each with its folder. Use an added type only when the source fits it.
 
 4. **For each page you will create:**
-   - Pick the ID per the wiki schema (`../../standards/wiki-schema.md`, relative to this skill) § "ID conventions". IDs are uppercase, dot-separated, never change.
+   - Pick the ID per the wiki schema § "ID conventions". IDs are uppercase, dot-separated, never change.
    - Pick the filename: the slug portion of the ID, lowercase, kebab-case, `.md` extension.
    - Check whether the page already exists. If yes, **update** rather than overwrite: preserve `id`, `supersedes`, `superseded-by`; refresh `last-verified` to today.
-   - Use the required sections for that page type — verbatim from the wiki schema (`../../standards/wiki-schema.md`, relative to this skill). Missing a required section is a lint failure.
+   - Use the required sections for that page type — verbatim from the wiki schema. Missing a required section is a lint failure.
    - Fill `Related` with at least two `[[wikilinks]]`. A link to a page that doesn't exist yet is OK — `/wiki-lint` will flag it as a TODO.
    - List the source path under `Sources`, so a future `/wiki-lint` can tell which raw files nothing has read.
 

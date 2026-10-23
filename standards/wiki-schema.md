@@ -33,6 +33,36 @@ Every page in `.context/wiki/` belongs to exactly one type. The folder name is t
 
 A page cannot be two types. If it feels like it is, it's two pages — split it.
 
+A product adds a type in `.claude/zeno.yaml`, with the reason:
+`wiki: { types: [{ type: bug, folder: bugs, reason: … }] }`. The six built-in
+types and their folders cannot be redefined. Try the six first — an added type
+is a shape every reader and every product must learn. A team that adds a type
+writes its required sections in its own `wiki-schema.md`, which replaces this one.
+
+### Data sources
+
+Each tool that holds product data (Datadog, Sentry, Snowflake, an analytics
+console) is one `entity` page, `id: SOURCE.<NAME>`, in `entities/`:
+
+```markdown
+## Summary
+What this source holds, in one sentence.
+
+## Canonical values
+| Key | Value | Last changed |
+|---|---|---|
+| SOURCE.SENTRY.PROJECT | streaks-mobile | 2026-10-23 |
+| SOURCE.SENTRY.ACCESS | Sentry MCP server | 2026-10-23 |
+
+## How to query
+The MCP server or CLI to use, and one example query. Results that back a
+decision are saved to `raw/YYYY-MM-DD-<source>-<slug>.md` so they can be re-read.
+```
+
+zeno has no connector of its own: the vendor's MCP server or CLI does the
+reading. Add it to `doctor.tools` in `.claude/zeno.yaml` so `zeno doctor`
+reports when it is missing. Never put a key or token on the page.
+
 ---
 
 ## Frontmatter (mandatory)

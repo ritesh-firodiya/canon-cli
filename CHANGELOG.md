@@ -21,14 +21,25 @@ the original `zeno-ai` workflow CLI.
 - `init` asks for kind, modules and packs, and takes `--kind`, `--modules`,
   `--packs` for a no-questions setup.
 - Plugin evals on a fixture product.
+- `wiki.types` and `context.folders` in `zeno.yaml`: a team adds page types and
+  `.context` folders, each with a `reason:`. Built-in ones cannot be redefined.
+- `metrics-definitions` check: warns when the `metrics` module is on and
+  `.context/metrics/definitions.yml` is missing.
+- `dev-methods.md` standard (spec-, test- and data-driven evidence), a table of
+  where each kind of document lives, and `SOURCE.*` entity pages for data tools.
 
 ### Changed
 
 - Every module is optional. Designs and docs are no longer required; an estate
   that wants designs first adds that as its own command.
 - `zeno learn` decisions are stored with the estate, not inside the zeno install.
+- `metrics` is no longer a default module; turn it on when you define metrics.
+- The unused `specs` module is removed. A `zeno.yaml` that lists it fails to load.
 
 ### Fixed
+
+- `zeno check` and the `ingest`, `decision` and `wiki-lint` skills follow a
+  team's own wiki schema and context layout instead of zeno's built-in lists.
 
 - `sync` indexes the wiki even when qmd was installed after `init`.
 - A missing tool reports "not installed — run `zeno doctor`" instead of `ENOENT`.

@@ -9,7 +9,7 @@ Decision to record: `$ARGUMENTS`
 
 ## Steps
 
-1. Read the wiki schema (`../../standards/wiki-schema.md`, relative to this skill) § "`decision`" for the frontmatter and the required sections. If `.context/wiki/decisions/` already holds pages, open a recent one and match it.
+1. Read the wiki schema (the `wiki-schema.md` that `zeno standards` lists — a team's own replaces zeno's; without the CLI, `../../standards/wiki-schema.md` relative to this skill) § "`decision`" for the frontmatter and the required sections. If `.context/wiki/decisions/` already holds pages, open a recent one and match it.
 
 2. Parse `$ARGUMENTS`:
    - If it contains ` — ` (em-dash with spaces), split on the first occurrence: left = title, right = body.

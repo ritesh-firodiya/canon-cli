@@ -36,7 +36,7 @@ describe("planInit", () => {
     expect(plan.config).toEqual({
       zeno: "0.4.0",
       kind: "expo-app",
-      modules: ["docs", "knowledge", "metrics", "code", "listing"],
+      modules: ["docs", "knowledge", "code", "listing"],
       expo: { sdk: 57 },
     });
   });

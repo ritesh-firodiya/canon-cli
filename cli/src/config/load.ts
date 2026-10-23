@@ -76,7 +76,8 @@ function mergeBy<T>(lists: T[][], key: (item: T) => string): T[] {
 /**
  * Reads the estate, product and local zeno.yaml layers over defaults inferred
  * from the repo. Scalars: the most specific layer wins. Lists of names add up
- * (packs, standards); lists of records merge by their key (commands, tools).
+ * (packs, standards); lists of records merge by their key (commands, tools,
+ * wiki types, context folders).
  */
 export function loadConfig(repo: string, options: LoadOptions = {}): { config: Config; sources: ConfigSource[] } {
   const estateRoot = options.estateRoot === undefined ? findEstate(dirname(resolve(repo))) : options.estateRoot;
@@ -101,6 +102,8 @@ export function loadConfig(repo: string, options: LoadOptions = {}): { config: C
     doctor: { tools: mergeBy(pick("doctor").map((doctor) => doctor?.tools ?? []), (tool) => tool.tool) },
     checks: Object.assign({}, ...pick("checks")),
     weigh: { weights: Object.assign({}, ...pick("weigh").map((weigh) => weigh?.weights)) },
+    wiki: { types: mergeBy(pick("wiki").map((wiki) => wiki?.types ?? []), (entry) => entry.type) },
+    context: { folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder) },
   };
   if (Object.keys(config.expo ?? {}).length === 0) delete config.expo;
   return { config, sources };

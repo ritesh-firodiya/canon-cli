@@ -3,13 +3,13 @@ name: wiki-lint
 description: Audit .context/wiki/ for drift — broken [[links]], orphan pages, contradictions between entities, stale last-verified dates, unprocessed raw files. Optionally auto-fix safe issues and regenerate .context/wiki/index.md. Usage `/wiki-lint` (audit) or `/wiki-lint --fix` (audit + auto-fix).
 ---
 
-You are linting the wiki at `.context/wiki/` against the wiki schema (`../../standards/wiki-schema.md`, relative to this skill).
+You are linting the wiki at `.context/wiki/` against the wiki schema (the `wiki-schema.md` that `zeno standards` lists — a team's own replaces zeno's; without the CLI, `../../standards/wiki-schema.md` relative to this skill).
 
 Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 
 ## Steps
 
-1. **Read the wiki schema (`../../standards/wiki-schema.md`, relative to this skill)** to refresh schema, ID conventions, required sections, and the lint-rules table.
+1. **Read the wiki schema** to refresh schema, ID conventions, required sections, and the lint-rules table.
 
 2. **Run `zeno check` first** if the CLI is installed. It checks frontmatter,
    duplicate IDs, staleness and prices held by no entity in under a second,
@@ -29,13 +29,13 @@ Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 
 | Check | Rule |
 |---|---|
-| Missing required section | Per the wiki schema (`../../standards/wiki-schema.md`, relative to this skill) § "Page body — required sections" |
+| Missing required section | Per the wiki schema § "Page body — required sections" |
 | Broken `[[wikilink]]` | Target page does not exist |
 | Duplicate `id` | Two pages claim the same ID |
 | Contradictory canonical value | Two `entity` pages list the same key with different values |
 | `status: superseded` with no `superseded-by` | Set or remove the status |
 | Filename ↔ id slug mismatch | The filename must match the slug portion of the ID |
-| `type` does not match folder | `type: concept` must live in `concepts/`, etc. |
+| `type` does not match folder | `type: concept` must live in `concepts/`, etc. A type added under `wiki.types` in `.claude/zeno.yaml` lives in its configured folder. |
 
 ### Warnings
 

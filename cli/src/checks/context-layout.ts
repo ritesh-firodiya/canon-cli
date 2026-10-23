@@ -1,9 +1,8 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import type { Module } from "../config/schema.ts";
+import { CONTEXT_FOLDERS, type Module } from "../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 
-const ALLOWED_FOLDERS = ["raw", "wiki", "features", "designs", "listing", "marketing", "metrics", "support", "legal", "ops"];
 const KNOWLEDGE_CONTEXT = ["raw", "wiki", "features"];
 
 /** What .context must hold: README.md and tasks.md always, the knowledge folders only when docs or knowledge is on. */
@@ -16,7 +15,7 @@ const ROOT_FILES = ["README.md", "tasks.md"];
 export const contextLayout: Check = {
   id: "context-layout",
   module: null,
-  description: ".context/ has the required folders, only the ten allowed ones, and only README.md + tasks.md at its root",
+  description: ".context/ has the required folders, only the allowed ones (the ten plus context.folders), and only README.md + tasks.md at its root",
   run({ repo, config }) {
     const context = join(repo, ".context");
     const finding = (level: Finding["level"], file: string, message: string): Finding => ({
@@ -30,10 +29,11 @@ export const contextLayout: Check = {
     const findings = requiredContext(config.modules).filter((name) => !existsSync(join(context, name))).map((name) =>
       finding("error", `.context/${name}`, `required ${name} is missing`),
     );
+    const allowed = [...CONTEXT_FOLDERS, ...config.context.folders.map((entry) => entry.folder)];
     for (const entry of readdirSync(context, { withFileTypes: true })) {
       if (entry.name === ".DS_Store") continue;
-      if (entry.isDirectory() && !ALLOWED_FOLDERS.includes(entry.name)) {
-        findings.push(finding("error", `.context/${entry.name}`, `${entry.name}/ is not one of the ten folders`));
+      if (entry.isDirectory() && !allowed.includes(entry.name)) {
+        findings.push(finding("error", `.context/${entry.name}`, `${entry.name}/ is not an allowed folder — move it, or add it under context.folders in zeno.yaml`));
       }
       if (entry.isFile() && !ROOT_FILES.includes(entry.name)) {
         findings.push(finding("error", `.context/${entry.name}`, "only README.md and tasks.md may sit at .context/ root"));

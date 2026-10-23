@@ -35,6 +35,13 @@ describe("wiki-frontmatter", () => {
     expect(findings[0].message).toMatch(/concept.*entities/);
   });
 
+  test("a type added under wiki.types lives in its configured folder", () => {
+    const yaml = "wiki:\n  types:\n    - { type: bug, folder: bugs, reason: postmortems }\n";
+    const bug = wikiPage({ ...good, id: "BUG.LOST-STREAK", type: "bug" });
+    expect(run({ ".claude/zeno.yaml": yaml, ".context/wiki/bugs/lost-streak.md": bug })).toEqual([]);
+    expect(run({ ".claude/zeno.yaml": yaml, ".context/wiki/concepts/lost-streak.md": bug })[0].message).toMatch(/bug.*concepts/);
+  });
+
   test("stale pages are one warning per product: count, then the oldest first", () => {
     const stale = (date: string, id: string) => wikiPage({ ...good, id, "last-verified": date });
     const findings = run({

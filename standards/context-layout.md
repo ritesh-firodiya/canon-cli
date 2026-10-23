@@ -26,6 +26,9 @@ folder.
 1. **Ten folders, one job each.** There is no `documents/`, `research/`,
    `architecture/` or `decisions/` folder: a research brief is a wiki synthesis
    page, an architecture note is a wiki concept, an ADR is `wiki/decisions/`.
+   A product that truly needs another folder adds it in `.claude/zeno.yaml`,
+   with the reason: `context: { folders: [{ folder: research, reason: … }] }`.
+   The ten cannot be removed.
 2. **`README.md` and `tasks.md` are the only files at `.context/` root.**
    `README.md` lists every absent folder as `n/a — <why>`.
 3. **Nothing is created empty.** A folder appears with its first file — git does
@@ -54,6 +57,26 @@ folder.
 - Frontmatter follows the wiki schema: `id`, `type`, `status`, `last-verified`,
   `supersedes`, `superseded-by`. Kebab-case keys.
 
+## Where each kind of document lives
+
+Teams name documents many ways. Each name maps to one home; there is no
+separate folder per name.
+
+| Document | Home |
+|---|---|
+| ADR | `wiki/decisions/`, `status: canonical` |
+| RFC | `wiki/decisions/`, `status: draft` — the same page becomes the ADR when accepted |
+| PRD | `features/`, `type: feature` |
+| Experiment | `features/`, `type: experiment`; the result is a decision page |
+| Initiative | `wiki/synthesis/`, linking its features and decisions |
+| Finding | the dated data in `raw/`; what it means in `wiki/synthesis/` or a concept |
+| Know-how | `wiki/concepts/`; `ops/` when it is a runbook |
+| Bug | the issue tracker; a wiki concept only when it teaches a rule |
+| Data source | `wiki/entities/` — see the wiki schema, "Data sources" |
+
+If a document fits none of these for a real product, add a wiki type or a
+folder in `.claude/zeno.yaml` with its reason — not a new convention by hand.
+
 ## `features/` — what is next
 
 One page per feature, `NNNN-<slug>.md`:
@@ -71,6 +94,9 @@ release: 3.4.0
 ## Store copy
 > One or two sentences users will read in the release notes.
 ```
+
+An experiment adds `## Hypothesis`, `## Metric` (a name from
+`metrics/definitions.yml`) and `## Result` once it has run.
 
 The wiki describes what *is*; `features/` describes what is *next*. A shipped
 feature goes `status: shipped` and is never deleted.
