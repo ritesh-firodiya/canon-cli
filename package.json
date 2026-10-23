@@ -1,7 +1,7 @@
 {
   "name": "@freetesh/zeno",
   "version": "0.7.0",
-  "description": "zeno CLI: set up, check and sync product repos against the shared standards.",
+  "description": "zeno CLI: keep your domain knowledge and AI rules in your repo, and enforce them.",
   "license": "MIT",
   "author": "Ritesh Firodiya",
   "repository": {

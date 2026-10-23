@@ -1,9 +1,10 @@
 # zeno
 
-Standards, searchable product knowledge and a decision gate for teams that
-build with Claude Code. zeno keeps several products consistent as they evolve,
-keeps what you decided findable, and makes Claude weigh a request against your
-rules and history before it acts on it.
+A productivity tool for the whole product development lifecycle (PDLC), from
+idea to release. zeno keeps your domain knowledge, decisions and AI rules local,
+in your own repos, and enforces them: Claude searches them before it answers,
+weighs a request against them before it acts, and `zeno check` fails when code
+or docs break them. The AI hallucinates less, and your team ships faster.
 
 It has two halves that read the same config:
 
@@ -177,7 +178,7 @@ claude plugin eval . --scaffold --mocks off --allow-tools 'mcp__plugin_zeno_qmd_
 ```
 .claude-plugin/   plugin manifest and marketplace
 skills/           weigh, standards, ask, ingest, decision, wiki-lint
-agents/           challenger — independent second opinion for large requests
+agents/           challenger — independent second opinion for too-large requests
 hooks/            session start: constitution titles, qmd refresh
 standards/        default standards
 packs/            vendor doc packs

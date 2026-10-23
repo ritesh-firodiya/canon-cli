@@ -7,8 +7,8 @@
     {
       "name": "zeno",
       "source": "./",
-      "description": "Shared standards, searchable product knowledge and decision checks for every product repo."
+      "description": "Keeps your domain knowledge and AI rules local and enforces them, so Claude hallucinates less."
     }
   ],
-  "description": "zeno: standards, searchable product knowledge and a decision gate for Claude Code."
+  "description": "zeno: Keep your domain knowledge and AI rules in your repo, and enforce them. Less AI guessing, faster delivery."
 }
