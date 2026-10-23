@@ -30,7 +30,8 @@
     "test": "vitest run --root cli",
     "coverage": "vitest run --root cli --coverage",
     "typecheck": "tsc -p cli",
-    "prepack": "pnpm build"
+    "prepack": "pnpm build",
+    "release": "bash scripts/publish.sh"
   },
   "dependencies": {
     "@clack/prompts": "^1.8.1",
