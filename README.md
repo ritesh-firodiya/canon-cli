@@ -55,6 +55,28 @@ npm install -g @tobilu/qmd --allow-scripts=node-llama-cpp,tree-sitter-go,tree-si
 claude plugin marketplace add DietrichGebert/ponytail && claude plugin install ponytail@ponytail
 ```
 
+## Quickstart (5 minutes)
+
+In any git repo, after the install above:
+
+```bash
+zeno doctor                 # node, git, qmd — fix anything marked ✗ first
+zeno init                   # pick kind, modules and doc packs; writes .claude/zeno.yaml and .context/
+zeno check                  # should print "<repo>  ok"
+zeno sync                   # fetches the packs you picked and indexes the wiki for search
+```
+
+Then start Claude Code in the repo. The session hook loads the constitution,
+and a non-trivial request is weighed before Claude acts on it — try
+`/zeno:weigh add a dark mode toggle`. Write decisions to `.context/wiki/` as
+you make them (`/zeno:decision`) and ask about them later with `/zeno:ask`.
+
+Want import rules too? `zeno init --force --modules docs,knowledge,architecture`
+(keep the modules you already had), `npm i -D dependency-cruiser`, then edit the
+starter `.dependency-cruiser.cjs` to your layers. `evals/fixtures/streaks` is a
+small product with a wiki and decision records, if you want to see the
+`.context/` layout before touching your own repo.
+
 For local development of zeno itself, link the repo as a skills-dir plugin so
 edits apply on the next session: `ln -s "$PWD" ~/.claude/skills/zeno`.
 Run the CLI from source (Node 23.6+ runs the TypeScript directly):
