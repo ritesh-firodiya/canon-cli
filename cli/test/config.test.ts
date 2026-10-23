@@ -110,11 +110,11 @@ describe("loadConfig", () => {
   test("wiki types and context folders add up across layers, merged by name", () => {
     const estate = makeTree({
       ".claude/zeno.yaml":
-        "estate: true\nwiki:\n  types:\n    - { type: bug, folder: bugs, reason: postmortems }\ncontext:\n  folders:\n    - { folder: research, reason: interviews }\n",
-      "app/.claude/zeno.yaml": "wiki:\n  types:\n    - { type: bug, folder: bug-reports, reason: renamed here }\n",
+        "estate: true\nwiki:\n  types:\n    - { type: bug, folder: bugs, reason: postmortems, sections: [Summary] }\ncontext:\n  folders:\n    - { folder: research, reason: interviews }\n",
+      "app/.claude/zeno.yaml": "wiki:\n  types:\n    - { type: bug, folder: bug-reports, reason: renamed here, sections: [Summary, Fix] }\n",
     });
     const { config } = loadConfig(`${estate}/app`, { estateRoot: estate });
-    expect(config.wiki.types).toEqual([{ type: "bug", folder: "bug-reports", reason: "renamed here" }]);
+    expect(config.wiki.types).toEqual([{ type: "bug", folder: "bug-reports", reason: "renamed here", sections: ["Summary", "Fix"] }]);
     expect(config.context.folders).toEqual([{ folder: "research", reason: "interviews" }]);
   });
 
@@ -124,10 +124,12 @@ describe("loadConfig", () => {
 
   test("a wiki type or context folder needs a reason, and cannot redefine a built-in", () => {
     const load = (yaml: string) => () => loadConfig(makeTree({ ".claude/zeno.yaml": yaml }));
-    expect(load("wiki:\n  types:\n    - { type: bug, folder: bugs }\n")).toThrow(/reason/);
+    expect(load("wiki:\n  types:\n    - { type: bug, folder: bugs, sections: [Summary] }\n")).toThrow(/reason/);
+    expect(load("wiki:\n  types:\n    - { type: bug, folder: bugs, reason: x }\n")).toThrow(/sections/);
+    expect(load("wiki:\n  types:\n    - { type: bug, folder: bugs, reason: x, sections: [] }\n")).toThrow(/sections/);
     expect(load("context:\n  folders:\n    - { folder: research }\n")).toThrow(/reason/);
-    expect(load("wiki:\n  types:\n    - { type: concept, folder: ideas, reason: x }\n")).toThrow(/built-in/);
-    expect(load("wiki:\n  types:\n    - { type: bug, folder: concepts, reason: x }\n")).toThrow(/built-in/);
+    expect(load("wiki:\n  types:\n    - { type: concept, folder: ideas, reason: x, sections: [Summary] }\n")).toThrow(/built-in/);
+    expect(load("wiki:\n  types:\n    - { type: bug, folder: concepts, reason: x, sections: [Summary] }\n")).toThrow(/built-in/);
   });
 
   test("doctor tools merge by tool name", () => {

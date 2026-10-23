@@ -20,7 +20,7 @@ Source to ingest: `$ARGUMENTS`
    - A new tier / product / canonical value → `entity` page
    - A user journey description → `flow` page
    - Don't force one source into one page — a meeting note can produce multiple pages.
-   - Page types are the six in the schema plus any listed under `wiki.types` in the repo's or the estate's `.claude/zeno.yaml`, each with its folder. Use an added type only when the source fits it.
+   - Page types are the six in the schema plus any listed under `wiki.types` in the repo's or the estate's `.claude/zeno.yaml`, each with its folder and its required `sections` (use exactly those `## ` headings, in that order; its ID is `<TYPE>.<SLUG>`). Use an added type only when the source fits it.
 
 4. **For each page you will create:**
    - Pick the ID per the wiki schema § "ID conventions". IDs are uppercase, dot-separated, never change.

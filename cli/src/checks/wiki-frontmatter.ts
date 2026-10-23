@@ -26,6 +26,8 @@ export const wikiFrontmatter: Check = {
   description: "every wiki page has id, type, status and last-verified; type matches folder; ids are unique; nothing stale",
   run({ repo, config, today }) {
     const folderByType = { ...WIKI_FOLDER_BY_TYPE, ...Object.fromEntries(config.wiki.types.map((entry) => [entry.type, entry.folder])) };
+    // Built-in types' sections are linted by the wiki-lint skill; added types carry theirs in config.
+    const sectionsByType = new Map(config.wiki.types.map((entry) => [entry.type, entry.sections]));
     const findings: Finding[] = [];
     const add = (level: Finding["level"], file: string, message: string) =>
       findings.push({ check: "wiki-frontmatter", level, file, message });
@@ -33,7 +35,7 @@ export const wikiFrontmatter: Check = {
     const stale: Array<{ file: string; age: number }> = [];
 
     for (const file of wikiPages(repo)) {
-      const { data } = parseFrontmatter(readFileSync(join(repo, file), "utf8"));
+      const { data, body } = parseFrontmatter(readFileSync(join(repo, file), "utf8"));
       if (!data) {
         add("error", file, "no frontmatter");
         continue;
@@ -44,6 +46,13 @@ export const wikiFrontmatter: Check = {
       const folder = file.split("/")[2];
       const expected = folderByType[String(data.type)];
       if (data.type && expected !== folder) add("error", file, `type ${data.type} does not belong in ${folder}/`);
+
+      const sections = sectionsByType.get(String(data.type));
+      if (sections) {
+        const headings = new Set(body.split("\n").flatMap((line) => (line.startsWith("## ") ? [line.slice(3).trim()] : [])));
+        const absent = sections.filter((section) => !headings.has(section));
+        if (absent.length > 0) add("error", file, `missing sections: ${absent.join(", ")}`);
+      }
 
       if (data.status === "superseded" && !data["superseded-by"]) add("error", file, "superseded without superseded-by");
 

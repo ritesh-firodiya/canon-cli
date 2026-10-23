@@ -35,7 +35,7 @@ Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 | Contradictory canonical value | Two `entity` pages list the same key with different values |
 | `status: superseded` with no `superseded-by` | Set or remove the status |
 | Filename ↔ id slug mismatch | The filename must match the slug portion of the ID |
-| `type` does not match folder | `type: concept` must live in `concepts/`, etc. A type added under `wiki.types` in `.claude/zeno.yaml` lives in its configured folder. |
+| `type` does not match folder | `type: concept` must live in `concepts/`, etc. A type added under `wiki.types` in `.claude/zeno.yaml` lives in its configured folder and has every heading in its `sections`. |
 
 ### Warnings
 

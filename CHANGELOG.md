@@ -22,7 +22,9 @@ the original `zeno-ai` workflow CLI.
   `--packs` for a no-questions setup.
 - Plugin evals on a fixture product.
 - `wiki.types` and `context.folders` in `zeno.yaml`: a team adds page types and
-  `.context` folders, each with a `reason:`. Built-in ones cannot be redefined.
+  `.context` folders, each with a `reason:`. An added type lists its required
+  `sections:`, and `zeno check` fails a page that misses one. Built-in ones
+  cannot be redefined.
 - `metrics-definitions` check: warns when the `metrics` module is on and
   `.context/metrics/definitions.yml` is missing.
 - `dev-methods.md` standard (spec-, test- and data-driven evidence), a table of

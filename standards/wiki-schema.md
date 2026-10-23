@@ -33,11 +33,19 @@ Every page in `.context/wiki/` belongs to exactly one type. The folder name is t
 
 A page cannot be two types. If it feels like it is, it's two pages — split it.
 
-A product adds a type in `.claude/zeno.yaml`, with the reason:
-`wiki: { types: [{ type: bug, folder: bugs, reason: … }] }`. The six built-in
-types and their folders cannot be redefined. Try the six first — an added type
-is a shape every reader and every product must learn. A team that adds a type
-writes its required sections in its own `wiki-schema.md`, which replaces this one.
+A product adds a type in `.claude/zeno.yaml`, with the reason and the `## `
+sections every page of it must have:
+
+```yaml
+wiki:
+  types:
+    - { type: postmortem, folder: postmortems, reason: …, sections: [Summary, Timeline, Root cause, Fix, Sources] }
+```
+
+`zeno check` fails a page of that type that misses a section. Its ID is
+`<TYPE>.<SLUG>` (`POSTMORTEM.MIDNIGHT-RESET`). The six built-in types and their
+folders cannot be redefined. Try the six first — an added type is a shape every
+reader and every product must learn.
 
 ### Data sources
 

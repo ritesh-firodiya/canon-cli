@@ -13,7 +13,8 @@ Checks hardcoded the six types and ten folders, so a team's own standards were
 ignored (C-02).
 
 ## Acceptance scenarios
-- Given `wiki.types: [{type: bug, folder: bugs, reason: …}]`, when a bug page sits in `wiki/bugs/`, then `zeno check` passes.
+- Given `wiki.types: [{type: bug, folder: bugs, reason: …, sections: [Summary]}]`, when a bug page with `## Summary` sits in `wiki/bugs/`, then `zeno check` passes.
+- Given an added type whose page misses one of its `sections`, when `zeno check` runs, then it fails and names the section.
 - Given an added type with no reason, when zeno loads the config, then it fails and names `reason`.
 - Given `modules: [metrics]` and no `metrics/definitions.yml`, when `zeno check` runs, then it warns and does not fail.
 

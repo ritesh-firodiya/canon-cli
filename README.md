@@ -125,7 +125,10 @@ doctor:
     - { tool: pnpm, why: product scripts, hint: npm i -g pnpm }
 wiki:
   types:                            # added to the six built-in page types
-    - { type: bug, folder: bugs, reason: postmortems need their own shape }
+    - type: postmortem
+      folder: postmortems
+      reason: incidents need a timeline and a fix
+      sections: [Summary, Timeline, Root cause, Fix, Sources]   # zeno check requires each `## ` heading
 context:
   folders:                          # added to the ten .context folders
     - { folder: research, reason: interview notes, kept apart from raw/ }

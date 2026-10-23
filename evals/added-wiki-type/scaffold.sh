@@ -6,7 +6,10 @@ mkdir -p .claude
 cat > .claude/zeno.yaml <<'YAML'
 wiki:
   types:
-    - { type: postmortem, folder: postmortems, reason: incidents need a timeline and a fix, not a concept page }
+    - type: postmortem
+      folder: postmortems
+      reason: incidents need a timeline and a fix, not a concept page
+      sections: [Summary, Impact, Timeline, Root cause, Fix, Sources]
 YAML
 cat > .context/raw/2026-10-20-midnight-reset.md <<'MD'
 # Incident notes — 2026-10-20

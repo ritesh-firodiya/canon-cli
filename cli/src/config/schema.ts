@@ -41,7 +41,13 @@ const kebab = z.string().regex(/^[a-z0-9-]+$/, "use lowercase-kebab");
 const reason = z.string().min(1);
 
 const wikiType = z
-  .object({ type: kebab, folder: kebab, reason })
+  .object({
+    type: kebab,
+    folder: kebab,
+    reason,
+    /** The `## ` headings every page of this type must have, as the schema lists them for the built-in six. */
+    sections: z.array(z.string().min(1)).min(1, "list the `## ` sections every page of this type must have"),
+  })
   .strict()
   .refine((entry) => !(entry.type in WIKI_FOLDER_BY_TYPE) && !Object.values(WIKI_FOLDER_BY_TYPE).includes(entry.folder), {
     message: "a built-in wiki type or its folder cannot be redefined — add a new one",
