@@ -46,7 +46,7 @@ claude plugin marketplace add ritesh-firodiya/zeno-ai
 claude plugin install zeno@zeno
 
 # CLI (Node 22+)
-npm install -g @ritesh-firodiya/zeno
+npm install -g @freetesh/zeno
 
 # search
 npm install -g @tobilu/qmd --allow-scripts=node-llama-cpp,tree-sitter-go,tree-sitter-python,tree-sitter-rust,tree-sitter-typescript,tree-sitter-javascript
