@@ -1,5 +1,5 @@
 {
-  "name": "zeno-ai",
+  "name": "@ritesh-firodiya/zeno",
   "version": "0.7.0",
   "description": "zeno CLI: set up, check and sync product repos against the shared standards.",
   "license": "MIT",
@@ -10,7 +10,7 @@
   },
   "type": "module",
   "bin": {
-    "zeno": "./cli/dist/index.js"
+    "zeno": "cli/dist/index.js"
   },
   "files": [
     "cli/dist",
@@ -44,5 +44,8 @@
     "dependency-cruiser": "18.7.0",
     "typescript": "^7.0.2",
     "vitest": "^5.0.5"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
