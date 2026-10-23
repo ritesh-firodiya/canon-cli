@@ -67,6 +67,24 @@ describe("syncRepo", () => {
     ]);
   });
 
+  test("rewrites a drifted architecture base from zeno's template, and leaves a current one alone", async () => {
+    const zeno = makeTree({ ".claude-plugin/plugin.json": JSON.stringify({ version: "1" }), "templates/dependency-cruiser/base.cjs": "// v2\n" });
+    const drifted = makeTree({ ".claude/zeno.yaml": "zeno: \"1\"\n", ".dependency-cruiser.base.cjs": "// v1, edited\n" });
+    const h = harness();
+    const result = await syncRepo(drifted, { zenoRoot: zeno, estateRoot: drifted, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
+    expect(result.base).toBe(true);
+    expect(readFileSync(join(drifted, ".dependency-cruiser.base.cjs"), "utf8")).toBe("// v2\n");
+    const current = await syncRepo(drifted, { zenoRoot: zeno, estateRoot: drifted, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
+    expect(current.base).toBe(false);
+  });
+
+  test("a repo without an architecture base is not given one by sync", async () => {
+    const zeno = makeTree({ ".claude-plugin/plugin.json": JSON.stringify({ version: "1" }), "templates/dependency-cruiser/base.cjs": "// v2\n" });
+    const repo = makeTree({ ".claude/zeno.yaml": "zeno: \"1\"\n" });
+    const h = harness();
+    expect((await syncRepo(repo, { zenoRoot: zeno, estateRoot: repo, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText })).base).toBe(false);
+  });
+
   test("a repo with no zeno.yaml is told to run init", async () => {
     const h = harness();
     await expect(

@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { parse } from "yaml";
-import { applyInit, detectExpoSdk, parseChoices, planInit } from "../src/init.ts";
+import { applyInit, architectureStarters, detectExpoSdk, parseChoices, planInit } from "../src/init.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const recorder = () => {
@@ -96,16 +96,31 @@ describe("applyInit", () => {
     ]);
   });
 
-  test("with the architecture module, writes the starter rules once and never over the repo's own", () => {
-    const zeno = makeTree({ "templates/dependency-cruiser.cjs": "// starter\n" });
-    const repo = makeTree({});
-    const plan = planInit(repo, { zenoVersion: "1", kind: "web", modules: ["architecture"] });
-    expect(plan.create).toContain(".dependency-cruiser.cjs");
-    applyInit(repo, plan, { run: recorder().run, name: "demo", zenoRoot: zeno });
-    expect(readFileSync(join(repo, ".dependency-cruiser.cjs"), "utf8")).toBe("// starter\n");
+  test("architecture in a monorepo: the managed base plus one starter per workspace, by kind", () => {
+    const repo = makeTree({ "apps/web/package.json": "{}", "packages/ui/package.json": "{}", "packages/notes/README.md": "" });
+    expect(architectureStarters(repo)).toEqual([
+      { file: ".dependency-cruiser.base.cjs", template: "base.cjs" },
+      { file: "apps/web/.dependency-cruiser.cjs", template: "app.cjs" },
+      { file: "packages/ui/.dependency-cruiser.cjs", template: "package.cjs" },
+    ]);
+  });
 
-    const own = makeTree({ ".dependency-cruiser.json": "{}" });
-    expect(planInit(own, { zenoVersion: "1", kind: "web", modules: ["architecture"] }).create).not.toContain(".dependency-cruiser.cjs");
+  test("architecture in a single repo: the managed base plus one starter at the root", () => {
+    expect(architectureStarters(makeTree({ "src/a.ts": "" })).map((s) => s.template)).toEqual(["base.cjs", "root.cjs"]);
+  });
+
+  test("init writes the starters from zeno's templates and never over a repo's own rules", () => {
+    const zeno = makeTree({
+      "templates/dependency-cruiser/base.cjs": "// base\n",
+      "templates/dependency-cruiser/app.cjs": "// app\n",
+      "templates/dependency-cruiser/package.cjs": "// package\n",
+    });
+    const repo = makeTree({ "apps/web/package.json": "{}", "packages/ui/package.json": "{}", "packages/ui/.dependency-cruiser.json": "{}" });
+    const plan = planInit(repo, { zenoVersion: "1", kind: "web", modules: ["architecture"] });
+    expect(plan.create).toEqual([".context/README.md", ".context/tasks.md", ".dependency-cruiser.base.cjs", "apps/web/.dependency-cruiser.cjs"]);
+    applyInit(repo, plan, { run: recorder().run, name: "demo", zenoRoot: zeno });
+    expect(readFileSync(join(repo, ".dependency-cruiser.base.cjs"), "utf8")).toBe("// base\n");
+    expect(readFileSync(join(repo, "apps/web/.dependency-cruiser.cjs"), "utf8")).toBe("// app\n");
   });
 
   test("without the knowledge module nothing is indexed", () => {

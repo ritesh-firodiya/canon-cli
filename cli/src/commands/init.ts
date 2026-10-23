@@ -79,7 +79,7 @@ export function registerInit(program: Command, env: Env): void {
       applyInit(path, plan, { name: basename(path), zenoRoot: env.zenoRoot, run: (command, args) => void runCommand(command, args) });
       console.log(`wrote .claude/zeno.yaml (${plan.config.kind}: ${plan.config.modules.join(", ")})`);
       for (const file of plan.create) console.log(`created ${file}`);
-      if (plan.create.includes(RULES_FILES[0])) console.log("architecture: add the checker with `pnpm add -D dependency-cruiser`, then edit .dependency-cruiser.cjs to this repo's layers");
+      if (plan.create.some((file) => file.endsWith(RULES_FILES[0]))) console.log("architecture: add the checker with `pnpm add -D dependency-cruiser`, then edit the .dependency-cruiser.cjs files to this repo's layers");
       console.log(plan.config.packs ? "next: zeno sync (fetches the packs), then zeno check" : "next: zeno check");
     });
 }

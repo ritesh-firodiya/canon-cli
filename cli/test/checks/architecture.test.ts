@@ -2,23 +2,29 @@ import { copyFileSync, mkdirSync, symlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, test } from "vitest";
 import { architecture, architectureGraph, summarize } from "../../src/checks/architecture.ts";
+import { architectureStarters } from "../../src/init.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 
 const ZENO = resolve(import.meta.dirname, "..", "..", "..");
 const ON = { ".claude/zeno.yaml": "modules: [architecture]\n" };
 
-/** A repo using the starter rules, with zeno's own dependency-cruiser linked in as if it were a devDependency. */
+/** A repo laid out with the starters `zeno init` writes, with zeno's own dependency-cruiser linked in as if it were a devDependency. */
 function repoWith(files: Record<string, string>): string {
   const repo = makeTree({ ...ON, ...files });
-  copyFileSync(join(ZENO, "templates", "dependency-cruiser.cjs"), join(repo, ".dependency-cruiser.cjs"));
+  for (const { file, template } of architectureStarters(repo)) {
+    copyFileSync(join(ZENO, "templates", "dependency-cruiser", template), join(repo, file));
+  }
   mkdirSync(join(repo, "node_modules", ".bin"), { recursive: true });
   symlinkSync(join(ZENO, "node_modules", "dependency-cruiser"), join(repo, "node_modules", "dependency-cruiser"));
   symlinkSync(join(ZENO, "node_modules", ".bin", "depcruise"), join(repo, "node_modules", ".bin", "depcruise"));
   return repo;
 }
 
+// Workspaces are folders under apps/ and packages/ with a package.json.
 const CLEAN = {
+  "apps/web/package.json": "{}",
+  "packages/ui/package.json": "{}",
   "apps/web/src/main.js": 'import { greet } from "../../../packages/ui/src/greet.js";\ngreet();\n',
   "packages/ui/src/greet.js": "export const greet = () => 1;\n",
 };
@@ -46,6 +52,7 @@ describe("architecture check", () => {
   test("an app importing another app, and a package importing an app, are errors", () => {
     const repo = repoWith({
       ...CLEAN,
+      "apps/admin/package.json": "{}",
       "apps/admin/src/main.js": 'import "../../web/src/main.js";\n',
       "packages/ui/src/bad.js": 'import "../../../apps/web/src/main.js";\nexport const bad = 1;\n',
     });
@@ -109,11 +116,10 @@ describe("workspaces", () => {
 });
 
 describe("architectureGraph", () => {
-  test("draws one box per collapsed folder, as mermaid", () => {
+  test("draws one mermaid graph per workspace", () => {
     const graph = architectureGraph(repoWith(CLEAN));
-    expect(graph).toMatch(/^## Whole repo\n\n```mermaid\nflowchart LR/);
-    expect(graph).toContain('["web"]');
-    expect(graph).toContain('["ui"]');
+    expect(graph).toMatch(/^## apps\/web\n\n```mermaid\nflowchart LR/);
+    expect(graph).toContain("## packages/ui");
   });
 
   test("is undefined for a repo without rules or without dependency-cruiser", () => {

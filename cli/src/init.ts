@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { stringify } from "yaml";
 import { RULES_FILES } from "./checks/architecture.ts";
@@ -20,6 +20,46 @@ export interface InitPlan {
   config: { zeno: string; kind: Kind; modules: Module[]; expo?: { sdk: number }; packs?: string[] };
   /** Files under the repo that will be created; existing files are never touched. */
   create: string[];
+}
+
+export const ARCHITECTURE_BASE = ".dependency-cruiser.base.cjs";
+const ARCHITECTURE_TEMPLATES = join("templates", "dependency-cruiser");
+const WORKSPACE_PARENTS = ["apps", "packages"];
+
+export interface Starter {
+  file: string;
+  template: "base.cjs" | "root.cjs" | "app.cjs" | "package.cjs";
+}
+
+/**
+ * The rules files the architecture module needs: zeno's managed base, then a starter
+ * per workspace (a folder under apps/ or packages/ with a package.json), or one at the
+ * root when the repo has no workspaces.
+ */
+export function architectureStarters(repo: string): Starter[] {
+  const workspaces = WORKSPACE_PARENTS.flatMap((parent) =>
+    existsSync(join(repo, parent))
+      ? readdirSync(join(repo, parent), { withFileTypes: true })
+          .filter((entry) => entry.isDirectory() && existsSync(join(repo, parent, entry.name, "package.json")))
+          .map((entry) => `${parent}/${entry.name}`)
+          .sort()
+      : [],
+  );
+  const starters: Starter[] =
+    workspaces.length > 0
+      ? workspaces.map((dir) => ({ file: `${dir}/${RULES_FILES[0]}`, template: dir.startsWith("apps/") ? "app.cjs" : "package.cjs" }))
+      : [{ file: RULES_FILES[0], template: "root.cjs" }];
+  return [{ file: ARCHITECTURE_BASE, template: "base.cjs" }, ...starters];
+}
+
+/** Rewrites a repo's managed architecture base from zeno's template; true when it changed. */
+export function refreshArchitectureBase(repo: string, zenoRoot: string): boolean {
+  const file = join(repo, ARCHITECTURE_BASE);
+  if (!existsSync(file)) return false;
+  const current = readFileSync(join(zenoRoot, ARCHITECTURE_TEMPLATES, "base.cjs"), "utf8");
+  if (readFileSync(file, "utf8") === current) return false;
+  writeFileSync(file, current);
+  return true;
 }
 
 /** Parses a `--modules`/`--packs` style comma list, rejecting anything not in `allowed`. */
@@ -79,8 +119,12 @@ export function planInit(repo: string, answers: InitAnswers): InitPlan {
   const config: InitPlan["config"] = { zeno: answers.zenoVersion, kind, modules, ...(sdk ? { expo: { sdk } } : {}), ...packs };
 
   const create = requiredContext(modules).filter((name) => !existsSync(join(repo, ".context", name))).map((name) => FIRST_FILE[name]);
-  const hasRules = RULES_FILES.some((file) => existsSync(join(repo, file)));
-  if (modules.includes("architecture") && !hasRules) create.push(RULES_FILES[0]);
+  if (modules.includes("architecture")) {
+    // A workspace that already has rules of its own (any name dependency-cruiser reads) keeps them.
+    const taken = (file: string) =>
+      file === ARCHITECTURE_BASE ? existsSync(join(repo, file)) : RULES_FILES.some((name) => existsSync(join(repo, dirname(file), name)));
+    create.push(...architectureStarters(repo).map((s) => s.file).filter((file) => !taken(file)));
+  }
   return { config, create };
 }
 
@@ -91,8 +135,10 @@ export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; 
     writeFileSync(join(repo, file), content);
   };
   write(".claude/zeno.yaml", stringify(plan.config));
+  const starters = new Map(architectureStarters(repo).map((s) => [s.file, s.template]));
   for (const file of plan.create) {
-    write(file, file === RULES_FILES[0] ? readFileSync(join(options.zenoRoot, "templates", "dependency-cruiser.cjs"), "utf8") : template(file, today));
+    const starter = starters.get(file);
+    write(file, starter ? readFileSync(join(options.zenoRoot, ARCHITECTURE_TEMPLATES, starter), "utf8") : template(file, today));
   }
 
   if (plan.config.modules.includes("knowledge")) indexKnowledge(repo, options.name, options.run);

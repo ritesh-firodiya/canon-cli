@@ -28,12 +28,13 @@ It has two halves that read the same config:
   stale pages, prices with no canonical home, copied standards, and runs every
   checker your config declares.
 - **Each repo's architecture is enforced.** With the `architecture` module, a
-  repo keeps its own import rules in `.dependency-cruiser.cjs` (`zeno init`
-  writes a starter; add `dependency-cruiser` as a devDependency). In a monorepo
-  whose apps each map `@/` to their own `src`, give each workspace under
-  `apps/` or `packages/` its own rules file; each runs from its folder. `zeno check`
-  fails on a broken boundary or a cycle, the gate weighs requests against the
-  rules, and `zeno ui` draws each repo's import graph.
+  repo keeps its own import rules in `.dependency-cruiser.cjs` files: one at the
+  root, or one per workspace under `apps/` and `packages/` (each runs from its
+  folder, since apps map `@/` to their own `src`). `zeno init` writes starters and
+  `.dependency-cruiser.base.cjs`, the shared base they extend; that base is zeno's,
+  and `zeno sync` keeps it current. Add `dependency-cruiser` as a devDependency.
+  `zeno check` fails on a broken boundary or a cycle, the gate weighs requests
+  against the rules, and `zeno ui` draws each repo's import graph.
 - **Products evolve together.** Packs index vendor docs (`llms.txt`) for a stack;
   `zeno sync` refreshes them and moves each repo to the current zeno version.
 
@@ -146,7 +147,7 @@ agents/           challenger — independent second opinion for large requests
 hooks/            session start: constitution titles, qmd refresh
 standards/        default standards
 packs/            vendor doc packs
-templates/        starter files init writes (dependency-cruiser rules)
+templates/        files init writes: dependency-cruiser base (synced) and starters
 scripts/          log-verdict.mjs — append-only override log
 cli/              the zeno CLI (TypeScript, vitest; built to cli/dist for npm)
 evals/            plugin evals and the fixture product

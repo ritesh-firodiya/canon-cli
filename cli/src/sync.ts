@@ -2,7 +2,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { parseDocument } from "yaml";
 import { loadConfig } from "./config/load.ts";
-import { indexKnowledge } from "./init.ts";
+import { indexKnowledge, refreshArchitectureBase } from "./init.ts";
 import { fetchPackDocs, findPack, type CommandRunner } from "./packs.ts";
 import { zenoVersion } from "./status.ts";
 
@@ -16,6 +16,8 @@ export interface SyncOptions {
 
 export interface SyncResult {
   packs: string[];
+  /** True when the managed architecture base was rewritten from zeno's template. */
+  base: boolean;
   version: { from: string | undefined; to: string } | null;
 }
 
@@ -33,10 +35,11 @@ export async function syncRepo(repo: string, options: SyncOptions): Promise<Sync
   options.run("qmd", ["update"]);
   options.run("qmd", ["embed"]);
 
+  const base = refreshArchitectureBase(repo, options.zenoRoot);
   const current = zenoVersion(options.zenoRoot);
-  if (config.zeno === current) return { packs, version: null };
+  if (config.zeno === current) return { packs, base, version: null };
   const document = parseDocument(readFileSync(file, "utf8"));
   document.set("zeno", current);
   writeFileSync(file, document.toString());
-  return { packs, version: { from: config.zeno, to: current } };
+  return { packs, base, version: { from: config.zeno, to: current } };
 }
