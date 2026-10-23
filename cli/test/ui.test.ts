@@ -56,7 +56,7 @@ describe("buildSite", () => {
   test("gives each product with architecture rules a graph page, linked from home", () => {
     const root = estate();
     const out = makeTree({});
-    const graph = (repo: string) => (repo.endsWith("alpha") ? "flowchart LR\n  1[\"web\"]-->2[\"ui\"]" : undefined);
+    const graph = (repo: string) => (repo.endsWith("alpha") ? "```mermaid\nflowchart LR\n  1[\"web\"]-->2[\"ui\"]\n```" : undefined);
     buildSite([join(root, "alpha"), join(root, "beta")], { siteDir: out, designsDir: join(out, "_d"), designsUrl: "u", report: "", graph });
     expect(readFileSync(join(out, "architecture/alpha.md"), "utf8")).toContain('```mermaid\nflowchart LR\n  1["web"]-->2["ui"]\n```');
     expect(existsSync(join(out, "architecture/beta.md"))).toBe(false);

@@ -68,10 +68,28 @@ describe("architecture check", () => {
   });
 });
 
+describe("workspaces", () => {
+
+  test("each workspace with its own rules is checked from its folder, findings keep the repo path", () => {
+    const repo = makeTree({
+      ...ON,
+      "apps/web/src/main.js": "export const x = 1;\n",
+      "apps/admin/src/main.js": 'import "../../web/src/main.js";\n',
+      "apps/admin/.dependency-cruiser.cjs":
+        'module.exports = { forbidden: [{ name: "no-app-to-app", severity: "error", from: {}, to: { path: "^\\\\.\\\\./[^./]" } }] };',
+    });
+    mkdirSync(join(repo, "node_modules", ".bin"), { recursive: true });
+    symlinkSync(join(ZENO, "node_modules", ".bin", "depcruise"), join(repo, "node_modules", ".bin", "depcruise"));
+    expect(architecture.run(contextFor(repo))).toEqual([
+      expect.objectContaining({ level: "error", file: "apps/admin/src/main.js", message: "no-app-to-app (1): apps/admin/src/main.js → apps/web/src/main.js" }),
+    ]);
+  });
+});
+
 describe("architectureGraph", () => {
   test("draws one box per collapsed folder, as mermaid", () => {
     const graph = architectureGraph(repoWith(CLEAN));
-    expect(graph).toMatch(/^flowchart LR/);
+    expect(graph).toMatch(/^## Whole repo\n\n```mermaid\nflowchart LR/);
     expect(graph).toContain('["web"]');
     expect(graph).toContain('["ui"]');
   });

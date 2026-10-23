@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
-import { join } from "node:path";
+import { join, posix } from "node:path";
 import type { Check, Finding } from "./types.ts";
 
 // The names dependency-cruiser itself looks for; `zeno init` writes the first.
@@ -18,9 +18,37 @@ export interface Violation {
   to: string;
 }
 
-function rulesFile(repo: string): string | undefined {
-  return RULES_FILES.find((file) => existsSync(join(repo, file)));
+// Monorepo workspaces whose apps each map `@/` to their own src need one rules file each,
+// because dependency-cruiser resolves aliases from a single tsconfig per run.
+const WORKSPACE_PARENTS = ["apps", "packages"];
+
+interface Rules {
+  /** Folder the rules apply to, relative to the repo ("." for the root). */
+  dir: string;
+  file: string;
 }
+
+function rulesFile(dir: string): string | undefined {
+  return RULES_FILES.find((file) => existsSync(join(dir, file)));
+}
+
+/** Every rules file in the repo: the root's, then one per workspace under apps/ and packages/. */
+export function findRules(repo: string): Rules[] {
+  const workspaces = WORKSPACE_PARENTS.flatMap((parent) =>
+    existsSync(join(repo, parent))
+      ? readdirSync(join(repo, parent), { withFileTypes: true })
+          .filter((entry) => entry.isDirectory())
+          .map((entry) => `${parent}/${entry.name}`)
+          .sort()
+      : [],
+  );
+  return [".", ...workspaces].flatMap((dir) => {
+    const file = rulesFile(join(repo, dir));
+    return file ? [{ dir, file }] : [];
+  });
+}
+
+const fromRoot = (dir: string, path: string) => posix.normalize(posix.join(dir, path));
 
 // The repo's own pinned copy, never a global one, so every machine runs the same version.
 function depcruiseBin(repo: string): string | undefined {
@@ -28,8 +56,8 @@ function depcruiseBin(repo: string): string | undefined {
   return existsSync(bin) ? bin : undefined;
 }
 
-function depcruise(repo: string, bin: string, file: string, args: string[]) {
-  return spawnSync(bin, [".", "--config", file, ...args], { cwd: repo, encoding: "utf8", maxBuffer: MAX_BUFFER });
+function depcruise(repo: string, bin: string, rules: Rules, args: string[]) {
+  return spawnSync(bin, [".", "--config", rules.file, ...args], { cwd: join(repo, rules.dir), encoding: "utf8", maxBuffer: MAX_BUFFER });
 }
 
 /** One finding per broken rule: how often, and the first few places. */
@@ -56,41 +84,52 @@ export const architecture: Check = {
   description: "the repo keeps the import boundaries in its own .dependency-cruiser.cjs",
   run({ repo }) {
     const finding = (message: string, file?: string): Finding[] => [{ check: "architecture", level: "error", file, message }];
-    const file = rulesFile(repo);
-    if (!file) {
+    const all = findRules(repo);
+    if (all.length === 0) {
       return finding("no architecture rules — run `zeno init --force --modules ...,architecture` for a starter, or write one", RULES_FILES[0]);
     }
     const bin = depcruiseBin(repo);
     if (!bin) return finding("dependency-cruiser is not installed here — add it as a devDependency (e.g. `pnpm add -D dependency-cruiser`)", "package.json");
 
-    const result = depcruise(repo, bin, file, ["--output-type", "json"]);
-    try {
-      return summarize(JSON.parse(result.stdout).summary.violations);
-    } catch {
-      return finding(`dependency-cruiser failed: ${(result.error?.message ?? result.stderr).trim().split("\n").slice(-5).join(" ")}`, file);
-    }
+    return all.flatMap((rules) => {
+      const result = depcruise(repo, bin, rules, ["--output-type", "json"]);
+      try {
+        const violations: Violation[] = JSON.parse(result.stdout).summary.violations;
+        return summarize(violations.map((v) => ({ ...v, from: fromRoot(rules.dir, v.from), to: fromRoot(rules.dir, v.to) })));
+      } catch {
+        const why = (result.error?.message ?? result.stderr).trim().split("\n").slice(-5).join(" ");
+        return finding(`dependency-cruiser failed: ${why}`, fromRoot(rules.dir, rules.file));
+      }
+    });
   },
 };
 
 // The graph level is the repo's choice, kept where dependency-cruiser keeps it for its own high-level view.
-function collapsePattern(repo: string, file: string): string {
+function collapsePattern(dir: string, file: string): string {
   try {
-    const config = createRequire(join(repo, "noop.js"))(join(repo, file));
+    const config = createRequire(join(dir, "noop.js"))(join(dir, file));
     return config.options?.reporterOptions?.archi?.collapsePattern ?? DEFAULT_COLLAPSE;
   } catch {
     return DEFAULT_COLLAPSE;
   }
 }
 
-/** The repo's architecture as a mermaid flowchart, or undefined when it has no rules or no dependency-cruiser. */
-export function architectureGraph(repo: string): string | undefined {
-  const file = rulesFile(repo);
-  const bin = depcruiseBin(repo);
-  if (!file || !bin) return undefined;
-  const result = depcruise(repo, bin, file, ["--output-type", "mermaid", "--collapse", collapsePattern(repo, file)]);
+function graphOf(repo: string, bin: string, rules: Rules): string | undefined {
+  const result = depcruise(repo, bin, rules, ["--output-type", "mermaid", "--collapse", collapsePattern(join(repo, rules.dir), rules.file)]);
   if (result.status !== 0 || !result.stdout.trim()) return undefined;
   if (result.stdout.length > MERMAID_MAX_CHARS) {
     return "flowchart LR\n  too_big[\"Graph too large to draw — set a coarser reporterOptions.archi.collapsePattern\"]";
   }
   return result.stdout.trim();
+}
+
+/** The repo's architecture as markdown — one mermaid graph per rules file — or undefined when there is nothing to draw. */
+export function architectureGraph(repo: string): string | undefined {
+  const bin = depcruiseBin(repo);
+  if (!bin) return undefined;
+  const sections = findRules(repo).flatMap((rules) => {
+    const graph = graphOf(repo, bin, rules);
+    return graph ? [`## ${rules.dir === "." ? "Whole repo" : rules.dir}\n\n\`\`\`mermaid\n${graph}\n\`\`\``] : [];
+  });
+  return sections.length > 0 ? sections.join("\n\n") : undefined;
 }

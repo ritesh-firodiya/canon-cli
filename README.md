@@ -29,7 +29,9 @@ It has two halves that read the same config:
   checker your config declares.
 - **Each repo's architecture is enforced.** With the `architecture` module, a
   repo keeps its own import rules in `.dependency-cruiser.cjs` (`zeno init`
-  writes a starter; add `dependency-cruiser` as a devDependency). `zeno check`
+  writes a starter; add `dependency-cruiser` as a devDependency). In a monorepo
+  whose apps each map `@/` to their own `src`, give each workspace under
+  `apps/` or `packages/` its own rules file; each runs from its folder. `zeno check`
   fails on a broken boundary or a cycle, the gate weighs requests against the
   rules, and `zeno ui` draws each repo's import graph.
 - **Products evolve together.** Packs index vendor docs (`llms.txt`) for a stack;

@@ -10,7 +10,7 @@ export interface SiteOptions {
   designsUrl: string;
   /** `zeno check --all` output, shown as its own page. */
   report: string;
-  /** A product's architecture as mermaid, or undefined when it has none. */
+  /** A product's architecture as markdown with mermaid graphs, or undefined when it has none. */
   graph?: (repo: string) => string | undefined;
 }
 
@@ -57,7 +57,7 @@ export function buildSite(products: string[], options: SiteOptions): void {
       mkdirSync(join(options.siteDir, "architecture"), { recursive: true });
       writeFileSync(
         join(options.siteDir, "architecture", `${name}.md`),
-        `---\ntitle: ${name} architecture\n---\n\nImports between parts of ${name}, from its \`.dependency-cruiser.cjs\`. Red rules fail \`zeno check\`.\n\n\`\`\`mermaid\n${graph}\n\`\`\`\n`,
+        `---\ntitle: ${name} architecture\n---\n\nImports between parts of ${name}, from its \`.dependency-cruiser.cjs\`. Broken rules fail \`zeno check\`.\n\n${graph}\n`,
       );
       links.push(`[[architecture/${name}|architecture graph]]`);
     }
