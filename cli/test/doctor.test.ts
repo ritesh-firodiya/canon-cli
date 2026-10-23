@@ -21,6 +21,6 @@ describe("runDoctor", () => {
   test("an outdated node is not ok", () => {
     const node = runDoctor(probe({ node: "v20.1.0" })).find((r) => r.tool === "node");
     expect(node).toEqual(expect.objectContaining({ ok: false, version: "20.1.0" }));
-    expect(node?.hint).toMatch(/23\.6/);
+    expect(node?.hint).toMatch(/Node 22\+/);
   });
 });

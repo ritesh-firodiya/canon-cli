@@ -54,6 +54,19 @@ describe("syncRepo", () => {
     expect(result.version).toBeNull();
   });
 
+  test("indexes the repo's wiki and features before reindexing, so a late qmd install still finds them", async () => {
+    const repo = makeTree({ ".claude/zeno.yaml": "zeno: 0.4.0\nkind: content\nmodules: [knowledge]\n" });
+    const h = harness();
+    await syncRepo(repo, { zenoRoot: zenoWith("0.4.0"), estateRoot: repo, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
+    const name = repo.split("/").pop();
+    expect(h.calls).toEqual([
+      ["qmd", "collection", "add", join(repo, ".context", "wiki"), "--name", `${name}-wiki`],
+      ["qmd", "collection", "add", join(repo, ".context", "features"), "--name", `${name}-features`],
+      ["qmd", "update"],
+      ["qmd", "embed"],
+    ]);
+  });
+
   test("a repo with no zeno.yaml is told to run init", async () => {
     const h = harness();
     await expect(

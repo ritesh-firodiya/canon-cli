@@ -8,7 +8,10 @@ const FETCH_TIMEOUT_MS = 30_000;
 
 export function runCommand(command: string, args: string[]): RunResult {
   const result = spawnSync(command, args, { encoding: "utf8" });
-  if (result.error) return { status: 1, output: result.error.message };
+  if (result.error) {
+    const missing = (result.error as NodeJS.ErrnoException).code === "ENOENT";
+    return { status: 1, output: missing ? `${command} is not installed — run \`zeno doctor\`` : result.error.message };
+  }
   return { status: result.status ?? 1, output: `${result.stdout}${result.stderr}` };
 }
 

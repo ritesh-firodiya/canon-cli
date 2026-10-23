@@ -80,8 +80,12 @@ export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; 
   write(".claude/zeno.yaml", stringify(plan.config));
   for (const file of plan.create) write(file, template(file, today));
 
-  if (!plan.config.modules.includes("knowledge")) return;
+  if (plan.config.modules.includes("knowledge")) indexKnowledge(repo, options.name, options.run);
+}
+
+/** Adds the repo's wiki and features to qmd. Safe to repeat: qmd refuses a name it already has. */
+export function indexKnowledge(repo: string, name: string, run: Runner): void {
   for (const kind of ["wiki", "features"]) {
-    options.run("qmd", ["collection", "add", join(repo, ".context", kind), "--name", `${options.name}-${kind}`]);
+    run("qmd", ["collection", "add", join(repo, ".context", kind), "--name", `${name}-${kind}`]);
   }
 }

@@ -1,7 +1,8 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { parseDocument } from "yaml";
 import { loadConfig } from "./config/load.ts";
+import { indexKnowledge } from "./init.ts";
 import { fetchPackDocs, findPack, type CommandRunner } from "./packs.ts";
 import { zenoVersion } from "./status.ts";
 
@@ -28,6 +29,7 @@ export async function syncRepo(repo: string, options: SyncOptions): Promise<Sync
   for (const name of packs) {
     await fetchPackDocs(findPack(options.zenoRoot, name), options);
   }
+  if (config.modules.includes("knowledge")) indexKnowledge(repo, basename(repo), options.run);
   options.run("qmd", ["update"]);
   options.run("qmd", ["embed"]);
 
