@@ -1,6 +1,38 @@
 # Changelog
 
-## Unreleased
+## 0.8.0 — 2026-10-23
+
+### Added
+
+- `wiki.types` and `context.folders` in `zeno.yaml`: a team adds page types and
+  `.context` folders, each with a `reason:`. An added type lists its required
+  `sections:`, and `zeno check` fails a page that misses one. Built-in ones
+  cannot be redefined.
+- `metrics-definitions` check: warns when the `metrics` module is on and
+  `.context/metrics/definitions.yml` is missing.
+- `dev-methods.md` standard (spec-, test- and data-driven evidence), a table of
+  where each kind of document lives, and `SOURCE.*` entity pages for data tools.
+- Evals `added-wiki-type` and `evidence-first` (seven cases in all).
+
+### Changed
+
+- **Breaking:** the unused `specs` module is removed. A `zeno.yaml` that lists
+  it fails to load.
+- **Breaking:** `metrics` is no longer a default module; turn it on when you
+  define metrics. Where it is on, a missing `definitions.yml` is a warning.
+- The weigh gate costs fewer tokens: it no longer fires on every multi-file
+  change, searches the current product's collections first, and calls the
+  `challenger` only for too-large requests (or when asked), handing it what was
+  already read.
+- `/decision` copies the shape of a recent decision page instead of reading the
+  whole wiki schema.
+
+### Fixed
+
+- `zeno check` and the `ingest`, `decision` and `wiki-lint` skills follow a
+  team's own wiki schema and context layout instead of zeno's built-in lists.
+
+## 0.7.0
 
 zeno rebuilt as a Claude Code plugin plus a CLI. Everything below is new since
 the original `zeno-ai` workflow CLI.
@@ -21,31 +53,14 @@ the original `zeno-ai` workflow CLI.
 - `init` asks for kind, modules and packs, and takes `--kind`, `--modules`,
   `--packs` for a no-questions setup.
 - Plugin evals on a fixture product.
-- `wiki.types` and `context.folders` in `zeno.yaml`: a team adds page types and
-  `.context` folders, each with a `reason:`. An added type lists its required
-  `sections:`, and `zeno check` fails a page that misses one. Built-in ones
-  cannot be redefined.
-- `metrics-definitions` check: warns when the `metrics` module is on and
-  `.context/metrics/definitions.yml` is missing.
-- `dev-methods.md` standard (spec-, test- and data-driven evidence), a table of
-  where each kind of document lives, and `SOURCE.*` entity pages for data tools.
 
 ### Changed
 
 - Every module is optional. Designs and docs are no longer required; an estate
   that wants designs first adds that as its own command.
 - `zeno learn` decisions are stored with the estate, not inside the zeno install.
-- `metrics` is no longer a default module; turn it on when you define metrics.
-- The unused `specs` module is removed. A `zeno.yaml` that lists it fails to load.
-- The weigh gate costs fewer tokens: it no longer fires on every multi-file
-  change, searches the current product's collections first, and calls the
-  `challenger` only for too-large requests (or when asked), handing it what was
-  already read.
 
 ### Fixed
-
-- `zeno check` and the `ingest`, `decision` and `wiki-lint` skills follow a
-  team's own wiki schema and context layout instead of zeno's built-in lists.
 
 - `sync` indexes the wiki even when qmd was installed after `init`.
 - A missing tool reports "not installed — run `zeno doctor`" instead of `ENOENT`.
