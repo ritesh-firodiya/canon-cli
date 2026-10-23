@@ -43,6 +43,7 @@ const context = [
   "Knowledge lookup: for any question about a product's prices, rules, decisions,",
   "features or past choices, call mcp__plugin_zeno_qmd__query FIRST, then read the",
   "hits with mcp__plugin_zeno_qmd__get. Use grep only for code, or when qmd finds nothing.",
+  "Decisions and ADRs: use the zeno decision skill (it follows the wiki schema), not other ADR skills.",
 ].join("\n");
 
 process.stdout.write(

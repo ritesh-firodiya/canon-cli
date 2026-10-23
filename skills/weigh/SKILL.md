@@ -1,6 +1,6 @@
 ---
 name: weigh
-description: Decision gate run BEFORE acting on a non-trivial request in a product repo — a new feature, screen or product, a new dependency or library, a migration or rewrite, a schema, money, pricing or store change, a release or deploy, deleting something, or any change touching more than one file or more than one product. Weighs the request against the zeno constitution, the product's wiki and ADRs, existing features and tasks, cost vs value, and writing less code, then returns do it / do it differently / push back with citations. Also use when the user types /weigh or asks "should we…", "is it worth…", "does this make sense".
+description: Decision gate run BEFORE acting on a non-trivial request in a product repo — a new feature, screen or product, a new dependency or library, a migration or rewrite, a schema, money, pricing or store change, a release or deploy, deleting something, or a change that spans more than one product. Weighs the request against the zeno constitution, the product's wiki and ADRs, existing features and tasks, cost vs value, and writing less code, then returns do it / do it differently / push back with citations. Also use when the user types /weigh or asks "should we…", "is it worth…", "does this make sense".
 ---
 
 # Weigh before acting
@@ -29,8 +29,10 @@ product's `.claude/zeno.yaml` may tighten this under `weigh.trivial`.
    in its area.
 
 3. **Domain.** Search before you judge. Run `mcp__plugin_zeno_qmd__query` with
-   the goal in plain words, then the key nouns (product name + topic). Read the
-   top hits with `mcp__plugin_zeno_qmd__get`. Look for: an ADR that already
+   the goal in plain words, then the key nouns, scoped with `collections` to
+   this product's `<repo>-wiki` and `<repo>-features` (the names `zeno init`
+   gives them; add `pack-<name>` when the question is about a vendor's API). Other products' hits are noise here; step 4 is where
+   siblings are searched. Read the top hits with `mcp__plugin_zeno_qmd__get`. Look for: an ADR that already
    decided this, a canonical value it would change, a concept it would break.
    If qmd is unavailable, read `.context/wiki/index.md` and `decisions/`.
    **Architecture:** if `.claude/zeno.yaml` lists the `architecture` module, read
@@ -63,10 +65,13 @@ product's `.claude/zeno.yaml` may tighten this under `weigh.trivial`.
    → fewer lines → new code. If the `ponytail` plugin is installed, follow its
    ladder for this step.
 
-7. **Large or too-large?** Delegate steps 2–6 to the `challenger` agent for an
-   independent read — pass it the request, the repo path and the constitution
-   and standards paths from step 2 — then reconcile: where you and it disagree,
-   show both.
+7. **Too-large, or the user asked for a second opinion?** Then, and only then,
+   ask the `challenger` agent for an independent read. It costs tens of
+   thousands of tokens, so hand it what you already have: the request, the repo
+   path, your draft verdict, and every file and wiki page you read with one line
+   on what each says. It checks your reasoning and looks only where you did
+   not. Where you and it disagree, show both. A large request is weighed by you
+   alone.
 
 ## Verdict
 

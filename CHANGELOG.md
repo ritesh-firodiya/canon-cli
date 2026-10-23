@@ -35,6 +35,10 @@ the original `zeno-ai` workflow CLI.
 - `zeno learn` decisions are stored with the estate, not inside the zeno install.
 - `metrics` is no longer a default module; turn it on when you define metrics.
 - The unused `specs` module is removed. A `zeno.yaml` that lists it fails to load.
+- The weigh gate costs fewer tokens: it no longer fires on every multi-file
+  change, searches the current product's collections first, and calls the
+  `challenger` only for too-large requests (or when asked), handing it what was
+  already read.
 
 ### Fixed
 
