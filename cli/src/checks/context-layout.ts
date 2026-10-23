@@ -1,9 +1,16 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import type { Module } from "../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 
 const ALLOWED_FOLDERS = ["raw", "wiki", "features", "designs", "listing", "marketing", "metrics", "support", "legal", "ops"];
-export const REQUIRED_CONTEXT = ["README.md", "tasks.md", "raw", "wiki", "features"];
+const KNOWLEDGE_CONTEXT = ["raw", "wiki", "features"];
+
+/** What .context must hold: README.md and tasks.md always, the knowledge folders only when docs or knowledge is on. */
+export function requiredContext(modules: Module[]): string[] {
+  const knowledge = modules.includes("docs") || modules.includes("knowledge");
+  return ["README.md", "tasks.md", ...(knowledge ? KNOWLEDGE_CONTEXT : [])];
+}
 const ROOT_FILES = ["README.md", "tasks.md"];
 
 export const contextLayout: Check = {
@@ -20,14 +27,9 @@ export const contextLayout: Check = {
     });
     if (!existsSync(context)) return [finding("error", ".context", "no .context/ folder — run `zeno init`")];
 
-    const findings = REQUIRED_CONTEXT.filter((name) => !existsSync(join(context, name))).map((name) =>
+    const findings = requiredContext(config.modules).filter((name) => !existsSync(join(context, name))).map((name) =>
       finding("error", `.context/${name}`, `required ${name} is missing`),
     );
-    // Drawing the designs is pipeline stage 1, so a design product without them
-    // has not started; zeno init cannot create them for it.
-    if (config.modules.includes("design") && !existsSync(join(context, "designs"))) {
-      findings.push(finding("error", ".context/designs", "no designs yet — stage 1 (HTML designs) comes before any code"));
-    }
     for (const entry of readdirSync(context, { withFileTypes: true })) {
       if (entry.name === ".DS_Store") continue;
       if (entry.isDirectory() && !ALLOWED_FOLDERS.includes(entry.name)) {

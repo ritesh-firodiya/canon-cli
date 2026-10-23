@@ -66,7 +66,7 @@ export interface Config {
 }
 
 export const MODULES_BY_KIND: Record<Kind, Module[]> = {
-  "expo-app": ["docs", "design", "knowledge", "metrics", "code", "listing"],
-  web: ["docs", "design", "knowledge", "metrics", "code"],
+  "expo-app": ["docs", "knowledge", "metrics", "code", "listing"],
+  web: ["docs", "knowledge", "metrics", "code"],
   content: ["docs", "knowledge"],
 };

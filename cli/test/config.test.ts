@@ -7,7 +7,8 @@ describe("loadConfig", () => {
     const repo = makeTree({ "app.config.ts": "export default {}" });
     const { config } = loadConfig(repo);
     expect(config.kind).toBe("expo-app");
-    expect(config.modules).toContain("design");
+    expect(config.modules).toContain("code");
+    expect(config.modules).not.toContain("design");
   });
 
   test("infers kind web from next.config and content when there is no code", () => {

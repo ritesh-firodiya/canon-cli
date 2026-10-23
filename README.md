@@ -56,7 +56,8 @@ Run the CLI from source (Node 23.6+ runs the TypeScript directly):
 ## CLI
 
 ```bash
-zeno init             # write .claude/zeno.yaml and the missing .context files (asks; -y to accept)
+zeno init             # write .claude/zeno.yaml and the missing .context files (asks kind, modules, packs)
+zeno init -y --kind web --modules docs,code --packs nextjs   # same, no questions
 zeno add              # list packs; `zeno add expo` adds one and indexes its docs (-g: whole estate)
 zeno check            # this repo against the standards (exit 1 on any error)
 zeno check --all -q   # every repo in the estate, only the ones with findings
@@ -92,7 +93,7 @@ doctor:
 # <repo>/.claude/zeno.yaml — written by `zeno init`
 zeno: 0.6.0
 kind: expo-app                      # expo-app | web | content
-modules: [docs, design, knowledge, metrics, code, listing]
+modules: [docs, knowledge, metrics, code, listing]   # all optional; design is added when .context/designs exists
 packs: [expo]
 checks:
   stale-copies: { enabled: false, reason: "Cursor is still used here" }

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { stringify } from "yaml";
-import { REQUIRED_CONTEXT } from "./checks/context-layout.ts";
+import { requiredContext } from "./checks/context-layout.ts";
 import { inferKind, inferModules } from "./config/load.ts";
 import { MODULES_BY_KIND, type Kind, type Module } from "./config/schema.ts";
 
@@ -11,16 +11,25 @@ export interface InitAnswers {
   zenoVersion: string;
   kind?: Kind;
   modules?: Module[];
+  packs?: string[];
   force?: boolean;
 }
 
 export interface InitPlan {
-  config: { zeno: string; kind: Kind; modules: Module[]; expo?: { sdk: number } };
+  config: { zeno: string; kind: Kind; modules: Module[]; expo?: { sdk: number }; packs?: string[] };
   /** Files under the repo that will be created; existing files are never touched. */
   create: string[];
 }
 
-const PACKAGE_FILES = ["package.json", "apps/mobile/package.json"];
+/** Parses a `--modules`/`--packs` style comma list, rejecting anything not in `allowed`. */
+export function parseChoices<T extends string>(value: string, allowed: readonly T[], label: string): T[] {
+  const chosen = value.split(",").map((item) => item.trim()).filter(Boolean);
+  const unknown = chosen.find((item) => !allowed.includes(item as T));
+  if (unknown) throw new Error(`unknown ${label} "${unknown}" — choose from: ${allowed.join(", ")}`);
+  return chosen as T[];
+}
+
+const PACKAGE_FILES =["package.json", "apps/mobile/package.json"];
 
 export function detectExpoSdk(repo: string): number | undefined {
   for (const file of PACKAGE_FILES) {
@@ -65,9 +74,10 @@ export function planInit(repo: string, answers: InitAnswers): InitPlan {
   const kind = answers.kind ?? inferKind(repo);
   const modules = answers.modules ?? (answers.kind ? MODULES_BY_KIND[kind] : inferModules(repo, kind));
   const sdk = kind === "expo-app" ? detectExpoSdk(repo) : undefined;
-  const config: InitPlan["config"] = { zeno: answers.zenoVersion, kind, modules, ...(sdk ? { expo: { sdk } } : {}) };
+  const packs = answers.packs?.length ? { packs: answers.packs } : {};
+  const config: InitPlan["config"] = { zeno: answers.zenoVersion, kind, modules, ...(sdk ? { expo: { sdk } } : {}), ...packs };
 
-  const create = REQUIRED_CONTEXT.filter((name) => !existsSync(join(repo, ".context", name))).map((name) => FIRST_FILE[name]);
+  const create = requiredContext(modules).filter((name) => !existsSync(join(repo, ".context", name))).map((name) => FIRST_FILE[name]);
   return { config, create };
 }
 

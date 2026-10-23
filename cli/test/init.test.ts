@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { parse } from "yaml";
-import { applyInit, detectExpoSdk, planInit } from "../src/init.ts";
+import { applyInit, detectExpoSdk, parseChoices, planInit } from "../src/init.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const recorder = () => {
@@ -18,6 +18,17 @@ describe("detectExpoSdk", () => {
   });
 });
 
+describe("parseChoices", () => {
+  test("splits a comma list and keeps only known values", () => {
+    expect(parseChoices("docs, code", ["docs", "code", "design"], "module")).toEqual(["docs", "code"]);
+    expect(parseChoices("", ["docs"], "module")).toEqual([]);
+  });
+
+  test("an unknown value is an error that lists the allowed ones", () => {
+    expect(() => parseChoices("docs,desgin", ["docs", "design"], "module")).toThrow(/unknown module "desgin" — choose from: docs, design/);
+  });
+});
+
 describe("planInit", () => {
   test("proposes the inferred kind, its modules, the expo sdk and the zeno version", () => {
     const repo = makeTree({ "app.config.ts": "", "package.json": JSON.stringify({ dependencies: { expo: "~57.0.0" } }) });
@@ -25,9 +36,24 @@ describe("planInit", () => {
     expect(plan.config).toEqual({
       zeno: "0.4.0",
       kind: "expo-app",
-      modules: ["docs", "design", "knowledge", "metrics", "code", "listing"],
+      modules: ["docs", "knowledge", "metrics", "code", "listing"],
       expo: { sdk: 57 },
     });
+  });
+
+  test("design is proposed only when the repo already has designs", () => {
+    const plan = planInit(makeTree({ "app.json": "{}", ".context/designs/mobile/index.html": "" }), { zenoVersion: "1" });
+    expect(plan.config.modules).toContain("design");
+  });
+
+  test("without docs or knowledge, no raw, wiki or features are created", () => {
+    const plan = planInit(makeTree({}), { zenoVersion: "1", kind: "web", modules: ["code"] });
+    expect(plan.create).toEqual([".context/README.md", ".context/tasks.md"]);
+  });
+
+  test("chosen packs are written to the config; none means no packs key", () => {
+    expect(planInit(makeTree({}), { zenoVersion: "1", packs: ["expo", "firebase"] }).config.packs).toEqual(["expo", "firebase"]);
+    expect(planInit(makeTree({}), { zenoVersion: "1", packs: [] }).config).not.toHaveProperty("packs");
   });
 
   test("lists only the .context files that are missing", () => {

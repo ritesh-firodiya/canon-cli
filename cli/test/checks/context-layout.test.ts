@@ -14,11 +14,16 @@ describe("context-layout", () => {
     expect(findings).toEqual([expect.objectContaining({ level: "error", file: ".context/features" })]);
   });
 
-  test("designs/ is required only when the design module is on", () => {
+  test("designs/ is never required, even with the design module on", () => {
     const { ".context/designs/mobile/routes.js": _, ...noDesigns } = VALID_CONTEXT;
-    expect(contextLayout.run(contextFor(makeTree({ ...noDesigns, ".claude/zeno.yaml": "modules: [docs]\n" })))).toEqual([]);
-    const findings = contextLayout.run(contextFor(makeTree({ ...noDesigns, ".claude/zeno.yaml": "modules: [docs, design]\n" })));
-    expect(findings).toEqual([expect.objectContaining({ file: ".context/designs", message: expect.stringMatching(/stage 1/) })]);
+    expect(contextLayout.run(contextFor(makeTree({ ...noDesigns, ".claude/zeno.yaml": "modules: [docs, design]\n" })))).toEqual([]);
+  });
+
+  test("without docs or knowledge only README.md and tasks.md are required", () => {
+    const tree = makeTree({ ".context/README.md": "# c\n", ".context/tasks.md": "# T\n", ".claude/zeno.yaml": "modules: [code]\n" });
+    expect(contextLayout.run(contextFor(tree))).toEqual([]);
+    const findings = contextLayout.run(contextFor(makeTree({ ".context/README.md": "# c\n", ".claude/zeno.yaml": "modules: []\n" })));
+    expect(findings).toEqual([expect.objectContaining({ level: "error", file: ".context/tasks.md" })]);
   });
 
   test("a file at .context root other than README.md and tasks.md is an error", () => {

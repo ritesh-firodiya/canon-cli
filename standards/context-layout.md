@@ -40,8 +40,9 @@ folder.
 
 | Stage | Expected |
 |---|---|
-| any repo | `README.md` · `tasks.md` · `raw/` · `wiki/` · `features/` |
-| draws its UI | + `designs/` |
+| any repo | `README.md` · `tasks.md` |
+| uses the `docs` or `knowledge` module | + `raw/` · `wiki/` · `features/` |
+| draws its UI | + `designs/` (optional; an estate can require it with a command) |
 | has a store presence | + `listing/` |
 | is live to users | + `marketing/` · `metrics/` · `support/` · `legal/` |
 | once something runs | + `ops/` |
