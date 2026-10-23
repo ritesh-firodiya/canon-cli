@@ -89,13 +89,15 @@ export function proposals(entries: VerdictEntry[], options: { threshold: number;
   return found.filter((p) => !decidedAt.has(p.id) || p.count > (decidedAt.get(p.id) ?? 0));
 }
 
-const DECISIONS = join("learn", "decisions.jsonl");
+// In the estate, not the zeno install: a global npm install may be read-only and is replaced on upgrade.
+const DECISIONS_DIR = join(".claude", "zeno");
+const DECISIONS = join(DECISIONS_DIR, "decisions.jsonl");
 
-export function readDecisions(zenoRoot: string): Decision[] {
-  return readJsonLines<Decision>(join(zenoRoot, DECISIONS));
+export function readDecisions(estateRoot: string): Decision[] {
+  return readJsonLines<Decision>(join(estateRoot, DECISIONS));
 }
 
-export function recordDecision(zenoRoot: string, decision: Omit<Decision, "at">): void {
-  mkdirSync(join(zenoRoot, "learn"), { recursive: true });
-  appendFileSync(join(zenoRoot, DECISIONS), `${JSON.stringify({ ...decision, at: new Date().toISOString() })}\n`);
+export function recordDecision(estateRoot: string, decision: Omit<Decision, "at">): void {
+  mkdirSync(join(estateRoot, DECISIONS_DIR), { recursive: true });
+  appendFileSync(join(estateRoot, DECISIONS), `${JSON.stringify({ ...decision, at: new Date().toISOString() })}\n`);
 }

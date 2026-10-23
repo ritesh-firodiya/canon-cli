@@ -14,13 +14,14 @@ export function registerLearn(program: Command, env: Env): void {
     .option("--reject <id>", "mark a proposal rejected; it returns only with new evidence")
     .option("--note <text>", "why, for --approve / --reject", "")
     .action((options: { threshold: string; approve?: string; reject?: string; note: string }) => {
-      const entries = readVerdicts(findProducts(requireEstate(env)));
-      const found = proposals(entries, { threshold: Number(options.threshold), decisions: readDecisions(env.zenoRoot) });
+      const estateRoot = requireEstate(env);
+      const entries = readVerdicts(findProducts(estateRoot));
+      const found = proposals(entries, { threshold: Number(options.threshold), decisions: readDecisions(estateRoot) });
       const target = options.approve ?? options.reject;
       if (target) {
         const proposal = found.find((p) => p.id === target);
         if (!proposal) throw new Error(`no open proposal "${target}" — run \`zeno learn\` to list them`);
-        recordDecision(env.zenoRoot, { id: target, decision: options.approve ? "approved" : "rejected", count: proposal.count, note: options.note });
+        recordDecision(estateRoot, { id: target, decision: options.approve ? "approved" : "rejected", count: proposal.count, note: options.note });
         console.log(`${options.approve ? "approved" : "rejected"} ${target}`);
         return;
       }

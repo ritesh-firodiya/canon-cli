@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { proposals, readVerdicts, recordDecision } from "../src/learn.ts";
+import { proposals, readDecisions, readVerdicts, recordDecision } from "../src/learn.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const line = (principles: string[], reason: string, request = "r") =>
@@ -49,10 +49,11 @@ describe("proposals", () => {
 });
 
 describe("recordDecision", () => {
-  test("appends to the zeno repo's decisions log", () => {
-    const zeno = makeTree({});
-    recordDecision(zeno, { id: "principle:C-07", decision: "rejected", count: 3, note: "cost rule is fine" });
-    const saved = readFileSync(join(zeno, "learn/decisions.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+  test("appends to the estate's decisions log and reads it back", () => {
+    const estate = makeTree({});
+    recordDecision(estate, { id: "principle:C-07", decision: "rejected", count: 3, note: "cost rule is fine" });
+    expect(readDecisions(estate)).toEqual([expect.objectContaining({ id: "principle:C-07" })]);
+    const saved = readFileSync(join(estate, ".claude/zeno/decisions.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
     expect(saved).toEqual([expect.objectContaining({ id: "principle:C-07", decision: "rejected", count: 3 })]);
   });
 });
