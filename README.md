@@ -165,12 +165,12 @@ your own.
 
 ## Evals
 
-`evals/` runs five requests against a fixture product (`evals/fixtures/streaks`)
+`evals/` runs seven requests against a fixture product (`evals/fixtures/streaks`)
 with and without the plugin, each in a sandbox seeded with the fixture and a
 local QMD index:
 
 ```bash
-claude plugin eval . --scaffold --mocks off --allow-tools 'mcp__plugin_zeno_qmd__*' --runs 2
+claude plugin eval . --scaffold --mocks off --allow-tools 'mcp__plugin_zeno_qmd__*' Write Edit --runs 2
 ```
 
 ## Layout
