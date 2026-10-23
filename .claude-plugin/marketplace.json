@@ -1,0 +1,14 @@
+{
+  "name": "zeno",
+  "owner": {
+    "name": "Ritesh Firodiya"
+  },
+  "plugins": [
+    {
+      "name": "zeno",
+      "source": "./",
+      "description": "Shared standards, searchable product knowledge and decision checks for every product repo."
+    }
+  ],
+  "description": "zeno: standards, searchable product knowledge and a decision gate for Claude Code."
+}

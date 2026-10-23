@@ -1,0 +1,10 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "zeno",
+  "version": "0.7.0",
+  "description": "Shared standards, searchable product knowledge and decision checks for every product repo.",
+  "author": {
+    "name": "Ritesh Firodiya",
+    "email": "firodiya.ritesh@gmail.com"
+  }
+}

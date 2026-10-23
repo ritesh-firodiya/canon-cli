@@ -1,338 +1,142 @@
-# Zeno AI
+# zeno
 
-**Autonomous development workflow CLI — scan repos, build memory, execute tasks with AI.**
+Standards, searchable product knowledge and a decision gate for teams that
+build with Claude Code. zeno keeps several products consistent as they evolve,
+keeps what you decided findable, and makes Claude weigh a request against your
+rules and history before it acts on it.
 
-Zeno AI scans your codebase, builds a persistent memory map of your architecture, patterns, and conventions, then uses that context to autonomously evaluate and execute development tasks — creating branches, writing code, running tests, and committing results.
+It has two halves that read the same config:
 
-## How It Works
+- **a Claude Code plugin** — skills, a decision gate, a session hook and a
+  search server, so every session in every repo starts with the same rules;
+- **the `zeno` CLI** — set up, check, sync and browse your repos.
 
-```
-┌─────────────┐     ┌────��─────────┐     ┌────���─────────┐     ┌──��──────────┐
-│  zeno init   │────▶│  Scan Repo   │────▶│  AI Analysis │────▶│  .zeno/     │
-│              │     │  File tree   │     │  Patterns    │     │  Memory     │
-│              │     │  Stack       │     │  Conventions │     │  Created    │
-└─────────────��     └──────────────┘     └───��──────────��     └─────────────┘
+## What it does
 
-┌─────────────┐     ┌──────────────┐     ┌─���───────��────┐     ┌─────���───────┐
-│  zeno task   │────▶│  Evaluate    │────▶│  Agent Loop  │────▶│  Branch +   │
-│  "add auth"  │     │  Feasibility │     │  Read/Write  │     │  Commit     │
-│              │     │  Duplicates  │     │  Test/Lint   │     │  Created    │
-└─────���───────┘     └──────────────┘     └──��───────────┘     └─────��───────┘
-```
+- **Weigh before acting.** For a non-trivial request Claude checks the
+  constitution, your wiki and decision records, existing features and tasks,
+  cost vs value, and the write-less ladder, then answers **DO IT**, **DO IT
+  DIFFERENTLY** or **PUSH BACK** with citations. Push back stops work until you
+  give a reason; overrides are logged and feed `zeno learn`.
+- **Knowledge that is found, not remembered.** Every repo's `.context/wiki` and
+  feature board is indexed with [QMD](https://github.com/tobi/qmd) (local hybrid
+  search). Claude is told to search before answering.
+- **Standards with one home.** zeno ships defaults (constitution, wiki schema,
+  `.context` layout, agent contract). A team adds or replaces them from its own
+  folder; a repo can override again. `zeno standards` shows what applies.
+- **Hard rules are checks.** `zeno check` validates layout, wiki frontmatter,
+  stale pages, prices with no canonical home, copied standards, and runs every
+  checker your config declares.
+- **Products evolve together.** Packs index vendor docs (`llms.txt`) for a stack;
+  `zeno sync` refreshes them and moves each repo to the current zeno version.
 
-### The Flow
-
-1. **Scan** — `zeno init` analyzes your entire repo: file tree, tech stack, dependencies, frameworks, and sends key files to AI for deep pattern/architecture analysis.
-2. **Remember** — Everything is stored in `.zeno/` (committed to your repo). No re-scanning needed across machines or team members.
-3. **Evaluate** — When you submit a task, Zeno checks it against the memory map: is it feasible? Does it duplicate an existing plan? Does it conflict with in-progress work? Is it too large and needs to be broken down?
-4. **Execute** — An autonomous AI agent reads your code, writes changes, runs tests, and commits — all following your existing patterns and conventions.
-5. **Track** — Every task is saved as a plan file in `.zeno/plans/` with full history: requirement, Q&A, technical decisions, and outcome.
-
-## Installation
-
-```bash
-# Clone the repo
-git clone git@github.com:riteshf/zeno-ai.git
-cd zeno-ai
-
-# Install dependencies
-npm install
-
-# Build
-npm run build
-```
-
-### Prerequisites
-
-- **Node.js** >= 18
-- **Git** — must be run inside a git repository
-- **Anthropic API Key** — get one at [console.anthropic.com](https://console.anthropic.com)
+## Install
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
+# plugin (from GitHub)
+claude plugin marketplace add ritesh-firodiya/zeno-ai
+claude plugin install zeno@zeno
+
+# CLI (Node 23.6+; runs TypeScript directly, no build step)
+git clone https://github.com/ritesh-firodiya/zeno-ai && cd zeno-ai/cli && pnpm install
+ln -s "$PWD/src/index.ts" ~/.local/bin/zeno
+
+# search
+npm install -g @tobilu/qmd --allow-scripts=node-llama-cpp,tree-sitter-go,tree-sitter-python,tree-sitter-rust,tree-sitter-typescript,tree-sitter-javascript
+
+# optional: write-less discipline for the efficiency step of the gate
+claude plugin marketplace add DietrichGebert/ponytail && claude plugin install ponytail@ponytail
 ```
 
-## Usage
+For local development of zeno itself, link the repo as a skills-dir plugin so
+edits apply on the next session: `ln -s "$PWD" ~/.claude/skills/zeno`.
 
-### `zeno init` — Scan & Build Memory
-
-Run this in any git repository to create the `.zeno/` memory directory:
+## CLI
 
 ```bash
-cd /path/to/your-project
-npx tsx /path/to/zeno-ai/src/cli/index.ts init
+zeno init             # write .claude/zeno.yaml and the missing .context files (asks; -y to accept)
+zeno add              # list packs; `zeno add expo` adds one and indexes its docs (-g: whole estate)
+zeno check            # this repo against the standards (exit 1 on any error)
+zeno check --all -q   # every repo in the estate, only the ones with findings
+zeno standards        # which standards apply here, and where each comes from
+zeno sync             # refresh pack docs + search index, move the pinned zeno version, then check
+zeno status           # version, kind, modules, config layers, check summary
+zeno doctor           # node, git, qmd — plus any tools your config lists
+zeno learn            # proposals from overridden verdicts; --approve/--reject <id>
+zeno weigh "<ask>"    # the decision gate from the terminal (runs Claude, weighs only)
+zeno ui               # every wiki (search, backlinks, graph) on :4610, design galleries on :4611
 ```
 
-**What it does:**
-- Scans all files (ignoring node_modules, dist, .git, etc.)
-- Detects tech stack: languages, frameworks, databases, testing tools, CI, containerization
-- Sends key files to Claude for AI analysis
-- Extracts: code patterns, naming conventions, architecture overview, domain concepts
-- Saves everything to `.zeno/`
+## Config
 
-**Output:**
-```
-  Zeno AI - Repository Scanner
+`.claude/zeno.yaml`, read in layers — **estate → repo → local**
+(`zeno.local.yaml`, not committed). The estate is the nearest folder above a
+repo whose `zeno.yaml` says `estate: true`, or `ZENO_ESTATE`.
 
-  ✔ Found 247 files
-  Languages: typescript(180), javascript(12), json(30), yaml(8), markdown(17)
-  Stack: react, nextjs, prisma, postgresql
-  Testing: vitest, playwright
-
-  ✔ Extracted 8 patterns, 6 conventions
-
-  Done! .zeno/ directory created.
+```yaml
+# <estate>/.claude/zeno.yaml — shared by every repo below it
+estate: true
+standards: [.zeno/standards]        # team rules; same name replaces a zeno default
+commands:                           # your own checkers, run by `zeno check`
+  - id: designs
+    run: ./scripts/check-designs.sh
+    if: .context/designs            # only where this path exists
+doctor:
+  tools:
+    - { tool: pnpm, why: product scripts, hint: npm i -g pnpm }
 ```
 
-**Options:**
-```bash
-zeno init --refresh    # Force re-scan even if .zeno/ exists
+```yaml
+# <repo>/.claude/zeno.yaml — written by `zeno init`
+zeno: 0.6.0
+kind: expo-app                      # expo-app | web | content
+modules: [docs, design, knowledge, metrics, code, listing]
+packs: [expo]
+checks:
+  stale-copies: { enabled: false, reason: "Cursor is still used here" }
+weigh:
+  weights: { C-05: 2 }
 ```
 
-### `zeno sync` — Update Memory
+Scalars: the most specific layer wins. `packs` and `standards` add up across
+layers; `commands` and `doctor.tools` merge by id. A check turned off must
+carry a `reason:`, and `zeno check` lists every override.
 
-After making changes to your codebase, sync the memory:
+## Standards
 
-```bash
-npx tsx /path/to/zeno-ai/src/cli/index.ts sync
-```
-
-This incrementally re-scans the repo and updates `.zeno/` with any new patterns, files, or stack changes.
-
-### `zeno task` — Execute a Task
-
-Submit a development task for the AI to complete:
-
-```bash
-npx tsx /path/to/zeno-ai/src/cli/index.ts task "add a health check endpoint at /api/health"
-```
-
-**What happens:**
-1. **Evaluates** the task against your codebase memory
-2. **Checks** for duplicate or conflicting plans in `.zeno/plans/`
-3. **Shows** feasibility assessment, complexity estimate, and any questions
-4. **Creates** a feature branch (`feat/001-add-a-health-check-endpoint`)
-5. **Runs** the autonomous agent loop — reads code, writes files, runs tests
-6. **Commits** the result and saves the plan
-
-**Output:**
-```
-  Zeno AI - Task Runner
-
-  Task: add a health check endpoint at /api/health
-
-  Feasibility: Yes (92% confidence)
-  Complexity: small
-  Reason: Simple endpoint addition, follows existing API pattern
-
-  Created plan #001
-  Executing task...
-
-  [read_file] src/app.ts
-  [read_file] src/routes/index.ts
-  > Following the existing Express router pattern...
-  [write_file] src/routes/health.ts
-  [edit_file] src/app.ts
-  [run_command] npm test
-
-  Task completed successfully!
-  Branch: feat/001-add-a-health-check-endpoint
-  Commit: a1b2c3d
-  Tokens: 12,450 (~$0.08)
-```
-
-**Options:**
-```bash
-zeno task "your task" --evaluate-only    # Only evaluate, don't execute
-```
-
-## The `.zeno/` Directory
-
-Committed to your repo, shared with your team:
-
-```
-.zeno/
-├── config.json              # Zeno settings (provider, model, timestamps)
-├── docs/
-│   └── architecture.md      # AI-generated architecture overview
-├── memory/
-│   ├── files.json           # File tree with language detection
-│   ├── stack.json           # Tech stack (frameworks, DBs, tools)
-│   └── domain.json          # Business domain concepts
-├── patterns/
-│   ├��─ patterns.json        # Code patterns (routing, DB access, etc.)
-│   └── conventions.json     # Coding conventions (naming, formatting)
-├── skills/
-│   └── skills.json          # Languages, frameworks, tools needed
-└── plans/
-    ├── plans-index.json     # Index of all tasks with status
-    ├── 001-add-health-check.md
-    └── 002-add-auth.md
-```
-
-### Plan Files
-
-Every task creates a plan file with full history:
-
-```markdown
----
-id: 001
-title: Add health check endpoint
-status: completed
-created: 2026-04-17
-branch: feat/001-add-a-health-check-endpoint
-related: []
----
-
-## Requirement
-Add a health check endpoint at /api/health
-
-## Clarifications
-Q: Should it check database connectivity?
-A: Yes, include a DB ping
-
-## Technical Plan
-...
-
-## Outcome
-...
-```
-
-New tasks are automatically checked against existing plans for **duplicates** and **conflicts**.
-
-## Supported Tech Stacks
-
-Zeno detects and adapts to these stacks automatically:
-
-| Category | Supported |
+| zeno default | What it holds |
 |---|---|
-| **Languages** | TypeScript, JavaScript, Python, Go, Rust, Ruby, Java, Kotlin, Swift, C#, PHP, Dart |
-| **Frontend** | React, Next.js, Vue, Nuxt, Svelte, Astro, Remix |
-| **Backend** | Express, Fastify, NestJS, Hono, Django, Flask, FastAPI, Gin, Actix, Axum, Rails |
-| **Databases** | PostgreSQL, MongoDB, MySQL, Redis, Prisma, Drizzle, TypeORM, Sequelize |
-| **Testing** | Jest, Vitest, Mocha, Pytest, Cypress, Playwright |
-| **Build** | Vite, Webpack, esbuild, Rollup, Turborepo, tsx |
-| **Linting** | ESLint, Prettier, Biome |
-| **CI/CD** | GitHub Actions, GitLab CI, Jenkins, CircleCI, Vercel, Netlify |
-| **Infra** | Docker, Docker Compose |
+| `constitution.md` | Principles C-01–C-13 a request is weighed against. A team adds C-20+ in its own `constitution.md`. |
+| `wiki-schema.md` | Wiki page types, frontmatter, required sections, lint rules |
+| `context-layout.md` | The `.context/` ten-folder layout, `features/` and `tasks.md` |
+| `agent-contract.md` | What every agent does before, during and after work |
 
-## Architecture
+## Packs
 
-```
-src/
-├── cli/                    # CLI entry point + commands
-│   ├── index.ts            # Commander.js setup
-│   └── commands/
-│       ├── init.ts         # zeno init
-│       ├── sync.ts         # zeno sync
-│       └── task.ts         # zeno task
-├── scanner/                # Repo analysis
-│   ├── file-tree.ts        # File tree scanning + language detection
-│   ├── stack-detector.ts   # Tech stack detection rules
-│   └── pattern-extractor.ts # AI-powered pattern analysis
-├── memory/
-│   └── store.ts            # .zeno/ CRUD operations
-├── agent/                  # Autonomous AI agent
-│   ├── tools.ts            # Agent tools (read, write, edit, search, run, list)
-│   ├── loop.ts             # Core tool-use agent loop
-│   ├── evaluator.ts        # Task feasibility + duplicate detection
-│   └── executor.ts         # Branch creation + execution + commit
-├── git/
-│   └── index.ts            # Git operations (branch, commit, stash)
-├── llm/
-���   └── provider.ts         # LLM abstraction (Claude API, extensible)
-├── types/
-│   └── index.ts            # TypeScript types
-└��─ utils/
-    └── config.ts           # .zeno/ directory management
-```
+`packs/<name>/pack.yaml` names the vendor docs to index. Shipped: expo,
+uniwind, react, nextjs, firebase, revenuecat. A pack is three lines of YAML; add
+your own.
 
-### Key Design Decisions
+## Evals
 
-- **LLM Abstraction Layer** — All AI calls go through a `LLMProvider` interface. Currently Claude-only, but adding new providers (GPT-4, Ollama) is a single file.
-- **Tool-Use Agent Loop** — The agent doesn't generate code in one shot. It iterates: reads files, makes edits, runs commands, checks results, and keeps going until the task is done. Same pattern as Claude Code.
-- **Memory is Git-Tracked** — `.zeno/` is committed to the repo. No external database. No re-scanning on new machines. Team members share the same context.
-- **Plans as Artifacts** — Every task creates a permanent record. This enables duplicate detection, conflict checking, and full audit trail.
-
-## Agent Tools
-
-The autonomous agent has access to these tools during task execution:
-
-| Tool | Description |
-|---|---|
-| `read_file` | Read file contents |
-| `write_file` | Create or overwrite files |
-| `edit_file` | Targeted string replacement in files |
-| `search_code` | Glob pattern or text content search |
-| `run_command` | Execute shell commands (tests, lint, etc.) |
-| `list_directory` | List directory contents |
-| `ask_user` | Ask clarifying questions interactively |
-
-## Cost
-
-Zeno uses the Claude API. Approximate costs per operation:
-
-| Operation | Estimated Cost |
-|---|---|
-| `zeno init` (small repo) | $0.02 - $0.10 |
-| `zeno init` (large repo) | $0.10 - $0.50 |
-| `zeno sync` | $0.02 - $0.10 |
-| `zeno task` (small) | $0.05 - $0.20 |
-| `zeno task` (medium) | $0.20 - $1.00 |
-| `zeno task` (large) | $1.00 - $5.00 |
-
-Actual costs depend on codebase size and task complexity. Token usage is displayed after each task.
-
-## Roadmap
-
-### V0.1 (Current)
-- [x] `zeno init` — Repo scanning + AI memory building
-- [x] `zeno sync` — Incremental memory updates
-- [x] `zeno task` — Task evaluation + autonomous execution
-- [x] `.zeno/plans/` — Task history with duplicate/conflict detection
-- [x] Agent tool-use loop with 7 tools
-- [x] Tech stack detection (15+ frameworks)
-
-### V0.2 — Autonomous Loop
-- [ ] Background task queue (non-blocking `zeno task`)
-- [ ] `zeno status` — Check task progress
-- [ ] `zeno review` — Interactive review (approve/reject/request changes)
-- [ ] GitHub PR creation via API
-- [ ] Iterative feedback loop (reject → re-evaluate → retry)
-- [ ] Auto-update memory after merged tasks
-- [ ] Consistency checking against stored patterns
-
-### V0.3 — Multi-Repo
-- [ ] `zeno connect <github-org>` — Org-level scanning
-- [ ] Cross-repo memory (shared conventions, dependency maps)
-- [ ] Deployment integration (Vercel/Netlify preview URLs)
-- [ ] `zeno deploy <task-id>` — Deploy feature branch for QA
-- [ ] Smarter task breakdown for large features
-- [ ] Confidence scoring on AI output
-
-### V1.0 — Web Platform
-- [ ] Web dashboard (React/Next.js)
-- [ ] Task submission + real-time progress via web UI
-- [ ] Code diff viewer in browser
-- [ ] Team collaboration (multi-user per org)
-- [ ] Multi-provider LLM support (Claude, GPT-4, open-source)
-- [ ] Billing + usage tracking
-- [ ] Hosted infrastructure (server-side task execution)
-
-## Development
+`evals/` runs five requests against a fixture product (`evals/fixtures/streaks`)
+with and without the plugin, each in a sandbox seeded with the fixture and a
+local QMD index:
 
 ```bash
-# Run in dev mode (no build step)
-npm run dev -- init
-npm run dev -- task "your task"
-
-# Build
-npm run build
-
-# Type check
-npx tsc --noEmit
+claude plugin eval . --scaffold --mocks off --allow-tools 'mcp__plugin_zeno_qmd__*' --runs 2
 ```
 
-## License
+## Layout
 
-ISC
+```
+.claude-plugin/   plugin manifest and marketplace
+skills/           weigh, standards, ask, ingest, decision, wiki-lint
+agents/           challenger — independent second opinion for large requests
+hooks/            session start: constitution titles, qmd refresh
+standards/        default standards
+packs/            vendor doc packs
+scripts/          log-verdict.mjs — append-only override log
+cli/              the zeno CLI (TypeScript, vitest)
+evals/            plugin evals and the fixture product
+```

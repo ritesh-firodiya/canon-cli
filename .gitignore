@@ -3,3 +3,7 @@ dist/
 *.js.map
 .env
 .DS_Store
+.claude/settings.local.json
+zeno.local.yaml
+evals/results/
+coverage/
