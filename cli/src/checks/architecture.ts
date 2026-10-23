@@ -130,7 +130,10 @@ function collapsePattern(dir: string, file: string): string {
 }
 
 function graphOf(repo: string, bin: string, rules: Rules): string | undefined {
-  const result = depcruise(repo, bin, rules, ["--output-type", "mermaid", "--collapse", collapsePattern(join(repo, rules.dir), rules.file)]);
+  const collapse = collapsePattern(join(repo, rules.dir), rules.file);
+  // The graph shows the repo's own parts; npm packages would bury them (the rules still check npm imports).
+  const ownCode = "^(?!(\\.\\./)*node_modules/)";
+  const result = depcruise(repo, bin, rules, ["--output-type", "mermaid", "--collapse", collapse, "--include-only", ownCode]);
   if (result.status !== 0 || !result.stdout.trim()) return undefined;
   if (result.stdout.length > MERMAID_MAX_CHARS) {
     return "flowchart LR\n  too_big[\"Graph too large to draw — set a coarser reporterOptions.archi.collapsePattern\"]";

@@ -122,6 +122,20 @@ describe("architectureGraph", () => {
     expect(graph).toContain("## packages/ui");
   });
 
+  test("draws the repo's own parts only, not the npm packages they import", () => {
+    const repo = repoWith({
+      ...CLEAN,
+      "apps/web/package.json": JSON.stringify({ dependencies: { "some-lib": "1.0.0" } }),
+      "node_modules/some-lib/package.json": JSON.stringify({ name: "some-lib", main: "dist/index.js" }),
+      "node_modules/some-lib/dist/index.js": "module.exports = 1;\n",
+      "apps/web/src/main.js": 'import "some-lib";\nimport { greet } from "../../../packages/ui/src/greet.js";\ngreet();\n',
+    });
+    const graph = architectureGraph(repo) ?? "";
+    expect(graph).toContain("## apps/web");
+    expect(graph).not.toContain("some-lib");
+    expect(graph).not.toContain("node_modules");
+  });
+
   test("is undefined for a repo without rules or without dependency-cruiser", () => {
     expect(architectureGraph(makeTree({}))).toBeUndefined();
     expect(architectureGraph(makeTree({ ".dependency-cruiser.cjs": "module.exports = {};" }))).toBeUndefined();
