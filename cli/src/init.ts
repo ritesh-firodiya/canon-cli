@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { stringify } from "yaml";
+import { RULES_FILES } from "./checks/architecture.ts";
 import { requiredContext } from "./checks/context-layout.ts";
 import { inferKind, inferModules } from "./config/load.ts";
 import { MODULES_BY_KIND, type Kind, type Module } from "./config/schema.ts";
@@ -78,17 +79,21 @@ export function planInit(repo: string, answers: InitAnswers): InitPlan {
   const config: InitPlan["config"] = { zeno: answers.zenoVersion, kind, modules, ...(sdk ? { expo: { sdk } } : {}), ...packs };
 
   const create = requiredContext(modules).filter((name) => !existsSync(join(repo, ".context", name))).map((name) => FIRST_FILE[name]);
+  const hasRules = RULES_FILES.some((file) => existsSync(join(repo, file)));
+  if (modules.includes("architecture") && !hasRules) create.push(RULES_FILES[0]);
   return { config, create };
 }
 
-export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; name: string; today?: string }): void {
+export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; name: string; zenoRoot: string; today?: string }): void {
   const today = options.today ?? new Date().toISOString().slice(0, 10);
   const write = (file: string, content: string) => {
     mkdirSync(dirname(join(repo, file)), { recursive: true });
     writeFileSync(join(repo, file), content);
   };
   write(".claude/zeno.yaml", stringify(plan.config));
-  for (const file of plan.create) write(file, template(file, today));
+  for (const file of plan.create) {
+    write(file, file === RULES_FILES[0] ? readFileSync(join(options.zenoRoot, "templates", "dependency-cruiser.cjs"), "utf8") : template(file, today));
+  }
 
   if (plan.config.modules.includes("knowledge")) indexKnowledge(repo, options.name, options.run);
 }

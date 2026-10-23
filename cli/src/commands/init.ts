@@ -2,6 +2,7 @@ import { basename, resolve } from "node:path";
 import * as prompts from "@clack/prompts";
 import { Option, type Command } from "commander";
 import { KINDS, MODULES, type Kind } from "../config/schema.ts";
+import { RULES_FILES } from "../checks/architecture.ts";
 import { applyInit, parseChoices, planInit, type InitAnswers, type InitPlan } from "../init.ts";
 import { listPacks, type Pack } from "../packs.ts";
 import { runCommand } from "../lib/system.ts";
@@ -75,9 +76,10 @@ export function registerInit(program: Command, env: Env): void {
       if (!options.yes && answers === null) return;
       const plan = answers ? planInit(path, { ...flags, ...answers }) : inferred;
 
-      applyInit(path, plan, { name: basename(path), run: (command, args) => void runCommand(command, args) });
+      applyInit(path, plan, { name: basename(path), zenoRoot: env.zenoRoot, run: (command, args) => void runCommand(command, args) });
       console.log(`wrote .claude/zeno.yaml (${plan.config.kind}: ${plan.config.modules.join(", ")})`);
       for (const file of plan.create) console.log(`created ${file}`);
+      if (plan.create.includes(RULES_FILES[0])) console.log("architecture: add the checker with `pnpm add -D dependency-cruiser`, then edit .dependency-cruiser.cjs to this repo's layers");
       console.log(plan.config.packs ? "next: zeno sync (fetches the packs), then zeno check" : "next: zeno check");
     });
 }

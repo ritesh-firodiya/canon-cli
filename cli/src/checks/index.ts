@@ -1,3 +1,4 @@
+import { architecture } from "./architecture.ts";
 import { canonicalValues } from "./canonical-values.ts";
 import { contextLayout } from "./context-layout.ts";
 import { staleCopies, standardsCopies } from "./copies.ts";
@@ -11,5 +12,6 @@ export const ALL_CHECKS: Check[] = [
   canonicalValues,
   standardsCopies,
   staleCopies,
+  architecture,
   commandChecks,
 ];

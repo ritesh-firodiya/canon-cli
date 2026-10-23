@@ -53,6 +53,18 @@ describe("buildSite", () => {
     expect(home).not.toContain("architecture/gone.html");
   });
 
+  test("gives each product with architecture rules a graph page, linked from home", () => {
+    const root = estate();
+    const out = makeTree({});
+    const graph = (repo: string) => (repo.endsWith("alpha") ? "flowchart LR\n  1[\"web\"]-->2[\"ui\"]" : undefined);
+    buildSite([join(root, "alpha"), join(root, "beta")], { siteDir: out, designsDir: join(out, "_d"), designsUrl: "u", report: "", graph });
+    expect(readFileSync(join(out, "architecture/alpha.md"), "utf8")).toContain('```mermaid\nflowchart LR\n  1["web"]-->2["ui"]\n```');
+    expect(existsSync(join(out, "architecture/beta.md"))).toBe(false);
+    const home = readFileSync(join(out, "index.md"), "utf8");
+    expect(home).toContain("[[alpha/index|alpha]] · [[architecture/alpha|architecture graph]]");
+    expect(home).not.toContain("architecture/beta");
+  });
+
   test("rebuilding replaces old links instead of failing", () => {
     const root = estate();
     const out = makeTree({});

@@ -10,6 +10,8 @@ export interface SiteOptions {
   designsUrl: string;
   /** `zeno check --all` output, shown as its own page. */
   report: string;
+  /** A product's architecture as mermaid, or undefined when it has none. */
+  graph?: (repo: string) => string | undefined;
 }
 
 const SURFACES = ["mobile", "web"];
@@ -50,6 +52,15 @@ export function buildSite(products: string[], options: SiteOptions): void {
       relink(wiki, join(options.siteDir, name));
       links.push(`[[${name}/index|${name}]]`);
     }
+    const graph = options.graph?.(product);
+    if (graph) {
+      mkdirSync(join(options.siteDir, "architecture"), { recursive: true });
+      writeFileSync(
+        join(options.siteDir, "architecture", `${name}.md`),
+        `---\ntitle: ${name} architecture\n---\n\nImports between parts of ${name}, from its \`.dependency-cruiser.cjs\`. Red rules fail \`zeno check\`.\n\n\`\`\`mermaid\n${graph}\n\`\`\`\n`,
+      );
+      links.push(`[[architecture/${name}|architecture graph]]`);
+    }
     const surfaces = SURFACES.map((surface) => [surface, surfaceViews(designs, surface)] as const).filter(
       ([, views]) => views.length > 0,
     );
@@ -63,7 +74,7 @@ export function buildSite(products: string[], options: SiteOptions): void {
 
   writeFileSync(
     join(options.siteDir, "index.md"),
-    `---\ntitle: zeno\n---\n\nEvery product's wiki, searchable and linked. Each surface opens its flow chart, screenshots and architecture overview.\n\n${rows.join("\n")}\n\n[[zeno-check|Standards check]]\n`,
+    `---\ntitle: zeno\n---\n\nEvery product's wiki, searchable and linked. Each surface opens its flow chart, screenshots and architecture overview; products with architecture rules also get an import graph.\n\n${rows.join("\n")}\n\n[[zeno-check|Standards check]]\n`,
   );
   writeFileSync(
     join(options.siteDir, "zeno-check.md"),

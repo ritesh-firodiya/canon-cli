@@ -2,6 +2,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Command } from "commander";
+import { architectureGraph } from "../checks/architecture.ts";
 import { formatReports } from "../format.ts";
 import { CACHE_DIR } from "../lib/system.ts";
 import { findProducts, runChecks } from "../run.ts";
@@ -44,7 +45,7 @@ export function registerUi(program: Command, env: Env): void {
       const designsDir = join(CACHE_DIR, "designs");
       const designsUrl = `http://127.0.0.1:${options.designsPort}`;
       const report = formatReports(products.map((repo) => runChecks(repo, { zenoRoot: env.zenoRoot, estateRoot: env.estateRoot })));
-      buildSite(products, { siteDir, designsDir, designsUrl, report });
+      buildSite(products, { siteDir, designsDir, designsUrl, report, graph: architectureGraph });
 
       const designs = spawn("python3", ["-m", "http.server", options.designsPort, "--bind", "127.0.0.1", "--directory", designsDir], {
         stdio: "ignore",

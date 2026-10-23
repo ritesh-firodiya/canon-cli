@@ -33,6 +33,12 @@ product's `.claude/zeno.yaml` may tighten this under `weigh.trivial`.
    top hits with `mcp__plugin_zeno_qmd__get`. Look for: an ADR that already
    decided this, a canonical value it would change, a concept it would break.
    If qmd is unavailable, read `.context/wiki/index.md` and `decisions/`.
+   **Architecture:** if `.claude/zeno.yaml` lists the `architecture` module, read
+   the repo's `.dependency-cruiser.cjs` and its wiki architecture concept page.
+   A request whose code would need an import a rule forbids is DO IT
+   DIFFERENTLY (name the allowed path) or PUSH BACK; one that changes a rule
+   is **too-large** unless a decision page already approves it. Cite the rule
+   by its `name`.
 
 4. **Duplicates and conflicts.** Check `.context/features/` and `.context/tasks.md`
    of this product, and the features collections of sibling products in qmd:

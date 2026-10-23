@@ -27,6 +27,11 @@ It has two halves that read the same config:
 - **Hard rules are checks.** `zeno check` validates layout, wiki frontmatter,
   stale pages, prices with no canonical home, copied standards, and runs every
   checker your config declares.
+- **Each repo's architecture is enforced.** With the `architecture` module, a
+  repo keeps its own import rules in `.dependency-cruiser.cjs` (`zeno init`
+  writes a starter; add `dependency-cruiser` as a devDependency). `zeno check`
+  fails on a broken boundary or a cycle, the gate weighs requests against the
+  rules, and `zeno ui` draws each repo's import graph.
 - **Products evolve together.** Packs index vendor docs (`llms.txt`) for a stack;
   `zeno sync` refreshes them and moves each repo to the current zeno version.
 
@@ -139,6 +144,7 @@ agents/           challenger — independent second opinion for large requests
 hooks/            session start: constitution titles, qmd refresh
 standards/        default standards
 packs/            vendor doc packs
+templates/        starter files init writes (dependency-cruiser rules)
 scripts/          log-verdict.mjs — append-only override log
 cli/              the zeno CLI (TypeScript, vitest; built to cli/dist for npm)
 evals/            plugin evals and the fixture product

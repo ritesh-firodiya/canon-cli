@@ -24,7 +24,9 @@ the constitution and standards that apply.
 2. Search the product's knowledge with `mcp__plugin_zeno_qmd__query` — the goal,
    then the key nouns. Read the hits. Look for ADRs that already decided this,
    canonical values it would change, and features or tasks that duplicate or
-   conflict with it, in this product and its siblings.
+   conflict with it, in this product and its siblings. If the repo has a
+   `.dependency-cruiser.cjs`, read it: an import its rules forbid makes the
+   request wrong as asked; cite the rule `name`.
 3. Size it (small / medium / large / too-large) and name its ongoing cost and
    the user or metric it serves.
 4. Climb the write-less ladder: delete → reuse here → reuse from a sibling →

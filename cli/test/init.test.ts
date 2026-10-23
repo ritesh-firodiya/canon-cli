@@ -84,7 +84,7 @@ describe("applyInit", () => {
     const repo = makeTree({ ".context/README.md": "mine", ".context/wiki/index.md": "mine" });
     const plan = planInit(repo, { zenoVersion: "0.4.0", kind: "content", modules: ["docs", "knowledge"] });
     const { calls, run } = recorder();
-    applyInit(repo, plan, { run, name: "demo" });
+    applyInit(repo, plan, { run, name: "demo", zenoRoot: repo });
 
     expect(parse(readFileSync(join(repo, ".claude/zeno.yaml"), "utf8"))).toEqual(plan.config);
     expect(readFileSync(join(repo, ".context/README.md"), "utf8")).toBe("mine");
@@ -96,10 +96,22 @@ describe("applyInit", () => {
     ]);
   });
 
+  test("with the architecture module, writes the starter rules once and never over the repo's own", () => {
+    const zeno = makeTree({ "templates/dependency-cruiser.cjs": "// starter\n" });
+    const repo = makeTree({});
+    const plan = planInit(repo, { zenoVersion: "1", kind: "web", modules: ["architecture"] });
+    expect(plan.create).toContain(".dependency-cruiser.cjs");
+    applyInit(repo, plan, { run: recorder().run, name: "demo", zenoRoot: zeno });
+    expect(readFileSync(join(repo, ".dependency-cruiser.cjs"), "utf8")).toBe("// starter\n");
+
+    const own = makeTree({ ".dependency-cruiser.json": "{}" });
+    expect(planInit(own, { zenoVersion: "1", kind: "web", modules: ["architecture"] }).create).not.toContain(".dependency-cruiser.cjs");
+  });
+
   test("without the knowledge module nothing is indexed", () => {
     const repo = makeTree({});
     const { calls, run } = recorder();
-    applyInit(repo, planInit(repo, { zenoVersion: "1", kind: "content", modules: ["docs"] }), { run, name: "demo" });
+    applyInit(repo, planInit(repo, { zenoVersion: "1", kind: "content", modules: ["docs"] }), { run, name: "demo", zenoRoot: repo });
     expect(calls).toEqual([]);
   });
 });
