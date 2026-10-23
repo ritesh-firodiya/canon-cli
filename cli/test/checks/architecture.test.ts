@@ -54,6 +54,28 @@ describe("architecture check", () => {
     expect(findings).toContainEqual(expect.objectContaining({ level: "error", message: expect.stringMatching(/^no-package-to-app \(1\): packages\/ui\/src\/bad\.js/) }));
   });
 
+  test("npm packages are seen: importing one package.json does not declare is caught", () => {
+    const repo = repoWith({
+      ...CLEAN,
+      "package.json": JSON.stringify({ name: "app" }),
+      "node_modules/undeclared/package.json": JSON.stringify({ name: "undeclared", main: "dist/index.js" }),
+      "node_modules/undeclared/dist/index.js": "module.exports = 1;\n",
+      "apps/web/src/main.js": 'import "undeclared";\nimport { greet } from "../../../packages/ui/src/greet.js";\ngreet();\n',
+    });
+    expect(architecture.run(contextFor(repo))).toContainEqual(
+      expect.objectContaining({ message: expect.stringMatching(/^no-non-package-json \(1\): apps\/web\/src\/main\.js → node_modules\/undeclared/) }),
+    );
+  });
+
+  // zeno's own devDependency is TypeScript 7, which dependency-cruiser cannot use yet,
+  // so this fixture reproduces a repo whose TypeScript would silently go unchecked.
+  test("a TypeScript workspace whose .ts files could not be read is a warning, not a pass", () => {
+    const repo = repoWith({ "tsconfig.json": "{}", "src/a.ts": 'import { b } from "./b";\nexport const a = b;\n', "src/b.ts": "export const b = 1;\n" });
+    expect(architecture.run(contextFor(repo))).toContainEqual(
+      expect.objectContaining({ level: "warn", message: expect.stringMatching(/no TypeScript files were read/) }),
+    );
+  });
+
   test("with the module on but no rules file, the repo is told how to start", () => {
     expect(architecture.run(contextFor(makeTree({ ...ON, "src/a.js": "" })))).toEqual([
       expect.objectContaining({ level: "error", file: ".dependency-cruiser.cjs", message: expect.stringMatching(/zeno init --force --modules/) }),

@@ -5,7 +5,7 @@
 
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
-  // No cycles, no orphans, no shipped code importing dev-only packages, and more.
+  // No cycles, no orphan files, no imports of packages package.json does not declare, and more.
   extends: "dependency-cruiser/configs/recommended",
   forbidden: [
     {
@@ -25,7 +25,16 @@ module.exports = {
   ],
   options: {
     doNotFollow: { path: "node_modules" },
-    exclude: { path: "(^|/)(node_modules|dist|build|coverage|\\.next|\\.expo|\\.context)/|^\\.dependency-cruiser\\.cjs$" },
+    // Build output of the repo or a workspace — anchored, so it never matches inside node_modules,
+    // whose packages must stay visible for rules like not-to-dev-dep.
+    exclude: {
+      path: [
+        "^(dist|build|coverage|\\.next|\\.expo)/",
+        "^(apps|packages)/[^/]+/(dist|build|coverage|\\.next|\\.expo)/",
+        "^\\.context/",
+        "^\\.dependency-cruiser\\.cjs$",
+      ],
+    },
     tsPreCompilationDeps: true,
     // The level `zeno ui` draws the architecture graph at: one box per match.
     reporterOptions: { archi: { collapsePattern: "^(apps|packages)/[^/]+|^[^/]+/[^/]+" } },

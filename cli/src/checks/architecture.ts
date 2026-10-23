@@ -60,6 +60,18 @@ function depcruise(repo: string, bin: string, rules: Rules, args: string[]) {
   return spawnSync(bin, [".", "--config", rules.file, ...args], { cwd: join(repo, rules.dir), encoding: "utf8", maxBuffer: MAX_BUFFER });
 }
 
+// dependency-cruiser needs a TypeScript it supports (below 7) to read .ts files; without one it
+// skips them and still reports success, so a TypeScript workspace with none read is not a pass.
+function unreadTypeScript(repo: string, rules: Rules, modules: Array<{ source: string }>): boolean {
+  return existsSync(join(repo, rules.dir, "tsconfig.json")) && !modules.some((m) => /\.tsx?$/.test(m.source));
+}
+
+function typeScriptWarning(rules: Rules): Finding[] {
+  const file = fromRoot(rules.dir, "tsconfig.json");
+  const message = "no TypeScript files were read, so their imports went unchecked — dependency-cruiser needs `typescript` below 7 installed here";
+  return [{ check: "architecture", level: "warn", file, message }];
+}
+
 /** One finding per broken rule: how often, and the first few places. */
 export function summarize(violations: Violation[]): Finding[] {
   const byRule = new Map<string, Violation[]>();
@@ -94,8 +106,11 @@ export const architecture: Check = {
     return all.flatMap((rules) => {
       const result = depcruise(repo, bin, rules, ["--output-type", "json"]);
       try {
-        const violations: Violation[] = JSON.parse(result.stdout).summary.violations;
-        return summarize(violations.map((v) => ({ ...v, from: fromRoot(rules.dir, v.from), to: fromRoot(rules.dir, v.to) })));
+        const cruise: { modules: Array<{ source: string }>; summary: { violations: Violation[] } } = JSON.parse(result.stdout);
+        const findings = summarize(
+          cruise.summary.violations.map((v) => ({ ...v, from: fromRoot(rules.dir, v.from), to: fromRoot(rules.dir, v.to) })),
+        );
+        return unreadTypeScript(repo, rules, cruise.modules) ? [...findings, ...typeScriptWarning(rules)] : findings;
       } catch {
         const why = (result.error?.message ?? result.stderr).trim().split("\n").slice(-5).join(" ");
         return finding(`dependency-cruiser failed: ${why}`, fromRoot(rules.dir, rules.file));
