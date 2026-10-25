@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>zeno: better decisions</title>
+<meta name="description" content="How a decision is made today, and how zeno makes it faster and better.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/deck.css">
+</head>
+<body>
+<main class="deck" id="deck" aria-live="polite">
+
+<!-- 1. Title -->
+<section class="slide title-slide" aria-label="Title">
+  <svg class="logo" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0f6b6b"/><path d="M152 156H360L152 356H360" fill="none" stroke="#ffffff" stroke-width="60" stroke-linecap="round" stroke-linejoin="round"/><path d="M360 156L152 356" fill="none" stroke="#5cc3bd" stroke-width="60" stroke-linecap="round"/></svg>
+  <div class="kicker">Decisions · today vs with zeno</div>
+  <h1>Better decisions,<br>made faster.</h1>
+  <p class="lead">Today a decision takes meetings, lives in a thread, and gets broken by the next agent. With zeno it's checked against facts, written down in the repo, and enforced on every request after.</p>
+</section>
+
+<!-- 2. Today -->
+<section class="slide" aria-label="How a decision is made today">
+  <div class="kicker">Today</div>
+  <h2>A decision takes days, and then it gets lost.</h2>
+  <div class="body">
+    <div class="figure">
+      <svg viewBox="0 0 1100 400" role="img" aria-label="Idea, then meetings, then maybe a doc, then a decision in a chat thread. Code is written without it, review finds the conflict, and the work is redone.">
+        <defs><marker id="d1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#98a0b3"/></marker>
+        <marker id="d1r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#f0616d"/></marker></defs>
+        <g font-size="16" font-weight="600">
+          <rect x="0" y="60" width="140" height="70" rx="12" fill="#181c26" stroke="#2a3040"/><text x="70" y="101" fill="#e8ebf2" text-anchor="middle">Idea</text>
+          <line x1="140" y1="95" x2="185" y2="95" stroke="#98a0b3" stroke-width="2" marker-end="url(#d1)"/>
+          <rect x="190" y="60" width="170" height="70" rx="12" fill="#181c26" stroke="#2a3040"/><text x="275" y="92" fill="#e8ebf2" text-anchor="middle">Meetings</text><text x="275" y="114" fill="#98a0b3" font-size="13" font-weight="400" text-anchor="middle">wait for calendars</text>
+          <line x1="360" y1="95" x2="405" y2="95" stroke="#98a0b3" stroke-width="2" marker-end="url(#d1)"/>
+          <rect x="410" y="60" width="170" height="70" rx="12" fill="#181c26" stroke="#2a3040" stroke-dasharray="6 6"/><text x="495" y="92" fill="#e8ebf2" text-anchor="middle">A doc, maybe</text><text x="495" y="114" fill="#98a0b3" font-size="13" font-weight="400" text-anchor="middle">facts often missing</text>
+          <line x1="580" y1="95" x2="625" y2="95" stroke="#98a0b3" stroke-width="2" marker-end="url(#d1)"/>
+          <rect x="630" y="60" width="200" height="70" rx="12" fill="#181c26" stroke="#2a3040"/><text x="730" y="92" fill="#e8ebf2" text-anchor="middle">Decided in a thread</text><text x="730" y="114" fill="#f0616d" font-size="13" font-weight="400" text-anchor="middle">hard to find later</text>
+          <line x1="830" y1="95" x2="875" y2="95" stroke="#98a0b3" stroke-width="2" marker-end="url(#d1)"/>
+          <rect x="880" y="60" width="210" height="70" rx="12" fill="#181c26" stroke="#2a3040"/><text x="985" y="92" fill="#e8ebf2" text-anchor="middle">Code by agent</text><text x="985" y="114" fill="#98a0b3" font-size="13" font-weight="400" text-anchor="middle">never saw the thread</text>
+          <line x1="985" y1="130" x2="985" y2="215" stroke="#98a0b3" stroke-width="2" marker-end="url(#d1)"/>
+          <rect x="880" y="220" width="210" height="70" rx="12" fill="rgba(240,97,109,.12)" stroke="#f0616d"/><text x="985" y="252" fill="#f0616d" text-anchor="middle">Review finds it</text><text x="985" y="274" fill="#f0616d" font-size="13" font-weight="400" text-anchor="middle">late, if at all</text>
+          <path d="M880 255 H560" fill="none" stroke="#f0616d" stroke-width="2.5" marker-end="url(#d1r)"/>
+          <rect x="380" y="220" width="175" height="70" rx="12" fill="rgba(240,97,109,.12)" stroke="#f0616d"/><text x="467" y="252" fill="#f0616d" text-anchor="middle">Rework</text><text x="467" y="274" fill="#f0616d" font-size="13" font-weight="400" text-anchor="middle">or re-open the debate</text>
+          <path d="M380 255 H275 V135" fill="none" stroke="#f0616d" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#d1r)"/>
+        </g>
+        <text x="0" y="360" fill="#98a0b3" font-size="15">Three costs: waiting for people, deciding without facts, and paying again when the decision is forgotten.</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- 3. With zeno -->
+<section class="slide" aria-label="How a decision is made with zeno">
+  <div class="kicker">With zeno</div>
+  <h2>Checked in the same session. Written down once. Enforced after.</h2>
+  <div class="body">
+    <div class="figure">
+      <svg viewBox="0 0 1100 400" role="img" aria-label="A request goes to the weigh gate, which searches past decisions, checks claims and reads data. It returns a cited verdict. The decision is saved as a record in the repo, and every later request is weighed against it.">
+        <defs><marker id="d2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#98a0b3"/></marker>
+        <marker id="d2t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5cc3bd"/></marker></defs>
+        <g font-size="16" font-weight="600">
+          <rect x="0" y="60" width="150" height="80" rx="12" fill="#181c26" stroke="#2a3040"/><text x="75" y="96" fill="#e8ebf2" text-anchor="middle">Request</text><text x="75" y="118" fill="#98a0b3" font-size="13" font-weight="400" text-anchor="middle">in Claude Code</text>
+          <line x1="150" y1="100" x2="205" y2="100" stroke="#98a0b3" stroke-width="2" marker-end="url(#d2)"/>
+          <rect x="210" y="20" width="330" height="170" rx="16" fill="#12302f" stroke="#5cc3bd" stroke-width="2"/>
+          <text x="375" y="52" fill="#5cc3bd" font-size="13" text-anchor="middle" class="mono" letter-spacing="2">WEIGH</text>
+          <text x="235" y="86" fill="#e8ebf2" font-size="15">✓ searches past decisions</text>
+          <text x="235" y="116" fill="#e8ebf2" font-size="15">✓ checks each claim for facts</text>
+          <text x="235" y="146" fill="#e8ebf2" font-size="15">✓ reads data sources, read-only</text>
+          <text x="235" y="176" fill="#e8ebf2" font-size="15">✓ weighs cost vs value</text>
+          <line x1="540" y1="100" x2="595" y2="100" stroke="#98a0b3" stroke-width="2" marker-end="url(#d2)"/>
+          <rect x="600" y="55" width="210" height="90" rx="12" fill="#181c26" stroke="#2a3040"/><text x="705" y="92" fill="#e8ebf2" text-anchor="middle">Verdict</text><text x="705" y="116" fill="#98a0b3" font-size="13" font-weight="400" text-anchor="middle">cites each rule it used</text>
+          <line x1="810" y1="100" x2="865" y2="100" stroke="#98a0b3" stroke-width="2" marker-end="url(#d2)"/>
+          <rect x="870" y="55" width="220" height="90" rx="12" fill="#12302f" stroke="#5cc3bd"/><text x="980" y="88" fill="#e8ebf2" text-anchor="middle">Decision record</text><text x="980" y="112" fill="#98a0b3" font-size="13" font-weight="400" text-anchor="middle" class="mono">.context/wiki/decisions/</text><text x="980" y="132" fill="#98a0b3" font-size="13" font-weight="400" text-anchor="middle">in git, reviewed like code</text>
+          <path d="M980 145 V300 H375 V195" fill="none" stroke="#5cc3bd" stroke-width="2.5" marker-end="url(#d2t)"/>
+          <text x="680" y="290" fill="#5cc3bd" font-size="15" text-anchor="middle">every later request is weighed against it</text>
+        </g>
+        <text x="0" y="360" fill="#98a0b3" font-size="15">People still decide. zeno brings the facts and the history to them, and keeps the result.</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Side by side -->
+<section class="slide" aria-label="Side by side">
+  <div class="kicker">Side by side</div>
+  <h2>Same people, same decisions. Less waiting, fewer repeats.</h2>
+  <div class="body" style="flex-direction:column">
+    <table>
+      <thead><tr><th>Step</th><th>Today</th><th>With zeno</th></tr></thead>
+      <tbody>
+        <tr><td>Find past decisions</td><td>Search chat, ask around</td><td>Searched first, every time, and cited</td></tr>
+        <tr><td>Check the claims</td><td>"Users want it" is taken on trust</td><td>Each claim marked backed or not, with its source</td></tr>
+        <tr><td>Get the data</td><td>Ask an analyst, wait</td><td>Read-only query through tools we already use</td></tr>
+        <tr><td>Record the decision</td><td>A thread, a slide, or nowhere</td><td>A decision record in the repo, one home</td></tr>
+        <tr><td>Keep it</td><td>Depends on who remembers</td><td>Every later request is weighed against it</td></tr>
+        <tr><td>Change it</td><td>Quietly drifts</td><td>A new record replaces it, and overrides are logged</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 5. Real example -->
+<section class="slide" aria-label="A real verdict">
+  <div class="kicker">A real verdict</div>
+  <h2>What a push back looks like.</h2>
+  <div class="body">
+    <div class="figure" style="flex:1.5">
+      <img src="https://raw.githubusercontent.com/ritesh-firodiya/zeno/main/.github/assets/demo.svg" alt="zeno weighs a request to add manual expense entry. It breaks a decided rule and two of three claims have no facts, so it pushes back and offers three ways forward." style="max-width:100%; max-height:100%; border-radius:1cqw; box-shadow:0 2cqw 5cqw rgba(0,0,0,.45)">
+    </div>
+    <div class="col" style="justify-content:center">
+      <p><b>The request</b> asked for a manual entry button, "because users keep asking".</p>
+      <p><b>The gate found</b> a decision against manual entry, no feedback on file, and no retention metric.</p>
+      <p><b>So it stopped</b> and gave three ways on: bring the facts, change the rule on written terms, or drop it.</p>
+      <p><b>Without zeno,</b> this would have been built, then argued about in review.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Faster -->
+<section class="slide" aria-label="Where the time is saved">
+  <div class="kicker">Where the time goes</div>
+  <h2>Find the conflict before the code, not after.</h2>
+  <div class="body">
+    <div class="figure">
+      <svg viewBox="0 0 1100 330" role="img" aria-label="Two timelines from request to merge. Today the conflict is found at review, near the end, and the work loops back. With zeno it is found at the start, before any code.">
+        <g font-size="15">
+          <text x="0" y="40" fill="#f0616d" font-size="13" class="mono" letter-spacing="1.5">TODAY</text>
+          <line x1="0" y1="80" x2="1090" y2="80" stroke="#2a3040" stroke-width="6" stroke-linecap="round"/>
+          <text x="0" y="115" fill="#98a0b3">request</text><text x="300" y="115" fill="#98a0b3">build</text><text x="1090" y="115" fill="#98a0b3" text-anchor="end">merge</text>
+          <circle cx="820" cy="80" r="13" fill="#f0616d"/><text x="820" y="50" fill="#f0616d" text-anchor="middle" font-weight="600">conflict found in review</text>
+          <path d="M820 95 C820 150, 320 150, 320 92" fill="none" stroke="#f0616d" stroke-width="2" stroke-dasharray="6 6"/>
+          <text x="570" y="160" fill="#f0616d" text-anchor="middle">redo the build</text>
+
+          <text x="0" y="215" fill="#5cc3bd" font-size="13" class="mono" letter-spacing="1.5">WITH ZENO</text>
+          <line x1="0" y1="255" x2="1090" y2="255" stroke="#2a3040" stroke-width="6" stroke-linecap="round"/>
+          <line x1="0" y1="255" x2="1090" y2="255" stroke="rgba(92,195,189,.5)" stroke-width="6" stroke-linecap="round"/>
+          <text x="0" y="290" fill="#98a0b3">request</text><text x="300" y="290" fill="#98a0b3">build once</text><text x="1090" y="290" fill="#98a0b3" text-anchor="end">merge</text>
+          <circle cx="90" cy="255" r="13" fill="#5cc3bd"/><text x="90" y="226" fill="#5cc3bd" font-weight="600">conflict found at the gate</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <p class="note">The later a conflict is found, the more work sits on top of it. The pilot counts how many conflicts the gate catches before code.</p>
+</section>
+
+<!-- 7. Pilot -->
+<section class="slide" aria-label="The pilot">
+  <div class="kicker">Prove it</div>
+  <h2>A 4-week pilot on 3 repos, measured.</h2>
+  <div class="body">
+    <div class="grid2" style="flex:1; align-content:center">
+      <div class="card"><span class="num">MEASURE</span><h3>Conflicts caught before code</h3><p>Push backs that stopped work breaking a decision. Bar: 5 or more.</p></div>
+      <div class="card"><span class="num">MEASURE</span><h3>False alarms</h3><p>Push backs that were wrong. Bar: fewer than 1 in 3.</p></div>
+      <div class="card"><span class="num">MEASURE</span><h3>Decisions written down</h3><p>Decision records added per repo, and how often they get cited.</p></div>
+      <div class="card"><span class="num">MEASURE</span><h3>Time cost</h3><p>Minutes a day on the gate. Bar: under 15 after week 1.</p></div>
+    </div>
+  </div>
+  <p class="note">Bars are a proposal. We agree on them before we start.</p>
+</section>
+
+<!-- 8. Ask -->
+<section class="slide title-slide" aria-label="The ask">
+  <div class="kicker">The ask</div>
+  <h1>Three things.</h1>
+  <div style="margin-top:3cqw; display:grid; gap:1.6cqw">
+    <p class="big-ask"><span style="color:var(--accent)">1 ·</span> A yes to a 4-week pilot on my laptop.</p>
+    <p class="big-ask"><span style="color:var(--accent)">2 ·</span> Help picking 3 repos with active AI-assisted work.</p>
+    <p class="big-ask"><span style="color:var(--accent)">3 ·</span> 30 minutes in week 4 to look at the numbers.</p>
+  </div>
+  <nav class="versions" aria-label="Other versions of this pitch"><a href="../">Overview</a><a href="./" aria-current="page">Decisions: today vs zeno</a><a href="../pdlc/">PDLC and review time</a><a href="../stack/">Stack, domain and code rules</a></nav>
+</section>
+
+</main>
+<div class="chrome"><div class="bar" id="bar"></div></div>
+<div class="counter" id="counter"></div>
+<div class="hint">← → to move · F for full screen</div>
+<button class="nav left" id="prevBtn" aria-label="Previous slide"></button>
+<button class="nav right" id="nextBtn" aria-label="Next slide"></button>
+<script src="../assets/deck.js"></script>
+</body>
+</html>

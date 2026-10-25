@@ -7,108 +7,7 @@
 <meta name="description" content="A 4-week pilot of zeno on 3 repos: keep decided things decided when AI agents write code.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
-<style>
-:root {
-  --bg: #0b0d12;
-  --slide: #11141b;
-  --panel: #181c26;
-  --line: #2a3040;
-  --text: #e8ebf2;
-  --muted: #98a0b3;
-  --accent: #5cc3bd;
-  --accent-soft: rgba(92, 195, 189, .14);
-  --green: #4cc38a;
-  --amber: #f0b74a;
-  --red: #f0616d;
-  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
-}
-* { box-sizing: border-box; margin: 0; }
-html, body { height: 100%; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
-}
-.deck { position: fixed; inset: 0; display: grid; place-items: center; }
-.slide {
-  position: absolute;
-  width: min(100vw, 177.78vh);
-  aspect-ratio: 16 / 9;
-  background: radial-gradient(120% 90% at 100% 0%, #0f2a2a 0%, var(--slide) 55%);
-  container-type: inline-size;
-  padding: 5.5cqw 6cqw 4.5cqw;
-  display: flex;
-  flex-direction: column;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateX(2%);
-  transition: opacity .35s ease, transform .35s ease, visibility .35s;
-}
-.slide.active { opacity: 1; visibility: visible; transform: none; }
-.slide.prev { transform: translateX(-2%); }
-
-.kicker { font: 600 1.05cqw/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.4cqw; }
-h1 { font-size: 5.6cqw; line-height: 1.02; font-weight: 800; letter-spacing: -.03em; }
-h2 { font-size: 3.3cqw; line-height: 1.1; font-weight: 750; letter-spacing: -.02em; max-width: 80%; }
-p, li { font-size: 1.55cqw; line-height: 1.5; color: var(--muted); }
-.lead { font-size: 1.9cqw; max-width: 70%; margin-top: 1.8cqw; }
-b, strong { color: var(--text); font-weight: 600; }
-code { font: 1.3cqw var(--mono); color: var(--text); background: var(--panel); padding: .1em .4em; border-radius: .3em; }
-.body { flex: 1; display: flex; gap: 3cqw; margin-top: 2.6cqw; min-height: 0; }
-.col { flex: 1; display: flex; flex-direction: column; gap: 1.4cqw; min-width: 0; }
-.figure { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
-.figure svg { width: 100%; height: 100%; }
-.note { font-size: 1.1cqw; color: var(--muted); opacity: .8; margin-top: auto; padding-top: 1cqw; }
-
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: 1cqw; padding: 1.6cqw 1.8cqw; }
-.card h3 { font-size: 1.6cqw; font-weight: 650; margin-bottom: .5cqw; }
-.card p { font-size: 1.3cqw; }
-.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4cqw; }
-.grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.4cqw; }
-.num { font: 700 1.1cqw var(--mono); color: var(--accent); margin-bottom: .6cqw; display: block; }
-ul.clean { list-style: none; padding: 0; display: grid; gap: 1cqw; }
-ul.clean li { padding-left: 2cqw; position: relative; }
-ul.clean li::before { content: ""; position: absolute; left: 0; top: .62em; width: .8cqw; height: .8cqw; border-radius: 50%; background: var(--accent); }
-
-table { width: 100%; border-collapse: collapse; font-size: 1.35cqw; }
-th, td { text-align: left; padding: 1cqw 1.2cqw; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { font: 600 1.05cqw var(--mono); color: var(--accent); letter-spacing: .08em; text-transform: uppercase; }
-td { color: var(--muted); }
-td:first-child { color: var(--text); font-weight: 600; }
-
-.pill { display: inline-block; font: 600 1.05cqw var(--mono); padding: .35cqw .8cqw; border-radius: 99px; }
-.ok { background: rgba(76, 195, 138, .15); color: var(--green); }
-.warn { background: rgba(240, 183, 74, .15); color: var(--amber); }
-.no { background: rgba(240, 97, 109, .15); color: var(--red); }
-
-.title-slide { justify-content: center; }
-.title-slide .logo { width: 6cqw; height: 6cqw; margin-bottom: 2.4cqw; }
-.title-slide .hero { position: absolute; right: 5cqw; top: 50%; transform: translateY(-50%); width: 40cqw; border-radius: 1.2cqw; box-shadow: 0 2cqw 5cqw rgba(0,0,0,.45); }
-.title-slide .meta { margin-top: 3cqw; font: 1.2cqw var(--mono); color: var(--muted); }
-.big-ask { font-size: 2.4cqw; color: var(--text); font-weight: 650; line-height: 1.35; max-width: 75%; }
-
-svg text { font-family: Inter, system-ui, sans-serif; }
-svg .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
-
-.chrome { position: fixed; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,.06); }
-.chrome .bar { height: 100%; background: var(--accent); width: 0; transition: width .35s ease; }
-.counter { position: fixed; right: 18px; bottom: 14px; font: 12px var(--mono); color: var(--muted); }
-.hint { position: fixed; left: 18px; bottom: 14px; font: 12px var(--mono); color: var(--muted); opacity: .7; }
-.nav { position: fixed; top: 0; bottom: 0; width: 18%; cursor: pointer; background: none; border: 0; }
-.nav.left { left: 0; } .nav.right { right: 0; }
-.nav:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
-
-@media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
-@media print {
-  @page { size: 1280px 720px; margin: 0; }
-  body { overflow: visible; background: var(--slide); }
-  .deck { position: static; display: block; }
-  .slide { position: relative; width: 1280px; opacity: 1; visibility: visible; transform: none; page-break-after: always; break-after: page; }
-  .chrome, .counter, .hint, .nav { display: none; }
-}
-</style>
+<link rel="stylesheet" href="assets/deck.css">
 </head>
 <body>
 <main class="deck" id="deck" aria-live="polite">
@@ -452,6 +351,7 @@ svg .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
     <p class="big-ask"><span style="color:var(--accent)">3 ·</span> 30 minutes in week 4 to look at the numbers.</p>
   </div>
   <div class="meta">github.com/ritesh-firodiya/zeno · npm @freetesh/zeno</div>
+  <nav class="versions" aria-label="Other versions of this pitch"><a href="./" aria-current="page">Overview</a><a href="decisions/">Decisions: today vs zeno</a><a href="pdlc/">PDLC and review time</a><a href="stack/">Stack, domain and code rules</a></nav>
 </section>
 
 </main>
@@ -462,50 +362,6 @@ svg .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
 <button class="nav left" id="prevBtn" aria-label="Previous slide"></button>
 <button class="nav right" id="nextBtn" aria-label="Next slide"></button>
 
-<script>
-(() => {
-  const slides = [...document.querySelectorAll(".slide")];
-  const bar = document.getElementById("bar");
-  const counter = document.getElementById("counter");
-  const fromHash = () => Math.min(Math.max(parseInt(location.hash.slice(1), 10) || 1, 1), slides.length) - 1;
-  let current = fromHash();
-
-  function show(index) {
-    current = Math.min(Math.max(index, 0), slides.length - 1);
-    slides.forEach((slide, i) => {
-      slide.classList.toggle("active", i === current);
-      slide.classList.toggle("prev", i < current);
-      slide.setAttribute("aria-hidden", i === current ? "false" : "true");
-    });
-    bar.style.width = `${((current + 1) / slides.length) * 100}%`;
-    counter.textContent = `${current + 1} / ${slides.length}`;
-    if (location.hash !== `#${current + 1}`) history.replaceState(null, "", `#${current + 1}`);
-  }
-
-  document.addEventListener("keydown", (event) => {
-    if (["ArrowRight", "PageDown", " ", "Enter"].includes(event.key)) { event.preventDefault(); show(current + 1); }
-    else if (["ArrowLeft", "PageUp", "Backspace"].includes(event.key)) { event.preventDefault(); show(current - 1); }
-    else if (event.key === "Home") show(0);
-    else if (event.key === "End") show(slides.length - 1);
-    else if (event.key.toLowerCase() === "f") {
-      if (document.fullscreenElement) document.exitFullscreen();
-      else document.documentElement.requestFullscreen?.();
-    }
-  });
-  document.getElementById("prevBtn").addEventListener("click", () => show(current - 1));
-  document.getElementById("nextBtn").addEventListener("click", () => show(current + 1));
-
-  let touchX = null;
-  document.addEventListener("touchstart", (e) => { touchX = e.touches[0].clientX; }, { passive: true });
-  document.addEventListener("touchend", (e) => {
-    if (touchX === null) return;
-    const dx = e.changedTouches[0].clientX - touchX;
-    if (Math.abs(dx) > 40) show(current + (dx < 0 ? 1 : -1));
-    touchX = null;
-  });
-  window.addEventListener("hashchange", () => show(fromHash()));
-  show(current);
-})();
-</script>
+<script src="assets/deck.js"></script>
 </body>
 </html>
