@@ -1,10 +1,28 @@
-# zeno
+<p align="center">
+  <img src=".github/assets/icon.svg" width="96" height="96" alt="zeno icon">
+</p>
 
-A productivity tool for the whole product development lifecycle (PDLC), from
-idea to release. zeno keeps your domain knowledge, decisions and AI rules local,
-in your own repos, and enforces them: Claude searches them before it answers,
-weighs a request against them before it acts, and `zeno check` fails when code
-or docs break them. The AI hallucinates less, and your team ships faster.
+<h1 align="center">zeno</h1>
+
+<p align="center">
+  <b>Facts, not assumptions.</b> Your rules, kept in your repo. Enforced.<br>
+  A Claude Code plugin and CLI · MIT
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@freetesh/zeno"><img alt="npm" src="https://img.shields.io/npm/v/@freetesh/zeno"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue"></a>
+</p>
+
+zeno keeps your domain knowledge, decisions and AI rules in your own repos, and
+enforces them. Claude searches them before it answers. It weighs each request
+against them before it acts, and it checks every claim in the request against
+facts. `zeno check` fails when code or docs break a rule. The AI guesses less,
+and you redo less work.
+
+<p align="center">
+  <img src=".github/assets/demo.svg" alt="zeno weighs a request. Two of three claims have no facts and the request breaks a decided rule, so it pushes back and stops until the user brings facts, agrees to terms, or drops it.">
+</p>
 
 It has two halves that read the same config:
 
@@ -87,17 +105,6 @@ starter `.dependency-cruiser.cjs` to your layers. `evals/fixtures/streaks` is a
 small product with a wiki and decision records, if you want to see the
 `.context/` layout before touching your own repo.
 
-For local development of zeno itself, link the repo as a skills-dir plugin so
-edits apply on the next session: `ln -s "$PWD" ~/.claude/skills/zeno`.
-Run the CLI from source (Node 23.6+ runs the TypeScript directly):
-`pnpm install && ln -s "$PWD/cli/src/index.ts" ~/.local/bin/zeno`.
-`pnpm test`, `pnpm typecheck` and `pnpm build` run from the repo root.
-
-**Releasing.** Bump `version` in `package.json` and `.claude-plugin/plugin.json`,
-then push or merge to `main`. The `release` workflow runs the tests, publishes
-`@freetesh/zeno` to npm, tags `vX.Y.Z` and creates the GitHub release. A push
-without a bump releases nothing. It needs the `NPM_TOKEN` Actions secret.
-
 ## CLI
 
 ```bash
@@ -145,7 +152,7 @@ context:
 
 ```yaml
 # <repo>/.claude/zeno.yaml — written by `zeno init`
-zeno: 0.6.0
+zeno: 0.9.0
 kind: expo-app                      # expo-app | web | content
 modules: [docs, knowledge, code, listing]   # all optional; design is added when .context/designs exists, metrics only when asked
 packs: [expo]
@@ -164,7 +171,7 @@ carry a `reason:`, and `zeno check` lists every override.
 
 | zeno default | What it holds |
 |---|---|
-| `constitution.md` | Principles C-01–C-13 a request is weighed against. A team adds C-20+ in its own `constitution.md`. |
+| `constitution.md` | Principles C-01–C-15 a request is weighed against. A team adds C-20+ in its own `constitution.md`. |
 | `wiki-schema.md` | Wiki page types, frontmatter, required sections, lint rules |
 | `context-layout.md` | The `.context/` ten-folder layout, `features/` and `tasks.md` |
 | `agent-contract.md` | What every agent does before, during and after work |
@@ -199,3 +206,16 @@ scripts/          log-verdict.mjs — append-only override log
 cli/              the zeno CLI (TypeScript, vitest; built to cli/dist for npm)
 evals/            plugin evals and the fixture product
 ```
+
+## Develop zeno
+
+Link the repo as a skills-dir plugin so edits apply on the next session:
+`ln -s "$PWD" ~/.claude/skills/zeno`.
+Run the CLI from source (Node 23.6+ runs the TypeScript directly):
+`pnpm install && ln -s "$PWD/cli/src/index.ts" ~/.local/bin/zeno`.
+`pnpm test`, `pnpm typecheck` and `pnpm build` run from the repo root.
+
+**Releasing.** Bump `version` in `package.json` and `.claude-plugin/plugin.json`,
+then push or merge to `main`. The `release` workflow runs the tests, publishes
+`@freetesh/zeno` to npm, tags `vX.Y.Z` and creates the GitHub release. A push
+without a bump releases nothing. It needs the `NPM_TOKEN` Actions secret.
