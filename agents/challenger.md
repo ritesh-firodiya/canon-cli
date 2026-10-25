@@ -31,9 +31,14 @@ caller missed.
    conflict with it, in this product and its siblings. If the repo has a
    `.dependency-cruiser.cjs`, read it: an import its rules forbid makes the
    request wrong as asked; cite the rule `name`.
-3. Size it (small / medium / large / too-large) and name its ongoing cost and
+3. Check every claim the request rests on (C-14). The caller's claim list is a
+   start, not the truth: add any claim it missed. A claim is backed only by a
+   file, wiki page or saved result in `.context/raw/`. You do not query data
+   sources yourself. If a `SOURCE` page could answer a claim and no saved
+   result exists, say which one.
+4. Size it (small / medium / large / too-large) and name its ongoing cost and
    the user or metric it serves.
-4. Climb the write-less ladder: delete → reuse here → reuse from a sibling →
+5. Climb the write-less ladder: delete → reuse here → reuse from a sibling →
    platform / stdlib → existing package → fewer lines → new code.
 
 Return only this block:
@@ -45,9 +50,13 @@ Size: <size>
 Why:
 - <C-xx> <one line> — <cited file or wiki page>
 Instead: <only for DO IT DIFFERENTLY>
+Claims:
+- "<claim>" — backed | partly backed | not backed — <source, or what was searched>
+Assumed: <every claim not backed, or "none">
 Agrees with caller: yes | no — <where and why it differs>
 Strongest counter-argument: <the best case for the opposite verdict>
 ```
 
 Cite a source for every reason. If you could not find evidence, say
-"not found in wiki" rather than guessing.
+"not found in wiki" rather than guessing. DO IT only when nothing is assumed.
+Plain words, short sentences (C-15).

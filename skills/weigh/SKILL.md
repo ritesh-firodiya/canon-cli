@@ -19,7 +19,10 @@ product's `.claude/zeno.yaml` may tighten this under `weigh.trivial`.
 
 1. **Restate the goal** in one line — what outcome the user wants, not the
    mechanism they named. A named mechanism ("use library X", "move to Firebase")
-   is a proposal to weigh, not a given.
+   is a proposal to weigh, not a given. Then **list the claims** the request
+   makes or rests on: "users want it", "it will help retention", "it is
+   missing", "it is slow". The request is not a fact (C-14); each claim is
+   checked in step 4.
 
 2. **Rules.** Run `zeno standards --constitution` for the principle titles
    (zeno's and any the team added), and read the constitution files that
@@ -31,7 +34,7 @@ product's `.claude/zeno.yaml` may tighten this under `weigh.trivial`.
 3. **Domain.** Search before you judge. Run `mcp__plugin_zeno_qmd__query` with
    the goal in plain words, then the key nouns, scoped with `collections` to
    this product's `<repo>-wiki` and `<repo>-features` (the names `zeno init`
-   gives them; add `pack-<name>` when the question is about a vendor's API). Other products' hits are noise here; step 4 is where
+   gives them; add `pack-<name>` when the question is about a vendor's API). Other products' hits are noise here; step 5 is where
    siblings are searched. Read the top hits with `mcp__plugin_zeno_qmd__get`. Look for: an ADR that already
    decided this, a canonical value it would change, a concept it would break.
    If qmd is unavailable, read `.context/wiki/index.md` and `decisions/`.
@@ -42,30 +45,41 @@ product's `.claude/zeno.yaml` may tighten this under `weigh.trivial`.
    is **too-large** unless a decision page already approves it. Cite the rule
    by its `name`.
 
-4. **Duplicates and conflicts.** Check `.context/features/` and `.context/tasks.md`
+4. **Claims.** Mark each claim from step 1 **backed**, **partly backed** or
+   **not backed**, with the fact and its source. Look in what step 3 read, the
+   code and `.context/raw/`. When that is not enough, look for a data source:
+   query qmd for `SOURCE` pages in this product's wiki. Each says what it holds,
+   how to read it (`mcp:`, `skill:` or `cli:`) and which claims it answers. If
+   one fits, run its query and follow the query rules in `wiki-schema.md`
+   ("Data sources"): read only, one or two small queries, counts not people.
+   Save a result that decides the verdict to `.context/raw/`. If the tool is not
+   available, say so and leave the claim not backed. If no source fits, name
+   the kind of source that would answer it ("an analytics tool with weekly
+   active users"). Never mark a claim backed because the user said it again.
+
+5. **Duplicates and conflicts.** Check `.context/features/` and `.context/tasks.md`
    of this product, and the features collections of sibling products in qmd:
    is this already planned, built, shelved, or in progress elsewhere? Would it
    conflict with something in `## Now`?
 
-5. **Cost vs value.**
+6. **Cost vs value.**
    - Size: **small** (1 file, < 50 lines) · **medium** (2–5 files, < 200 lines) ·
      **large** (5+ files) · **too-large** (architecture change — split it).
    - Ongoing cost: new dependency, new service bill, more to maintain, more to
      test, store review risk.
    - Value: name the user or the metric it moves (`metrics/definitions.yml` if
-     the product has one). If neither can be named, say "value unproven".
-     When a number would settle it, check the product's `SOURCE.*` entity pages
-     for where that data lives and query it rather than guess.
+     the product has one). If neither can be named, say "value unproven". A
+     value claim is checked like any other claim, in step 4.
    - Evidence: say which evidence from `dev-methods.md` the work must leave — a
      feature page, a failing test first, or a metric and snapshot.
 
-6. **Write less.** Climb the ladder and stop at the first rung that works:
+7. **Write less.** Climb the ladder and stop at the first rung that works:
    delete it → reuse something in this repo → reuse from a sibling product or
    shared script → platform or standard library → an existing well-used package
    → fewer lines → new code. If the `ponytail` plugin is installed, follow its
    ladder for this step.
 
-7. **Too-large, or the user asked for a second opinion?** Then, and only then,
+8. **Too-large, or the user asked for a second opinion?** Then, and only then,
    ask the `challenger` agent for an independent read. It costs tens of
    thousands of tokens, so hand it what you already have: the request, the repo
    path, your draft verdict, and every file and wiki page you read with one line
@@ -85,26 +99,48 @@ Why:
 - <C-xx> <one line> — <file or wiki page cited>
 - ...
 Instead: <only for DO IT DIFFERENTLY — the cheaper or safer way>
+Claims:
+- "<claim>" — backed | partly backed | not backed — <fact and source, or what was searched>
+Assumed: <every claim not backed, or "none">
 Open questions: <only if a real ambiguity blocks a good answer>
 ```
 
 - Every bullet under **Why** cites a principle ID and a source (a wiki page, ADR,
-  standard, feature or file). A reason with no source is an opinion — drop it or
-  mark it "unverified".
-- **DO IT** → proceed with the work in the same turn.
+  standard, feature, file or saved query result). A reason with no source is an
+  opinion: drop it, or list it under **Assumed**.
+- **DO IT** only when **Assumed** is "none". Proceed with the work in the same
+  turn.
 - **DO IT DIFFERENTLY** → proceed with the *Instead* version only if the user
-  already accepted it; otherwise stop and ask which way.
-- **PUSH BACK** → stop. Do not start the work, not even a part of it. Ask for
-  the reason. When the user gives one, log it (below), then proceed as they say.
+  already accepted it and **Assumed** is "none"; otherwise stop and ask.
+- **PUSH BACK** → stop. Do not start the work, not even a part of it.
+- **Something is assumed** → stop, and give the user three choices: bring the
+  facts (and say where they would go), agree to terms, or drop it.
+
+Write the whole reply in plain words (C-15): short sentences, common words, no
+jargon the wiki does not define.
+
+## Terms (when the user wants to go on anyway)
+
+When the user wants to go on despite a PUSH BACK or an assumption, write the
+terms as a numbered list: what is in scope, what is out, which rule changes and
+which stays, and how the assumption will be checked later (a metric and a
+date). A fact the user gives in chat is saved to `.context/raw/` first, then
+listed as a fact, not as proof of more than it shows.
+
+Proceed only after the user agrees in writing ("agree", or "agree to 1–4").
+"Go ahead" to a verdict is not agreement to terms that were never shown. Work
+covers only the terms agreed to.
 
 ## Logging (push back and overrides)
 
-When the user overrides a PUSH BACK or rejects a DO IT DIFFERENTLY, append one
-line to the product's log so zeno can learn from it later:
+When the user overrides a PUSH BACK, rejects a DO IT DIFFERENTLY or agrees to
+terms, append one line to the product's log so zeno can learn from it later.
+Pass each agreed term with its own `--term`:
 
 ```bash
-node ../../scripts/log-verdict.mjs --verdict push-back --principles C-05,C-06 \
-  --request "<one line>" --reason "<the user's reason, verbatim>"
+node ../../scripts/log-verdict.mjs --verdict push-back --principles C-04,C-14 \
+  --request "<one line>" --reason "<the user's reason, verbatim>" \
+  --term "<term 1>" --term "<term 2>"
 ```
 
 (path relative to this skill). It writes to `.context/raw/zeno/verdicts.jsonl`

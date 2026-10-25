@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- C-14 *Facts, not assumptions* and C-15 *Plain words* in the constitution. The
+  weigh gate lists each claim in a request and marks it backed, partly backed
+  or not backed. DO IT needs nothing assumed. Going on despite an assumption
+  takes written, numbered terms the user agrees to; `log-verdict.mjs --term`
+  logs each one.
+- The gate reads a repo's `SOURCE.*` pages to check claims, under query rules in
+  `wiki-schema.md`: read only, small queries, counts not people.
+- `sources` check: a `SOURCE.*` page names how to read it in its `ACCESS` row
+  (`mcp:`, `skill:` or `cli:`, and a `cli:` must be in `doctor.tools`) and has
+  a `## How to query` section.
+- Evals `source-backed` and `go-ahead-is-not-agreement` (nine cases in all).
+
 ## 0.8.0 — 2026-10-23
 
 ### Added

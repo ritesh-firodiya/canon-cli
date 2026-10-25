@@ -38,6 +38,7 @@ refreshSearchIndex();
 const context = [
   "zeno constitution — run the weigh skill on any non-trivial request before acting;",
   "cite principle IDs in verdicts. `zeno standards` lists every standard that applies here.",
+  "A request is not a fact: check its claims before acting (C-14). Reply in plain words (C-15).",
   ...principleTitles(),
   "",
   "Knowledge lookup: for any question about a product's prices, rules, decisions,",

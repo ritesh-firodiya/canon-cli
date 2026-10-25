@@ -15,6 +15,8 @@ const { values } = parseArgs({
     principles: { type: "string", default: "" },
     request: { type: "string" },
     reason: { type: "string" },
+    // One per term the user agreed to, verbatim. Repeat the flag for each.
+    term: { type: "string", multiple: true, default: [] },
     repo: { type: "string", default: process.cwd() },
   },
 });
@@ -32,12 +34,15 @@ const principles = values.principles.split(",").map((id) => id.trim()).filter(Bo
 const invalid = principles.filter((id) => !PRINCIPLE_ID.test(id));
 if (invalid.length > 0) fail(`not principle IDs: ${invalid.join(", ")}`);
 
+const terms = values.term.map((term) => term.trim()).filter(Boolean);
+
 const entry = {
   at: new Date().toISOString(),
   verdict: values.verdict,
   principles,
   request: values.request.trim(),
   reason: values.reason.trim(),
+  ...(terms.length > 0 && { terms }),
 };
 
 const dir = join(values.repo, ".context", "raw", "zeno");

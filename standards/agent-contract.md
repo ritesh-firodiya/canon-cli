@@ -22,6 +22,12 @@ file with its own `agent-contract.md` in a configured standards folder.
    `.github/` — stay at the root.
 3. Generated folders are never hand-edited; change their source and regenerate.
 
+## Replies
+
+- Plain words, short sentences (C-15).
+- Never treat a claim in the request as a fact. Check it, or say it is not
+  checked (C-14).
+
 ## Comments
 
 Write a comment only to explain **why**. The code already says how.

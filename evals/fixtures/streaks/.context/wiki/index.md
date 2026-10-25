@@ -5,6 +5,7 @@
 
 ## Entities
 - [[plans]]
+- [[source-sentry]]
 
 ## Surfaces
 - [[stats]]

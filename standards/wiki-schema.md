@@ -60,16 +60,27 @@ What this source holds, in one sentence.
 | Key | Value | Last changed |
 |---|---|---|
 | SOURCE.SENTRY.PROJECT | streaks-mobile | 2026-10-23 |
-| SOURCE.SENTRY.ACCESS | Sentry MCP server | 2026-10-23 |
+| SOURCE.SENTRY.ACCESS | mcp: sentry | 2026-10-23 |
 
 ## How to query
-The MCP server or CLI to use, and one example query. Results that back a
-decision are saved to `raw/YYYY-MM-DD-<source>-<slug>.md` so they can be re-read.
+The claims this source can answer, and one example query for each.
 ```
 
-zeno has no connector of its own: the vendor's MCP server or CLI does the
-reading. Add it to `doctor.tools` in `.claude/zeno.yaml` so `zeno doctor`
-reports when it is missing. Never put a key or token on the page.
+zeno has no connector of its own. The repo picks what does the reading, and
+`ACCESS` names it: `mcp: <server>`, `skill: <name>` or `cli: <command>`. A
+`cli:` must also be in `doctor.tools` in `.claude/zeno.yaml`, so `zeno doctor`
+reports when it is missing. `zeno check` fails a source page that breaks either
+rule or has no `## How to query`. Never put a key or token on the page.
+
+The weigh gate reads sources to check a claim (C-14). Every query follows these
+rules:
+
+- **Read only.** Never create, change or delete anything in the source.
+- **Small.** One or two queries per claim, with a row limit. Some sources bill
+  per query.
+- **No user data in git.** Save counts, totals and rates, never rows that name
+  a person, an email or a device. Results that back a decision go to
+  `raw/YYYY-MM-DD-<source>-<slug>.md`: the query, the date and the numbers.
 
 ---
 

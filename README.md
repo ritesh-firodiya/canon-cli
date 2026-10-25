@@ -19,6 +19,15 @@ It has two halves that read the same config:
   cost vs value, and the write-less ladder, then answers **DO IT**, **DO IT
   DIFFERENTLY** or **PUSH BACK** with citations. Push back stops work until you
   give a reason; overrides are logged and feed `zeno learn`.
+- **No assumptions.** A request is not a fact. Each claim in it ("users want
+  this", "it is slow") is checked against the repo and its data sources and
+  marked backed or not. Work that rests on an assumption stops until you agree
+  to written, numbered terms. Replies use plain words.
+- **Your data sources, your tools.** zeno has no connectors. A repo describes
+  each tool that holds its data (Sentry, Datadog, Snowflake) on a `SOURCE.*`
+  wiki page that names the MCP server, skill or CLI that reads it. The gate
+  queries it, read-only, to back or reject a claim, and `zeno check` fails a
+  source page that does not say how to read it.
 - **Knowledge that is found, not remembered.** Every repo's `.context/wiki` and
   feature board is indexed with [QMD](https://github.com/tobi/qmd) (local hybrid
   search). Claude is told to search before answering.
@@ -168,7 +177,7 @@ your own.
 
 ## Evals
 
-`evals/` runs seven requests against a fixture product (`evals/fixtures/streaks`)
+`evals/` runs nine requests against a fixture product (`evals/fixtures/streaks`)
 with and without the plugin, each in a sandbox seeded with the fixture and a
 local QMD index:
 
