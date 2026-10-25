@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>zeno pilot</title>
-<meta name="description" content="A 4-week pilot of zeno on 3 repos: keep decided things decided when AI agents write code.">
+<title>zeno pitch</title>
+<meta name="description" content="Why zeno: AI writes more code than we can review. zeno checks requests and changes against our decisions and standards first.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
 <link rel="stylesheet" href="assets/deck.css">
@@ -12,7 +12,6 @@
 <body>
 <main class="deck" id="deck" aria-live="polite">
 
-<!-- 1. Title -->
 <section class="slide title-slide" aria-label="Title">
   <img class="hero" src="data:image/svg+xml;base64,PHN2ZyB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5MjAgNjQwIiB3aWR0aD0iOTIwIiBoZWlnaHQ9IjY0MCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJ6ZW5vIHdlaWdocyBhIHJlcXVlc3Q6IHR3byBvZiB0aHJlZSBjbGFpbXMgaGF2ZSBubyBmYWN0cywgc28gaXQgcHVzaGVzIGJhY2sgYW5kIHN0b3BzIj4KICA8c3R5bGU+CiAgICB0ZXh0IHsgZm9udC1mYW1pbHk6IE1lbmxvLCAiU0YgTW9ubyIsIENvbnNvbGFzLCBtb25vc3BhY2U7IGZvbnQtc2l6ZTogMTVweDsgZmlsbDogI2U0ZThlZjsgfQogICAgLmRpbSB7IGZpbGw6ICM5OGEyYjM7IH0gLnlvdSB7IGZpbGw6ICNmMGI3NWM7IH0gLnogeyBmaWxsOiAjNWNjM2JkOyBmb250LXdlaWdodDogNzAwOyB9CiAgICAub2sgeyBmaWxsOiAjNmZkMDhmOyB9IC5iYWQgeyBmaWxsOiAjZjI4YjgyOyB9IC5iIHsgZm9udC13ZWlnaHQ6IDcwMDsgfQogIDwvc3R5bGU+CiAgPHJlY3Qgd2lkdGg9IjkyMCIgaGVpZ2h0PSI2NDAiIHJ4PSIxNCIgZmlsbD0iIzExMTUxYiIvPgogIDxjaXJjbGUgY3g9IjI2IiBjeT0iMjQiIHI9IjYiIGZpbGw9IiNmMjhiODIiLz48Y2lyY2xlIGN4PSI0NiIgY3k9IjI0IiByPSI2IiBmaWxsPSIjZjBiNzVjIi8+PGNpcmNsZSBjeD0iNjYiIGN5PSIyNCIgcj0iNiIgZmlsbD0iIzZmZDA4ZiIvPgogIDx0ZXh0IHg9IjQ2MCIgeT0iMjkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJkaW0iPmNsYXVkZSDigJQgY2hpdHJhZ3VwdDwvdGV4dD4KCiAgPHRleHQgeD0iMjgiIHk9IjcyIj48dHNwYW4gY2xhc3M9InlvdSI+Jmd0OyA8L3RzcGFuPkFkZCBhbiAiQWRkIGV4cGVuc2UiIGJ1dHRvbiBzbyB1c2VycyBjYW4gdHlwZSBpbiBjYXNoIHNwZW5kcy48L3RleHQ+CiAgPHRleHQgeD0iMjgiIHk9Ijk0Ij4gIFVzZXJzIGtlZXAgYXNraW5nIGZvciBpdCwgYW5kIGl0IHdpbGwgaW1wcm92ZSByZXRlbnRpb24uPC90ZXh0PgoKICA8dGV4dCB4PSIyOCIgeT0iMTM0Ij48dHNwYW4gY2xhc3M9InoiPnplbm8gPC90c3Bhbj48dHNwYW4gY2xhc3M9ImRpbSI+SSBoYXZlIG5vdCBzdGFydGVkLiBGaXJzdCBJIGNoZWNrZWQgd2hhdCB5b3Ugc2FpZCBhZ2FpbnN0IHRoZSByZXBvLjwvdHNwYW4+PC90ZXh0PgoKICA8dGV4dCB4PSIyOCIgeT0iMTcyIiBjbGFzcz0iYiI+VmVyZGljdDogPHRzcGFuIGNsYXNzPSJiYWQiPlBVU0ggQkFDSzwvdHNwYW4+PC90ZXh0PgogIDx0ZXh0IHg9IjI4IiB5PSIxOTQiPkdvYWw6IGxldCB1c2VycyB0cmFjayBjYXNoIHNwZW5kczwvdGV4dD4KICA8dGV4dCB4PSIyOCIgeT0iMjE2Ij5TaXplOiBtZWRpdW0sIGJ1dCBpdCBicmVha3MgYSBkZWNpZGVkIHJ1bGU8L3RleHQ+CiAgPHRleHQgeD0iMjgiIHk9IjI0NiI+V2h5OjwvdGV4dD4KICA8dGV4dCB4PSIyOCIgeT0iMjY4Ij4tIEMtMDQgR29lcyBhZ2FpbnN0IG5vLW1hbnVhbC1lbnRyeSA8dHNwYW4gY2xhc3M9ImRpbSI+4oCUIGNvbmNlcHRzL25vLW1hbnVhbC1lbnRyeS5tZDwvdHNwYW4+PC90ZXh0PgogIDx0ZXh0IHg9IjI4IiB5PSIyOTAiPi0gQy0xNCAyIG9mIDMgY2xhaW1zIGhhdmUgbm8gZmFjdHMgPHRzcGFuIGNsYXNzPSJkaW0iPuKAlCByYXcvIGVtcHR5LCBubyBtZXRyaWNzIGZpbGU8L3RzcGFuPjwvdGV4dD4KICA8dGV4dCB4PSIyOCIgeT0iMzEyIj4tIEMtMDEgVDAzNiBpcyBmaXJzdCBpbiB0aGUgcXVldWUgPHRzcGFuIGNsYXNzPSJkaW0iPuKAlCB0YXNrcy5tZDwvdHNwYW4+PC90ZXh0PgogIDx0ZXh0IHg9IjI4IiB5PSIzNDIiPkNsYWltczo8L3RleHQ+CiAgPHRleHQgeD0iMjgiIHk9IjM2NCI+LSAiVXNlcnMga2VlcCBhc2tpbmcgZm9yIGl0IiAgPHRzcGFuIGNsYXNzPSJiYWQiPm5vdCBiYWNrZWQ8L3RzcGFuPiA8dHNwYW4gY2xhc3M9ImRpbSI+4oCUIG5vIGZlZWRiYWNrIGluIC5jb250ZXh0L3Jhdy88L3RzcGFuPjwvdGV4dD4KICA8dGV4dCB4PSIyOCIgeT0iMzg2Ij4tICJJdCB3aWxsIGltcHJvdmUgcmV0ZW50aW9uIiA8dHNwYW4gY2xhc3M9ImJhZCI+bm90IGJhY2tlZDwvdHNwYW4+IDx0c3BhbiBjbGFzcz0iZGltIj7igJQgcmV0ZW50aW9uIGlzIG5vdCBtZWFzdXJlZDwvdHNwYW4+PC90ZXh0PgogIDx0ZXh0IHg9IjI4IiB5PSI0MDgiPi0gIkNhc2ggc3BlbmRzIGhhdmUgbm8gaG9tZSIgIDx0c3BhbiBjbGFzcz0ib2siPmJhY2tlZDwvdHNwYW4+ICAgICA8dHNwYW4gY2xhc3M9ImRpbSI+4oCUIHJlY2VpcHQtdG8tdHJhbnNhY3Rpb24tbGlua2FnZS5tZDwvdHNwYW4+PC90ZXh0PgogIDx0ZXh0IHg9IjI4IiB5PSI0MzgiPkFzc3VtZWQ6IHVzZXJzIGFzayBmb3IgaXQ7IGl0IGhlbHBzIHJldGVudGlvbjwvdGV4dD4KCiAgPHRleHQgeD0iMjgiIHk9IjQ4MiIgY2xhc3M9ImJhZCBiIj7il48gU3RvcHBlZC4gUGljayBvbmUgdG8gZ28gb246PC90ZXh0PgogIDx0ZXh0IHg9IjI4IiB5PSI1MDgiPiAgPHRzcGFuIGNsYXNzPSJ6Ij5BPC90c3Bhbj4gIEJyaW5nIHRoZSBmYWN0cy4gQWRkIHRoZSBmZWVkYmFjayB0byAuY29udGV4dC9yYXcvLCBuYW1lIGEgbWV0cmljLjwvdGV4dD4KICA8dGV4dCB4PSIyOCIgeT0iNTMwIj4gIDx0c3BhbiBjbGFzcz0ieiI+QjwvdHNwYW4+ICBDaGFuZ2UgdGhlIHJ1bGUuIEkgbGlzdCB0aGUgdGVybXM7IG5vdGhpbmcgc3RhcnRzIHVudGlsIHlvdSBhZ3JlZS48L3RleHQ+CiAgPHRleHQgeD0iMjgiIHk9IjU1MiI+ICA8dHNwYW4gY2xhc3M9InoiPkM8L3RzcGFuPiAgRHJvcCBpdC48L3RleHQ+CgogIDx0ZXh0IHg9IjI4IiB5PSI2MDYiIGNsYXNzPSJkaW0iPlJlYWwgcmVwbyBmYWN0cyBmcm9tIHByb2R1Y3RzL2NoaXRyYWd1cHQsIDIwMjYtMTAtMjUuPC90ZXh0Pgo8L3N2Zz4K" alt="zeno weighs a request: two of three claims have no facts, so it pushes back and stops.">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="logo" aria-hidden="true">
@@ -20,61 +19,86 @@
   <path d="M152 156H360L152 356H360" fill="none" stroke="#ffffff" stroke-width="60" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M360 156L152 356" fill="none" stroke="#5cc3bd" stroke-width="60" stroke-linecap="round"/>
 </svg>
-  <div class="kicker">Pilot proposal · 4 weeks · 3 repos</div>
+  <div class="kicker">zeno · pilot proposal</div>
   <h1 style="max-width:50%">Decided things<br>stay decided.</h1>
-  <p class="lead" style="max-width:48%">AI agents write code fast. zeno makes sure they follow the decisions we already made, and stop when a request rests on a guess.</p>
+  <p class="lead" style="max-width:48%">AI writes more code than we can review. zeno checks every request and every change against our decisions and standards first, so less goes wrong and less lands on reviewers.</p>
   <div class="meta">zeno · open source (MIT) · CLI + Claude Code plugin</div>
 </section>
 
-<!-- 2. Problem -->
-<section class="slide" aria-label="The problem">
-  <div class="kicker">The problem</div>
-  <h2>Agents are fast. They don't remember what we decided.</h2>
+<section class="slide" aria-label="Three eras">
+  <div class="kicker">What changed</div>
+  <h2>More code, same reviewers.</h2>
   <div class="body">
-    <div class="figure" style="flex:1.4">
-      <svg viewBox="0 0 760 380" role="img" aria-label="A decision made in chat never reaches the agent. The agent re-opens it, and review catches it late, so the work is done twice.">
-        <defs>
-          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#98a0b3"/></marker>
-          <marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#f0616d"/></marker>
-        </defs>
-        <!-- decision lost -->
-        <rect x="0" y="30" width="230" height="120" rx="14" fill="#181c26" stroke="#2a3040"/>
-        <text x="20" y="62" fill="#e8ebf2" font-size="17" font-weight="600">Decision</text>
-        <text x="20" y="88" fill="#98a0b3" font-size="14">"We dropped approach X</text>
-        <text x="20" y="108" fill="#98a0b3" font-size="14">in March, here's why."</text>
-        <text x="20" y="134" fill="#98a0b3" font-size="12" class="mono">Slack · meeting · memory</text>
-        <line x1="230" y1="90" x2="300" y2="90" stroke="#98a0b3" stroke-width="2" stroke-dasharray="5 6"/>
-        <text x="265" y="80" fill="#f0616d" font-size="22" font-weight="700" text-anchor="middle">✕</text>
-        <text x="265" y="170" fill="#98a0b3" font-size="12" text-anchor="middle">never reaches</text>
-        <text x="265" y="185" fill="#98a0b3" font-size="12" text-anchor="middle">the agent</text>
-        <!-- agent -->
-        <rect x="300" y="40" width="170" height="100" rx="14" fill="#12302f" stroke="#5cc3bd"/>
-        <text x="385" y="82" fill="#e8ebf2" font-size="17" font-weight="600" text-anchor="middle">AI agent</text>
-        <text x="385" y="106" fill="#98a0b3" font-size="13" text-anchor="middle">reads code only</text>
-        <line x1="470" y1="90" x2="555" y2="90" stroke="#98a0b3" stroke-width="2" marker-end="url(#ah)"/>
-        <!-- PR -->
-        <rect x="560" y="40" width="190" height="100" rx="14" fill="#181c26" stroke="#2a3040"/>
-        <text x="655" y="80" fill="#e8ebf2" font-size="17" font-weight="600" text-anchor="middle">PR</text>
-        <text x="655" y="104" fill="#f0616d" font-size="13" text-anchor="middle">brings X back</text>
-        <!-- rework loop -->
-        <path d="M655 140 C655 230, 385 230, 385 150" fill="none" stroke="#f0616d" stroke-width="2.5" marker-end="url(#ahr)"/>
-        <rect x="420" y="245" width="200" height="44" rx="12" fill="rgba(240,97,109,.12)" stroke="#f0616d"/>
-        <text x="520" y="273" fill="#f0616d" font-size="15" font-weight="600" text-anchor="middle">review · revert · redo</text>
-        <text x="10" y="350" fill="#98a0b3" font-size="14">Each loop costs a reviewer's time and a developer's day, and nobody counts it.</text>
+    <div class="figure" style="flex:1.5">
+      <svg viewBox="0 0 900 420" role="img" aria-label="Grouped bars. Before AI, code and review time are both at the baseline. With AI, merged PRs are up 98 percent and review time up 91 percent. With zeno, code stays high and the review time target is lower, which the pilot measures.">
+        <line x1="40" y1="340" x2="880" y2="340" stroke="#2a3040" stroke-width="2"/>
+        <line x1="40" y1="220" x2="880" y2="220" stroke="#2a3040" stroke-dasharray="4 6"/>
+        <text x="44" y="212" fill="#98a0b3" font-size="12">before-AI level</text>
+        <!-- before -->
+        <rect x="90" y="220" width="70" height="120" rx="6" fill="#5cc3bd" opacity=".55"/>
+        <rect x="170" y="220" width="70" height="120" rx="6" fill="#f0b74a" opacity=".55"/>
+        <text x="165" y="372" fill="#e8ebf2" font-size="17" font-weight="600" text-anchor="middle">Before AI</text>
+        <text x="165" y="395" fill="#98a0b3" font-size="13" text-anchor="middle">code: slow · review: slow</text>
+        <!-- with AI -->
+        <rect x="370" y="102" width="70" height="238" rx="6" fill="#5cc3bd"/>
+        <text x="405" y="92" fill="#5cc3bd" font-size="15" font-weight="700" text-anchor="middle">+98%</text>
+        <rect x="450" y="111" width="70" height="229" rx="6" fill="#f0b74a"/>
+        <text x="485" y="101" fill="#f0b74a" font-size="15" font-weight="700" text-anchor="middle">+91%</text>
+        <text x="445" y="372" fill="#e8ebf2" font-size="17" font-weight="600" text-anchor="middle">With AI</text>
+        <text x="445" y="395" fill="#98a0b3" font-size="13" text-anchor="middle">more code, fast · review: slower</text>
+        <!-- with zeno -->
+        <rect x="650" y="102" width="70" height="238" rx="6" fill="#5cc3bd"/>
+        <rect x="730" y="111" width="70" height="229" rx="6" fill="none" stroke="#f0b74a" stroke-width="2" stroke-dasharray="6 6"/>
+        <rect x="730" y="200" width="70" height="140" rx="6" fill="#f0b74a" opacity=".85"/>
+        <path d="M765 125 V188" stroke="#f0b74a" stroke-width="2.5" marker-end="url(#down)"/>
+        <defs><marker id="down" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 0L5 10z" fill="#f0b74a"/></marker></defs>
+        <text x="765" y="101" fill="#f0b74a" font-size="15" font-weight="700" text-anchor="middle">target</text>
+        <text x="725" y="372" fill="#e8ebf2" font-size="17" font-weight="600" text-anchor="middle">With zeno</text>
+        <text x="725" y="395" fill="#98a0b3" font-size="13" text-anchor="middle">more code · more checked · less review time</text>
+        <!-- legend -->
+        <rect x="40" y="20" width="16" height="16" rx="3" fill="#5cc3bd"/><text x="64" y="33" fill="#e8ebf2" font-size="14">PRs merged (code shipped)</text>
+        <rect x="270" y="20" width="16" height="16" rx="3" fill="#f0b74a"/><text x="294" y="33" fill="#e8ebf2" font-size="14">PR review time</text>
       </svg>
     </div>
     <div class="col" style="justify-content:center">
-      <ul class="clean">
-        <li><b>Re-opened decisions.</b> An agent brings back an approach the team already dropped.</li>
-        <li><b>Two copies of a fact.</b> A price, limit or rule gets a second, different value.</li>
-        <li><b>Guesses get built.</b> "Users want this" turns into code before anyone checks it.</li>
-        <li><b>Rules drift.</b> Every repo has its own rules file, and they stop matching.</li>
-      </ul>
+      <p><b>Before AI:</b> writing code took time, and so did review. They moved at the same pace.</p>
+      <p><b>With AI:</b> teams with high AI use merged <b>98% more PRs</b>, and review time went up <b>91%</b>. PRs got <b>154% bigger</b>.</p>
+      <p><b>With zeno:</b> code stays fast. Rules, decisions and standards are checked before review, so people review less by hand. <b>This is the target the pilot measures, not a result yet.</b></p>
+    </div>
+  </div>
+  <p class="src">"With AI" numbers: <a href="https://www.faros.ai/blog/ai-software-engineering">Faros AI, AI Productivity Paradox, 2025</a>, telemetry from 10,000+ developers on 1,255 teams. Before-AI bars are the baseline. The zeno bar is a target, not data.</p>
+</section>
+
+<section class="slide" aria-label="How a decision is made today">
+  <div class="kicker">The problem</div>
+  <h2>A decision takes days. Then the next agent breaks it.</h2>
+  <div class="body">
+    <div class="figure">
+      <svg viewBox="0 0 1100 400" role="img" aria-label="Idea, then meetings, then maybe a doc, then a decision in a chat thread. Code is written without it, review finds the conflict, and the work is redone.">
+        <defs><marker id="d1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#98a0b3"/></marker>
+        <marker id="d1r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#f0616d"/></marker></defs>
+        <g font-size="16" font-weight="600">
+          <rect x="0" y="60" width="140" height="70" rx="12" fill="#181c26" stroke="#2a3040"/><text x="70" y="101" fill="#e8ebf2" text-anchor="middle">Idea</text>
+          <line x1="140" y1="95" x2="185" y2="95" stroke="#98a0b3" stroke-width="2" marker-end="url(#d1)"/>
+          <rect x="190" y="60" width="170" height="70" rx="12" fill="#181c26" stroke="#2a3040"/><text x="275" y="92" fill="#e8ebf2" text-anchor="middle">Meetings</text><text x="275" y="114" fill="#98a0b3" font-size="13" font-weight="400" text-anchor="middle">wait for calendars</text>
+          <line x1="360" y1="95" x2="405" y2="95" stroke="#98a0b3" stroke-width="2" marker-end="url(#d1)"/>
+          <rect x="410" y="60" width="170" height="70" rx="12" fill="#181c26" stroke="#2a3040" stroke-dasharray="6 6"/><text x="495" y="92" fill="#e8ebf2" text-anchor="middle">A doc, maybe</text><text x="495" y="114" fill="#98a0b3" font-size="13" font-weight="400" text-anchor="middle">facts often missing</text>
+          <line x1="580" y1="95" x2="625" y2="95" stroke="#98a0b3" stroke-width="2" marker-end="url(#d1)"/>
+          <rect x="630" y="60" width="200" height="70" rx="12" fill="#181c26" stroke="#2a3040"/><text x="730" y="92" fill="#e8ebf2" text-anchor="middle">Decided in a thread</text><text x="730" y="114" fill="#f0616d" font-size="13" font-weight="400" text-anchor="middle">hard to find later</text>
+          <line x1="830" y1="95" x2="875" y2="95" stroke="#98a0b3" stroke-width="2" marker-end="url(#d1)"/>
+          <rect x="880" y="60" width="210" height="70" rx="12" fill="#181c26" stroke="#2a3040"/><text x="985" y="92" fill="#e8ebf2" text-anchor="middle">Code by agent</text><text x="985" y="114" fill="#98a0b3" font-size="13" font-weight="400" text-anchor="middle">never saw the thread</text>
+          <line x1="985" y1="130" x2="985" y2="215" stroke="#98a0b3" stroke-width="2" marker-end="url(#d1)"/>
+          <rect x="880" y="220" width="210" height="70" rx="12" fill="rgba(240,97,109,.12)" stroke="#f0616d"/><text x="985" y="252" fill="#f0616d" text-anchor="middle">Review finds it</text><text x="985" y="274" fill="#f0616d" font-size="13" font-weight="400" text-anchor="middle">late, if at all</text>
+          <path d="M880 255 H560" fill="none" stroke="#f0616d" stroke-width="2.5" marker-end="url(#d1r)"/>
+          <rect x="380" y="220" width="175" height="70" rx="12" fill="rgba(240,97,109,.12)" stroke="#f0616d"/><text x="467" y="252" fill="#f0616d" text-anchor="middle">Rework</text><text x="467" y="274" fill="#f0616d" font-size="13" font-weight="400" text-anchor="middle">or re-open the debate</text>
+          <path d="M380 255 H275 V135" fill="none" stroke="#f0616d" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#d1r)"/>
+        </g>
+        <text x="0" y="360" fill="#98a0b3" font-size="15">Three costs: waiting for people, deciding without facts, and paying again when the decision is forgotten.</text>
+      </svg>
     </div>
   </div>
 </section>
 
-<!-- 3. How it works -->
 <section class="slide" aria-label="How zeno works">
   <div class="kicker">How it works</div>
   <h2>Every non-trivial request passes a gate before work starts.</h2>
@@ -135,7 +159,6 @@
   <p class="note">Each verdict cites the rule or decision it used. When someone overrides a push back, the reason is logged in the repo, and <code>zeno learn</code> suggests rule changes from those logs.</p>
 </section>
 
-<!-- 4. Claims -->
 <section class="slide" aria-label="Facts, not assumptions">
   <div class="kicker">Facts, not assumptions</div>
   <h2>A request is not a fact. Each claim in it gets checked.</h2>
@@ -181,38 +204,151 @@
   <p class="note">The gate reads data only through tools we already use (MCP, CLI). It runs one or two small read-only queries, and keeps counts, not people.</p>
 </section>
 
-<!-- 5. Standards with one home -->
-<section class="slide" aria-label="Standards with one home">
-  <div class="kicker">Company standards</div>
-  <h2>Write a rule once. Every repo gets it. Overrides are visible.</h2>
+<section class="slide" aria-label="Where the time is saved">
+  <div class="kicker">Where the time goes</div>
+  <h2>Find the conflict before the code, not after.</h2>
   <div class="body">
-    <div class="figure" style="flex:1.2">
-      <svg viewBox="0 0 640 400" role="img" aria-label="Three layers: company standards, repo config, and local config. The most specific layer wins, and every override is listed by zeno check.">
-        <g>
-          <rect x="20" y="20" width="600" height="110" rx="16" fill="#12302f" stroke="#5cc3bd"/>
-          <text x="44" y="56" fill="#5cc3bd" font-size="13" class="mono" letter-spacing="1.5">COMPANY · ONE FOLDER</text>
-          <text x="44" y="86" fill="#e8ebf2" font-size="18" font-weight="600">PRD · RFC · ADR · spec · test rules</text>
-          <text x="44" y="111" fill="#98a0b3" font-size="14">our principles C-20+, required page sections, checks</text>
-          <rect x="60" y="150" width="560" height="100" rx="16" fill="#181c26" stroke="#2a3040"/>
-          <text x="84" y="184" fill="#98a0b3" font-size="13" class="mono" letter-spacing="1.5">REPO · .claude/zeno.yaml</text>
-          <text x="84" y="214" fill="#e8ebf2" font-size="17" font-weight="600">adds or overrides, always with a reason</text>
-          <text x="84" y="236" fill="#98a0b3" font-size="14">"stale-copies: off — Cursor still used here"</text>
-          <rect x="100" y="270" width="520" height="90" rx="16" fill="#181c26" stroke="#2a3040" stroke-dasharray="6 6"/>
-          <text x="124" y="304" fill="#98a0b3" font-size="13" class="mono" letter-spacing="1.5">LOCAL · not committed</text>
-          <text x="124" y="334" fill="#e8ebf2" font-size="16" font-weight="600">one person's settings</text>
-          <text x="20" y="390" fill="#98a0b3" font-size="14">Most specific wins. <tspan fill="#e8ebf2">zeno check</tspan> lists every override.</text>
+    <div class="figure">
+      <svg viewBox="0 0 1100 330" role="img" aria-label="Two timelines from request to merge. Today the conflict is found at review, near the end, and the work loops back. With zeno it is found at the start, before any code.">
+        <g font-size="15">
+          <text x="0" y="40" fill="#f0616d" font-size="13" class="mono" letter-spacing="1.5">TODAY</text>
+          <line x1="0" y1="80" x2="1090" y2="80" stroke="#2a3040" stroke-width="6" stroke-linecap="round"/>
+          <text x="0" y="115" fill="#98a0b3">request</text><text x="300" y="115" fill="#98a0b3">build</text><text x="1090" y="115" fill="#98a0b3" text-anchor="end">merge</text>
+          <circle cx="820" cy="80" r="13" fill="#f0616d"/><text x="820" y="50" fill="#f0616d" text-anchor="middle" font-weight="600">conflict found in review</text>
+          <path d="M820 95 C820 150, 320 150, 320 92" fill="none" stroke="#f0616d" stroke-width="2" stroke-dasharray="6 6"/>
+          <text x="570" y="160" fill="#f0616d" text-anchor="middle">redo the build</text>
+
+          <text x="0" y="215" fill="#5cc3bd" font-size="13" class="mono" letter-spacing="1.5">WITH ZENO</text>
+          <line x1="0" y1="255" x2="1090" y2="255" stroke="#2a3040" stroke-width="6" stroke-linecap="round"/>
+          <line x1="0" y1="255" x2="1090" y2="255" stroke="rgba(92,195,189,.5)" stroke-width="6" stroke-linecap="round"/>
+          <text x="0" y="290" fill="#98a0b3">request</text><text x="300" y="290" fill="#98a0b3">build once</text><text x="1090" y="290" fill="#98a0b3" text-anchor="end">merge</text>
+          <circle cx="90" cy="255" r="13" fill="#5cc3bd"/><text x="90" y="226" fill="#5cc3bd" font-weight="600">conflict found at the gate</text>
         </g>
       </svg>
     </div>
-    <div class="col" style="justify-content:center">
-      <div class="card"><h3>Lives in git</h3><p>Rules and decisions are files in our repos. They get reviewed, versioned and blamed like code. No new database.</p></div>
-      <div class="card"><h3>Checked, not just written</h3><p><code>zeno check</code> fails a PRD with a missing section, a stale page, or a price with two homes.</p></div>
-      <div class="card"><h3>Works with our tools</h3><p>It doesn't replace Copilot, Confluence or our CI. It adds the check they don't have.</p></div>
+  </div>
+  <p class="note">The later a conflict is found, the more work sits on top of it. The pilot counts how many conflicts the gate catches before code.</p>
+</section>
+
+<section class="slide" aria-label="Three kinds of rules">
+  <div class="kicker">The model</div>
+  <h2>Three kinds of rules, two checkpoints.</h2>
+  <div class="body">
+    <div class="figure">
+      <svg viewBox="0 0 1100 400" role="img" aria-label="Tech stack rules, domain goals and code standards all feed two checkpoints: the weigh gate before work, and zeno check before merge.">
+        <defs><marker id="s1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#98a0b3"/></marker></defs>
+        <g font-size="16">
+          <rect x="0" y="10" width="380" height="110" rx="14" fill="#181c26" stroke="#2a3040"/>
+          <text x="22" y="42" fill="#5cc3bd" font-size="13" class="mono" letter-spacing="1.5">TECH STACK</text>
+          <text x="22" y="72" fill="#e8ebf2" font-weight="600">How we use React, Next.js, Firebase…</text>
+          <text x="22" y="98" fill="#98a0b3" font-size="14">current vendor docs · import rules · our linters</text>
+          <rect x="0" y="145" width="380" height="110" rx="14" fill="#181c26" stroke="#2a3040"/>
+          <text x="22" y="177" fill="#f0b74a" font-size="13" class="mono" letter-spacing="1.5">DOMAIN GOALS</text>
+          <text x="22" y="207" fill="#e8ebf2" font-weight="600">What the product must do, and must not</text>
+          <text x="22" y="233" fill="#98a0b3" font-size="14">decisions · prices and limits · metrics</text>
+          <rect x="0" y="280" width="380" height="110" rx="14" fill="#181c26" stroke="#2a3040"/>
+          <text x="22" y="312" fill="#c49cff" font-size="13" class="mono" letter-spacing="1.5">CODE STANDARDS</text>
+          <text x="22" y="342" fill="#e8ebf2" font-weight="600">How code and docs are laid out</text>
+          <text x="22" y="368" fill="#98a0b3" font-size="14">folders · page sections · one home per value</text>
+        </g>
+        <path d="M380 65 C470 65, 470 200, 540 200" fill="none" stroke="#98a0b3" stroke-width="2"/>
+        <path d="M380 200 H540" fill="none" stroke="#98a0b3" stroke-width="2"/>
+        <path d="M380 335 C470 335, 470 200, 540 200" fill="none" stroke="#98a0b3" stroke-width="2"/>
+        <path d="M540 200 C580 200, 580 110, 615 110" fill="none" stroke="#98a0b3" stroke-width="2" marker-end="url(#s1)"/>
+        <path d="M540 200 C580 200, 580 290, 615 290" fill="none" stroke="#98a0b3" stroke-width="2" marker-end="url(#s1)"/>
+        <g font-size="16">
+          <rect x="620" y="60" width="250" height="100" rx="14" fill="#12302f" stroke="#5cc3bd" stroke-width="2"/>
+          <text x="745" y="97" fill="#5cc3bd" font-size="13" text-anchor="middle" class="mono" letter-spacing="1.5">BEFORE WORK</text>
+          <text x="745" y="127" fill="#e8ebf2" font-weight="600" text-anchor="middle">weigh gate</text>
+          <rect x="620" y="240" width="250" height="100" rx="14" fill="#12302f" stroke="#5cc3bd" stroke-width="2"/>
+          <text x="745" y="277" fill="#5cc3bd" font-size="13" text-anchor="middle" class="mono" letter-spacing="1.5">BEFORE MERGE</text>
+          <text x="745" y="307" fill="#e8ebf2" font-weight="600" text-anchor="middle">zeno check + CI</text>
+          <line x1="870" y1="110" x2="935" y2="110" stroke="#98a0b3" stroke-width="2" marker-end="url(#s1)"/>
+          <line x1="870" y1="290" x2="935" y2="290" stroke="#98a0b3" stroke-width="2" marker-end="url(#s1)"/>
+          <text x="945" y="105" fill="#e8ebf2">right work</text><text x="945" y="127" fill="#98a0b3" font-size="14">or a cited stop</text>
+          <text x="945" y="285" fill="#e8ebf2">right code</text><text x="945" y="307" fill="#98a0b3" font-size="14">or a failed build</text>
+        </g>
+      </svg>
     </div>
   </div>
 </section>
 
-<!-- 6. Landscape -->
+<section class="slide" aria-label="Why review got slower">
+  <div class="kicker">Why review is the wall</div>
+  <h2>Reviewers check by hand what a machine could check.</h2>
+  <div class="body">
+    <div class="vs">
+      <div class="side old">
+        <div class="label">A reviewer today checks</div>
+        <ul class="clean">
+          <li>Is the logic right?</li>
+          <li>Is this what the product needs?</li>
+          <li>Does it follow our standards and layout?</li>
+          <li>Does it cross an architecture boundary?</li>
+          <li>Does it undo a past decision?</li>
+          <li>Does a price or limit now have two values?</li>
+          <li>Was the reason for it ever true?</li>
+        </ul>
+      </div>
+      <div class="side new">
+        <div class="label">With zeno, a reviewer checks</div>
+        <ul class="clean">
+          <li>Is the logic right?</li>
+          <li>Is this what the product needs?</li>
+        </ul>
+        <p style="margin-top:1.4cqw"><b>The other five run before review:</b></p>
+        <p><code>zeno check</code> covers standards, layout, architecture and values with two homes. The weigh gate covers past decisions and the claims behind the request.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" aria-label="zeno across the PDLC">
+  <div class="kicker">Across the lifecycle</div>
+  <h2>zeno shows up at every stage, not just in review.</h2>
+  <div class="body">
+    <div class="figure">
+      <svg viewBox="0 0 1120 400" role="img" aria-label="Seven stages: discover, define, design, build, review, release, learn. Under each, what zeno does there.">
+        <g font-size="16" font-weight="700">
+          <path d="M0 20 H140 L160 60 L140 100 H0 Z" fill="#12302f" stroke="#5cc3bd"/><text x="75" y="66" fill="#e8ebf2" text-anchor="middle">Discover</text>
+          <path d="M160 20 H300 L320 60 L300 100 H160 L180 60 Z" fill="#12302f" stroke="#5cc3bd"/><text x="245" y="66" fill="#e8ebf2" text-anchor="middle">Define</text>
+          <path d="M320 20 H460 L480 60 L460 100 H320 L340 60 Z" fill="#12302f" stroke="#5cc3bd"/><text x="405" y="66" fill="#e8ebf2" text-anchor="middle">Design</text>
+          <path d="M480 20 H620 L640 60 L620 100 H480 L500 60 Z" fill="#12302f" stroke="#5cc3bd" stroke-width="2.5"/><text x="565" y="66" fill="#e8ebf2" text-anchor="middle">Build</text>
+          <path d="M640 20 H780 L800 60 L780 100 H640 L660 60 Z" fill="#12302f" stroke="#5cc3bd" stroke-width="2.5"/><text x="725" y="66" fill="#e8ebf2" text-anchor="middle">Review</text>
+          <path d="M800 20 H940 L960 60 L940 100 H800 L820 60 Z" fill="#12302f" stroke="#5cc3bd"/><text x="885" y="66" fill="#e8ebf2" text-anchor="middle">Release</text>
+          <path d="M960 20 H1100 L1120 60 L1100 100 H960 L980 60 Z" fill="#12302f" stroke="#5cc3bd"/><text x="1045" y="66" fill="#e8ebf2" text-anchor="middle">Learn</text>
+        </g>
+        <g font-size="13.5" fill="#98a0b3">
+          <text x="10" y="140"><tspan x="10" fill="#e8ebf2" font-weight="600">Claims need facts</tspan><tspan x="10" dy="22">"users want it" is</tspan><tspan x="10" dy="20">checked against</tspan><tspan x="10" dy="20">data sources</tspan></text>
+          <text x="180" y="140"><tspan x="180" fill="#e8ebf2" font-weight="600">PRD + spec rules</tspan><tspan x="180" dy="22">required sections</tspan><tspan x="180" dy="20">fail zeno check</tspan><tspan x="180" dy="20">when missing</tspan></text>
+          <text x="340" y="140"><tspan x="340" fill="#e8ebf2" font-weight="600">Decision records</tspan><tspan x="340" dy="22">architecture rules</tspan><tspan x="340" dy="20">per repo, in git</tspan></text>
+          <text x="500" y="140"><tspan x="500" fill="#e8ebf2" font-weight="600">The weigh gate</tspan><tspan x="500" dy="22">before work starts;</tspan><tspan x="500" dy="20">agent searches the</tspan><tspan x="500" dy="20">wiki first</tspan></text>
+          <text x="660" y="140"><tspan x="660" fill="#e8ebf2" font-weight="600">zeno check in CI</tspan><tspan x="660" dy="22">machine checks run</tspan><tspan x="660" dy="20">first; people review</tspan><tspan x="660" dy="20">logic and fit</tspan></text>
+          <text x="820" y="140"><tspan x="820" fill="#e8ebf2" font-weight="600">zeno sync</tspan><tspan x="820" dy="22">every repo moves to</tspan><tspan x="820" dy="20">the current rules</tspan><tspan x="820" dy="20">together</tspan></text>
+          <text x="980" y="140"><tspan x="980" fill="#e8ebf2" font-weight="600">zeno learn</tspan><tspan x="980" dy="22">overrides logged</tspan><tspan x="980" dy="20">with reasons; rule</tspan><tspan x="980" dy="20">changes proposed</tspan></text>
+        </g>
+        <path d="M1045 250 V310 H75 V250" fill="none" stroke="#5cc3bd" stroke-width="2" stroke-dasharray="6 6"/>
+        <text x="560" y="335" fill="#5cc3bd" font-size="15" text-anchor="middle">what we learn becomes the next rule</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="slide" aria-label="What the company gets">
+  <div class="kicker">What we get</div>
+  <h2>Less rework. Lighter reviews. Decisions that hold.</h2>
+  <div class="body">
+    <div class="grid3" style="flex:1; align-content:center">
+      <div class="card"><span class="num">01</span><h3>Less rework</h3><p>Dropped approaches and guessed features are stopped before code, not caught in review.</p></div>
+      <div class="card"><span class="num">02</span><h3>Shorter reviews</h3><p>Reviewers stop re-arguing settled points. The verdict cites the decision.</p></div>
+      <div class="card"><span class="num">03</span><h3>One home per fact</h3><p>Prices, limits and rules have one source. <code>zeno check</code> flags a second copy.</p></div>
+      <div class="card"><span class="num">04</span><h3>Faster onboarding</h3><p>New people and new agents read the same decisions, in the repo, from day one.</p></div>
+      <div class="card"><span class="num">05</span><h3>An audit trail</h3><p>Every override has a written reason in git. We can see which rules get pushed on.</p></div>
+      <div class="card"><span class="num">06</span><h3>Low cost, easy exit</h3><p>Open source, no accounts, no servers. Remove it by deleting a branch.</p></div>
+    </div>
+  </div>
+</section>
+
 <section class="slide" aria-label="Where zeno fits">
   <div class="kicker">Where it fits</div>
   <h2>Many tools give agents context. Few enforce decisions.</h2>
@@ -249,23 +385,6 @@
   <p class="note">Placement is my reading of vendor pages and comparisons, as of Oct 25, 2026.</p>
 </section>
 
-<!-- 7. Value -->
-<section class="slide" aria-label="What the company gets">
-  <div class="kicker">What we get</div>
-  <h2>Less rework. Decisions you can find. No new vendor.</h2>
-  <div class="body">
-    <div class="grid3" style="flex:1; align-content:center">
-      <div class="card"><span class="num">01</span><h3>Less rework</h3><p>Dropped approaches and guessed features are stopped before code, not caught in review.</p></div>
-      <div class="card"><span class="num">02</span><h3>Shorter reviews</h3><p>Reviewers stop re-arguing settled points. The verdict cites the decision.</p></div>
-      <div class="card"><span class="num">03</span><h3>One home per fact</h3><p>Prices, limits and rules have one source. <code>zeno check</code> flags a second copy.</p></div>
-      <div class="card"><span class="num">04</span><h3>Faster onboarding</h3><p>New people and new agents read the same decisions, in the repo, from day one.</p></div>
-      <div class="card"><span class="num">05</span><h3>An audit trail</h3><p>Every override has a written reason in git. We can see which rules get pushed on.</p></div>
-      <div class="card"><span class="num">06</span><h3>Low cost, easy exit</h3><p>Open source, no accounts, no servers. Remove it by deleting a branch.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- 8. Pilot -->
 <section class="slide" aria-label="The pilot">
   <div class="kicker">The pilot</div>
   <h2>4 weeks · 3 repos · 1 person · on a branch</h2>
@@ -308,26 +427,25 @@
   </div>
 </section>
 
-<!-- 9. Measures -->
 <section class="slide" aria-label="How we judge it">
   <div class="kicker">How we judge it</div>
   <h2>Pass bars, agreed before we start.</h2>
   <div class="body" style="flex-direction:column; gap:1.2cqw">
     <table>
-      <thead><tr><th>Measure</th><th>How it's counted</th><th>Pass bar · weeks 2–3</th></tr></thead>
+      <thead><tr><th>Measure</th><th>How it's counted</th><th>Pass bar</th></tr></thead>
       <tbody>
-        <tr><td>Rework avoided</td><td>Push backs that stopped work that broke a decision or rested on a guess</td><td><span class="pill ok">≥ 5 across 3 repos</span></td></tr>
+        <tr><td>Review time per PR</td><td>First review to approval, pilot PRs vs the 4 weeks before, same repos</td><td><span class="pill ok">lower than before</span></td></tr>
+        <tr><td>Review rounds per PR</td><td>Change requests before approval</td><td><span class="pill ok">fewer than before</span></td></tr>
+        <tr><td>Caught before review</td><td>Real issues stopped by the gate or zeno check before a PR opened</td><td><span class="pill ok">≥ 5 across 3 repos</span></td></tr>
+        <tr><td>Repeats of dropped work</td><td>Agent brings back something already decided against, vs the week 1 baseline</td><td><span class="pill ok">below baseline</span></td></tr>
         <tr><td>False alarms</td><td>Push backs that turned out to be wrong</td><td><span class="pill ok">&lt; 1 in 3</span></td></tr>
-        <tr><td>Caught by zeno check</td><td>Real issues found before a PR, not style nits</td><td><span class="pill ok">≥ 3</span></td></tr>
-        <tr><td>Repeats of dropped work</td><td>Agent brings back something already decided against, against the week 1 baseline</td><td><span class="pill ok">below baseline</span></td></tr>
         <tr><td>Time cost</td><td>Minutes a day on the gate and on writing decisions</td><td><span class="pill ok">&lt; 15 min / day</span></td></tr>
       </tbody>
     </table>
-    <p class="note">These bars are my proposal. Change them now, not after. Counts come from the verdict log zeno writes in each repo, plus my daily notes.</p>
+    <p class="note">Bars are my proposal; we agree on them first. One person on 3 repos shows direction, not a final number. Counts come from the verdict log zeno writes in each repo, PR history, and my daily notes.</p>
   </div>
 </section>
 
-<!-- 10. Risks -->
 <section class="slide" aria-label="Risks and safeguards">
   <div class="kicker">Risks and safeguards</div>
   <h2>Small, local, and easy to undo.</h2>
@@ -341,7 +459,6 @@
   </div>
 </section>
 
-<!-- 11. Ask -->
 <section class="slide title-slide" aria-label="The ask">
   <div class="kicker">The ask</div>
   <h1>Three things.</h1>
@@ -351,7 +468,6 @@
     <p class="big-ask"><span style="color:var(--accent)">3 ·</span> 30 minutes in week 4 to look at the numbers.</p>
   </div>
   <div class="meta">github.com/ritesh-firodiya/zeno · npm @freetesh/zeno</div>
-  <nav class="versions" aria-label="Other versions of this pitch"><a href="./" aria-current="page">Overview</a><a href="decisions/">Decisions: today vs zeno</a><a href="pdlc/">PDLC and review time</a><a href="stack/">Stack, domain and code rules</a></nav>
 </section>
 
 </main>
