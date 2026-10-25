@@ -82,13 +82,37 @@ td:first-child { color: var(--text); font-weight: 600; }
 svg text { font-family: Inter, system-ui, sans-serif; }
 svg .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
 
-.chrome { position: fixed; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,.06); }
+.chrome { position: fixed; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,.06); z-index: 5; }
 .chrome .bar { height: 100%; background: var(--accent); width: 0; transition: width .35s ease; }
-.counter { position: fixed; right: 18px; bottom: 14px; font: 12px var(--mono); color: var(--muted); }
-.hint { position: fixed; left: 18px; bottom: 14px; font: 12px var(--mono); color: var(--muted); opacity: .7; }
-.nav { position: fixed; top: 0; bottom: 0; width: 18%; cursor: pointer; background: none; border: 0; }
+.hint { position: fixed; left: 18px; bottom: 16px; font: 12px var(--mono); color: var(--muted); opacity: .75; transition: opacity .6s ease; z-index: 5; }
+.hint.gone { opacity: 0; }
+.toolbar { position: fixed; right: 14px; bottom: 12px; display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 10px; background: rgba(17,20,27,.8); border: 1px solid var(--line); backdrop-filter: blur(6px); z-index: 6; opacity: .55; transition: opacity .2s ease; }
+.toolbar:hover, .toolbar:focus-within { opacity: 1; }
+.toolbar button { all: unset; cursor: pointer; width: 30px; height: 28px; display: grid; place-items: center; border-radius: 7px; color: var(--text); font: 16px/1 Inter, system-ui, sans-serif; }
+.toolbar button:hover { background: var(--panel); color: var(--accent); }
+.toolbar button:focus-visible { outline: 2px solid var(--accent); }
+.counter { font: 12px var(--mono); color: var(--muted); padding: 0 8px; min-width: 52px; text-align: center; }
+.nav { position: fixed; top: 0; bottom: 0; width: 14%; cursor: pointer; background: none; border: 0; z-index: 1; }
 .nav.left { left: 0; } .nav.right { right: 0; }
+.nav::after { position: absolute; top: 50%; transform: translateY(-50%); font: 300 42px/1 Inter, system-ui, sans-serif; color: var(--muted); opacity: 0; transition: opacity .2s ease; }
+.nav.left::after { content: "‹"; left: 22px; } .nav.right::after { content: "›"; right: 22px; }
+.nav:hover::after { opacity: .6; }
 .nav:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
+
+/* G: every slide as a thumbnail; click one to jump there */
+body.overview { overflow: auto; }
+body.overview .deck { position: static; display: grid; grid-template-columns: repeat(auto-fill, 461px); justify-content: center; gap: 22px; padding: 28px 28px 80px; }
+body.overview .slide { position: relative; width: 1280px; zoom: .36; opacity: 1; visibility: visible; transform: none; transition: none; cursor: pointer; pointer-events: auto; border-radius: 24px; outline: 3px solid var(--line); }
+body.overview .slide * { pointer-events: none; }
+body.overview .slide:hover { outline-color: var(--muted); }
+body.overview .slide.active { outline: 6px solid var(--accent); }
+body.overview .nav, body.overview .chrome, body.overview .hint { display: none; }
+body.overview .slide { overflow: hidden; }
+body.overview .note { font-size: 1.1cqw; } body.overview .src { font-size: 1cqw; }
+
+/* small print stays readable on small screens */
+.note { font-size: max(1.1cqw, 12px); }
+.src { font-size: max(1cqw, 11px); }
 
 @media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
 @media print {
@@ -96,7 +120,7 @@ svg .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
   body { overflow: visible; background: var(--slide); }
   .deck { position: static; display: block; }
   .slide { position: relative; width: 1280px; opacity: 1; visibility: visible; transform: none; page-break-after: always; break-after: page; }
-  .chrome, .counter, .hint, .nav { display: none; }
+  .chrome, .toolbar, .hint, .nav { display: none; }
 }
 
 /* comparison + extras used by the variant decks */
