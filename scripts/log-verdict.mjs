@@ -1,12 +1,14 @@
 #!/usr/bin/env node
-// Appends one overridden verdict to .context/raw/zeno/verdicts.jsonl in the
-// current repo. Append-only: raw/ is immutable, and `zeno learn` reads the
-// history to propose rule changes, so earlier lines must never be rewritten.
+// Appends one verdict, and what happened next, to .context/raw/zeno/verdicts.jsonl
+// in the current repo. Append-only: raw/ is immutable, and `zeno learn` reads
+// the history to show how often the gate stops work and to propose rule
+// changes from overrides, so earlier lines must never be rewritten.
 import { appendFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 
-const VERDICTS = ["push-back", "do-it-differently"];
+const VERDICTS = ["do-it", "do-it-differently", "push-back"];
+const OUTCOMES = ["proceeded", "stopped", "overridden", "dropped"];
 const PRINCIPLE_ID = /^C-\d{2}$/;
 
 const { values } = parseArgs({
@@ -14,7 +16,8 @@ const { values } = parseArgs({
     verdict: { type: "string" },
     principles: { type: "string", default: "" },
     request: { type: "string" },
-    reason: { type: "string" },
+    reason: { type: "string", default: "" },
+    outcome: { type: "string", default: "overridden" },
     // One per term the user agreed to, verbatim. Repeat the flag for each.
     term: { type: "string", multiple: true, default: [] },
     repo: { type: "string", default: process.cwd() },
@@ -28,7 +31,8 @@ function fail(message) {
 
 if (!VERDICTS.includes(values.verdict)) fail(`--verdict must be one of ${VERDICTS.join(", ")}`);
 if (!values.request?.trim()) fail("--request is required");
-if (!values.reason?.trim()) fail("--reason is required: an override without a reason teaches nothing");
+if (!OUTCOMES.includes(values.outcome)) fail(`--outcome must be one of ${OUTCOMES.join(", ")}`);
+if (values.outcome === "overridden" && !values.reason.trim()) fail("--reason is required: an override without a reason teaches nothing");
 
 const principles = values.principles.split(",").map((id) => id.trim()).filter(Boolean);
 const invalid = principles.filter((id) => !PRINCIPLE_ID.test(id));
@@ -42,6 +46,7 @@ const entry = {
   principles,
   request: values.request.trim(),
   reason: values.reason.trim(),
+  outcome: values.outcome,
   ...(terms.length > 0 && { terms }),
 };
 

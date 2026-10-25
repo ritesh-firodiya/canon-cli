@@ -134,17 +134,27 @@ Proceed only after the user agrees in writing ("agree", or "agree to 1–4").
 "Go ahead" to a verdict is not agreement to terms that were never shown. Work
 covers only the terms agreed to.
 
-## Logging (push back and overrides)
+## Logging (every verdict)
 
-When the user overrides a PUSH BACK, rejects a DO IT DIFFERENTLY or agrees to
-terms, append one line to the product's log so zeno can learn from it later.
-Pass each agreed term with its own `--term`:
+Log every verdict once, when you know what happened next. A trivial request
+that skipped the gate is not logged. `--outcome` is one of:
+
+- `proceeded` — work went ahead as the verdict said (DO IT, or an accepted
+  *Instead*).
+- `stopped` — you stopped and asked, and the user has not answered yet. Log it
+  when you stop; if the user later overrides, log a second line.
+- `overridden` — the user went on against a PUSH BACK, rejected a DO IT
+  DIFFERENTLY, or agreed to terms. `--reason` is required: the user's reason,
+  verbatim. Pass each agreed term with its own `--term`.
+- `dropped` — the user chose to drop the request.
 
 ```bash
-node ../../scripts/log-verdict.mjs --verdict push-back --principles C-04,C-14 \
-  --request "<one line>" --reason "<the user's reason, verbatim>" \
-  --term "<term 1>" --term "<term 2>"
+node ../../scripts/log-verdict.mjs --verdict push-back --outcome overridden \
+  --principles C-04,C-14 --request "<one line>" \
+  --reason "<the user's reason, verbatim>" --term "<term 1>" --term "<term 2>"
 ```
 
 (path relative to this skill). It writes to `.context/raw/zeno/verdicts.jsonl`
-in the current repo. Never edit or delete existing lines.
+in the current repo. Never edit or delete existing lines. `zeno learn` reads
+the log across products: how often the gate stops work, and which rules keep
+being overridden.

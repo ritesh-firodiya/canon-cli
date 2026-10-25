@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.10.0 — 2026-10-25
+
+### Added
+
+- Every verdict is logged, not just overrides. `log-verdict.mjs` takes
+  `--verdict do-it` and `--outcome proceeded | stopped | overridden | dropped`;
+  `--reason` is required only for an override.
+- `zeno learn` opens with how often the gate let work through, stopped it, or
+  was overridden.
+
+### Changed
+
+- `zeno learn` proposals count only overrides. A line with no `outcome` (all
+  lines before 0.10.0) is read as an override, so old logs mean what they did.
+
 ## 0.9.1 — 2026-10-25
 
 ### Added

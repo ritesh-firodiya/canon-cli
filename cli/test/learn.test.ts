@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { proposals, readDecisions, readVerdicts, recordDecision } from "../src/learn.ts";
+import { proposals, readDecisions, readVerdicts, recordDecision, summarise } from "../src/learn.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const line = (principles: string[], reason: string, request = "r") =>
@@ -45,6 +45,25 @@ describe("proposals", () => {
     expect(proposals(entries, { threshold: 3, decisions: rejected }).some((p) => p.id === "principle:C-07")).toBe(false);
     const more = [...entries, { ...entries[0], product: "c" }];
     expect(proposals(more, { threshold: 3, decisions: rejected }).some((p) => p.id === "principle:C-07")).toBe(true);
+  });
+});
+
+describe("every verdict is logged, only overrides teach", () => {
+  const followed = (verdict: string, outcome: string, principles: string[] = ["C-07"]) =>
+    JSON.stringify({ at: "2026-10-02T00:00:00Z", verdict, principles, request: "r", reason: "", outcome });
+  const root = makeTree({
+    "a/.context/raw/zeno/verdicts.jsonl":
+      [line(["C-07"], "demo tomorrow"), followed("do-it", "proceeded"), followed("push-back", "stopped"), followed("push-back", "stopped"), followed("do-it-differently", "dropped")].join("\n") + "\n",
+  });
+  const entries = readVerdicts([join(root, "a")]);
+
+  test("a verdict the user followed is never counted as an override", () => {
+    expect(proposals(entries, { threshold: 1, decisions: [] }).map((p) => p.id)).toEqual(["principle:C-07"]);
+    expect(proposals(entries, { threshold: 1, decisions: [] })[0].count).toBe(1);
+  });
+
+  test("the summary counts verdicts, stops and overrides; a line with no outcome is an override", () => {
+    expect(summarise(entries)).toEqual({ total: 5, proceeded: 1, stopped: 2, overridden: 1, dropped: 1 });
   });
 });
 

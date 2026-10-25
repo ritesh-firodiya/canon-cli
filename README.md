@@ -36,7 +36,8 @@ It has two halves that read the same config:
   constitution, your wiki and decision records, existing features and tasks,
   cost vs value, and the write-less ladder, then answers **DO IT**, **DO IT
   DIFFERENTLY** or **PUSH BACK** with citations. Push back stops work until you
-  give a reason; overrides are logged and feed `zeno learn`.
+  give a reason. Every verdict is logged; `zeno learn` shows how often the gate
+  stops you and turns repeated overrides into proposals.
 - **No assumptions.** A request is not a fact. Each claim in it ("users want
   this", "it is slow") is checked against the repo and its data sources and
   marked backed or not. Work that rests on an assumption stops until you agree
@@ -202,7 +203,7 @@ hooks/            session start: constitution titles, qmd refresh
 standards/        default standards
 packs/            vendor doc packs
 templates/        files init writes: dependency-cruiser base (synced) and starters
-scripts/          log-verdict.mjs — append-only override log
+scripts/          log-verdict.mjs — append-only verdict log
 cli/              the zeno CLI (TypeScript, vitest; built to cli/dist for npm)
 evals/            plugin evals and the fixture product
 ```

@@ -8,6 +8,22 @@ export interface VerdictEntry {
   principles: string[];
   request: string;
   reason: string;
+  /** What happened next. Lines written before every verdict was logged have none, and were all overrides. */
+  outcome?: Outcome;
+}
+
+export const OUTCOMES = ["proceeded", "stopped", "overridden", "dropped"] as const;
+export type Outcome = (typeof OUTCOMES)[number];
+
+export type Summary = { total: number } & Record<Outcome, number>;
+
+const outcomeOf = (entry: VerdictEntry): Outcome => entry.outcome ?? "overridden";
+
+/** How often the gate let work through, stopped it, or was overridden. */
+export function summarise(entries: VerdictEntry[]): Summary {
+  const counts = Object.fromEntries(OUTCOMES.map((o) => [o, 0])) as Record<Outcome, number>;
+  for (const entry of entries) counts[outcomeOf(entry)] += 1;
+  return { total: entries.length, ...counts };
 }
 
 export interface Decision {
@@ -72,7 +88,9 @@ function toProposal(id: string, summary: string, entries: VerdictEntry[]): Propo
  * times, or one reason given in two or more products. A decided proposal comes
  * back only when its count has grown past what it was when decided.
  */
-export function proposals(entries: VerdictEntry[], options: { threshold: number; decisions: Decision[] }): Proposal[] {
+export function proposals(all: VerdictEntry[], options: { threshold: number; decisions: Decision[] }): Proposal[] {
+  // Only an override says a rule may be wrong; a verdict the user followed says nothing about it.
+  const entries = all.filter((entry) => outcomeOf(entry) === "overridden");
   const found: Proposal[] = [];
   for (const [principle, group_] of group(entries, (e) => e.principles)) {
     if (group_.length >= options.threshold) {
