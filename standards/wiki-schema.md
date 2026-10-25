@@ -67,8 +67,9 @@ The claims this source can answer, and one example query for each.
 ```
 
 zeno has no connector of its own. The repo picks what does the reading, and
-`ACCESS` names it: `mcp: <server>`, `skill: <name>` or `cli: <command>`. A
-`cli:` must also be in `doctor.tools` in `.claude/zeno.yaml`, so `zeno doctor`
+`ACCESS` names it: `mcp: <server>`, `skill: <name>`, `cli: <command>`, or
+`manual: <where>` for a dashboard with no API, which a person reads and pastes
+into `raw/`. A `cli:` must also be in `doctor.tools` in `.claude/zeno.yaml`, so `zeno doctor`
 reports when it is missing. `zeno check` fails a source page that breaks either
 rule or has no `## How to query`. Never put a key or token on the page.
 

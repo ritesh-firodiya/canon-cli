@@ -5,8 +5,9 @@ import type { Check, Finding } from "./types.ts";
 import { wikiPages } from "./wiki-frontmatter.ts";
 
 // zeno has no connectors: a source page must say which MCP server, skill or CLI
-// reads it, or the weigh gate cannot turn a claim into a fact.
-const ACCESS = /^(mcp|skill|cli):\s*(\S+)/;
+// reads it, or that a person reads it by hand (`manual:`), or the weigh gate
+// cannot turn a claim into a fact.
+const ACCESS = /^(mcp|skill|cli|manual):\s*(\S+)/;
 const HOW_TO_QUERY = /^## How to query\s*$/m;
 
 function accessValue(body: string, id: string): string | null {
@@ -17,7 +18,7 @@ function accessValue(body: string, id: string): string | null {
 export const sources: Check = {
   id: "sources",
   module: "docs",
-  description: "each SOURCE.* page says how to read it (mcp, skill or a cli in doctor.tools) and has a How to query section",
+  description: "each SOURCE.* page says how to read it (mcp, skill, manual, or a cli in doctor.tools) and has a How to query section",
   run({ repo, config }) {
     const tools = new Set(config.doctor.tools.map((tool) => tool.tool));
     return wikiPages(repo).flatMap((file): Finding[] => {
@@ -32,7 +33,7 @@ export const sources: Check = {
       const access = accessValue(body, id);
       const match = access === null ? null : ACCESS.exec(access);
       if (access === null) add(`no ${id}.ACCESS row — say how to read it`);
-      else if (!match) add(`${id}.ACCESS is "${access}" — write mcp: <server>, skill: <name> or cli: <command>`);
+      else if (!match) add(`${id}.ACCESS is "${access}" — write mcp: <server>, skill: <name>, cli: <command> or manual: <where>`);
       else if (match[1] === "cli" && !tools.has(match[2])) add(`cli ${match[2]} is not in doctor.tools — zeno doctor cannot report it missing`);
       return findings;
     });

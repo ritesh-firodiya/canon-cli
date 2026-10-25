@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.9.1 — 2026-10-25
+
+### Added
+
+- `manual: <where>` access for a `SOURCE.*` page whose data lives in a
+  dashboard with no API (RevenueCat, store consoles). The gate asks the user
+  for the numbers instead of guessing.
+
+### Fixed
+
+- Terms the gate shows are always a numbered list, wherever they appear.
+
 ## 0.9.0 — 2026-10-25
 
 ### Added

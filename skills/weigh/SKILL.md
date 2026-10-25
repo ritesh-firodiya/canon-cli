@@ -49,8 +49,9 @@ product's `.claude/zeno.yaml` may tighten this under `weigh.trivial`.
    **not backed**, with the fact and its source. Look in what step 3 read, the
    code and `.context/raw/`. When that is not enough, look for a data source:
    query qmd for `SOURCE` pages in this product's wiki. Each says what it holds,
-   how to read it (`mcp:`, `skill:` or `cli:`) and which claims it answers. If
-   one fits, run its query and follow the query rules in `wiki-schema.md`
+   how to read it (`mcp:`, `skill:`, `cli:` or `manual:`) and which claims it
+   answers. For `manual:`, ask the user for the numbers and say where to find
+   them; do not guess. If one fits, run its query and follow the query rules in `wiki-schema.md`
    ("Data sources"): read only, one or two small queries, counts not people.
    Save a result that decides the verdict to `.context/raw/`. If the tool is not
    available, say so and leave the claim not backed. If no source fits, name
@@ -114,7 +115,9 @@ Open questions: <only if a real ambiguity blocks a good answer>
   already accepted it and **Assumed** is "none"; otherwise stop and ask.
 - **PUSH BACK** → stop. Do not start the work, not even a part of it.
 - **Something is assumed** → stop, and give the user three choices: bring the
-  facts (and say where they would go), agree to terms, or drop it.
+  facts (and say where they would go), agree to terms, or drop it. Any terms
+  you show, here or later, are a numbered list, so the user can agree line by
+  line.
 
 Write the whole reply in plain words (C-15): short sentences, common words, no
 jargon the wiki does not define.

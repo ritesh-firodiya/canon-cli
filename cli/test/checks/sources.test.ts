@@ -23,6 +23,10 @@ describe("sources", () => {
     expect(run({ ...SENTRY_CLI, [PAGE]: source("cli: sentry-cli") })).toEqual([]);
   });
 
+  test("a dashboard a person reads by hand passes as manual", () => {
+    expect(run({ [PAGE]: source("manual: RevenueCat dashboard, Charts") })).toEqual([]);
+  });
+
   test("an entity that is not a source is ignored", () => {
     expect(run({ [PAGE]: source(null, "", "PRICE.PACK") })).toEqual([]);
   });
@@ -35,7 +39,7 @@ describe("sources", () => {
 
   test("an ACCESS value that names no way to read is an error", () => {
     expect(run({ [PAGE]: source("Sentry MCP server") })).toEqual([
-      expect.objectContaining({ level: "error", message: expect.stringContaining("mcp: <server>") }),
+      expect.objectContaining({ level: "error", message: expect.stringContaining("manual: <where>") }),
     ]);
   });
 
