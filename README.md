@@ -54,8 +54,10 @@ It has two halves that read the same config:
   `.context` layout, agent contract). A team adds or replaces them from its own
   folder; a repo can override again. `zeno standards` shows what applies.
 - **Hard rules are checks.** `zeno check` validates layout, wiki frontmatter,
-  stale pages, placeholder text, page and `tasks.md` size caps, prices with no
-  canonical home, copied standards, and runs every checker your config declares.
+  stale pages, placeholder text, page and `tasks.md` size caps, blocked tasks,
+  feature pages, the store listing tree, dead `.context/` paths, prices with no
+  canonical home, files shared across products, and runs every checker your
+  config declares. `zeno hooks install` makes every push run it.
 - **Context stays small.** A line belongs in `.context/` only if an agent would
   get something wrong without it. Decisions are one file per topic, overwritten
   when the choice changes; `tasks.md` holds open work only; history is git's.
@@ -123,6 +125,8 @@ zeno init -y --kind web --modules docs,code --packs nextjs   # same, no question
 zeno add              # list packs; `zeno add expo` adds one and indexes its docs (-g: whole estate)
 zeno check            # this repo against the standards (exit 1 on any error)
 zeno check --all -q   # every repo in the estate, only the ones with findings
+zeno copies --sync    # overwrite drifted shared files from copies.source (never adds one)
+zeno hooks install    # a pre-push hook that runs `zeno check` (--all: every product)
 zeno standards        # which standards apply here, and where each comes from
 zeno sync             # refresh pack docs + search index, move the pinned zeno version, then check
 zeno status           # version, kind, modules, config layers, check summary
@@ -158,6 +162,12 @@ wiki:
 context:
   folders:                          # added to the ten .context folders
     - { folder: research, reason: interview notes, kept apart from raw/ }
+copies:                             # files every product copies from one source repo
+  source: charades                  # a folder beside the estate config
+  files:
+    - scripts/play-upload.mjs       # same path; a product carries it or skips it
+    - { from: .context/designs/mobile/index.html, to: [.context/designs/mobile/index.html, .context/designs/web/index.html], named: true }
+    - { from: .context/designs/mobile/shared.css, to: [.context/designs/mobile/shared.css], until: "PALETTE — " }
 ```
 
 ```yaml
@@ -170,6 +180,10 @@ checks:
   stale-copies: { enabled: false, reason: "Cursor is still used here" }
 weigh:
   weights: { C-05: 2 }
+name: Chitragupt                    # how the product is written; `named` copies swap it in
+copies:
+  skip:                             # shared files this product does without, or keeps its own of
+    - { file: scripts/release-android.mjs, reason: built on EAS from a tag }
 ```
 
 Scalars: the most specific layer wins. `packs` and `standards` add up across

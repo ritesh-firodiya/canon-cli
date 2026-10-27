@@ -61,6 +61,26 @@ const wikiType = z
 
 const contextFolder = z.object({ folder: kebab, reason }).strict();
 
+/**
+ * A file every product carries a copy of. A plain path is the same path on both sides and every
+ * product must carry it or skip it with a reason; an object maps one source file onto product
+ * paths that exist only where the product has that part (a design surface, say).
+ */
+const copyFile = z.union([
+  z.string().min(1),
+  z
+    .object({
+      from: z.string().min(1),
+      to: z.array(z.string().min(1)).min(1).optional(),
+      /** Identical except that the source product's name reads as this product's. */
+      named: z.boolean().optional(),
+      /** Compared only above the first line containing this text; below it is the product's own. */
+      until: z.string().min(1).optional(),
+    })
+    .strict(),
+]);
+const copySkip = z.object({ file: z.string().min(1), reason }).strict();
+
 const stage = z
   .object({
     id: kebab,
@@ -93,6 +113,10 @@ export const layerSchema = z
     context: z.object({ folders: z.array(contextFolder) }).partial(),
     /** The stages work goes through, in order. A more specific layer replaces the whole list. */
     pipeline: z.array(stage),
+    /** How the product is written in prose, for files shared with only the name changed. */
+    name: z.string().min(1),
+    /** Files copied from one source repo into every product, and the ones a product does without. */
+    copies: z.object({ source: z.string().min(1), files: z.array(copyFile), skip: z.array(copySkip) }).partial().strict(),
   })
   .partial()
   .strict();
@@ -103,6 +127,8 @@ export type ToolSpec = z.infer<typeof tool>;
 export type WikiTypeSpec = z.infer<typeof wikiType>;
 export type ContextFolderSpec = z.infer<typeof contextFolder>;
 export type StageSpec = z.infer<typeof stage>;
+export type CopyFileSpec = z.infer<typeof copyFile>;
+export type CopySkipSpec = z.infer<typeof copySkip>;
 
 export interface Config {
   /** The zeno version this repo was last synced to. */
@@ -123,6 +149,9 @@ export interface Config {
   context: { folders: ContextFolderSpec[] };
   /** Ordered stages; empty when no layer declares one. */
   pipeline: StageSpec[];
+  name?: string;
+  /** `source` is absolute, resolved from the layer that set it. */
+  copies: { source?: string; files: CopyFileSpec[]; skip: CopySkipSpec[] };
 }
 
 export const MODULES_BY_KIND: Record<Kind, Module[]> = {

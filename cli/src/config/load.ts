@@ -105,7 +105,14 @@ export function loadConfig(repo: string, options: LoadOptions = {}): { config: C
     wiki: { types: mergeBy(pick("wiki").map((wiki) => wiki?.types ?? []), (entry) => entry.type) },
     context: { folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder) },
     pipeline: lastDefined(pick("pipeline")) ?? [],
+    name: lastDefined(pick("name")),
+    copies: {
+      source: lastDefined(layers.map((layer) => (layer.data.copies?.source ? resolve(layer.base, layer.data.copies.source) : undefined))),
+      files: lastDefined(pick("copies").map((copies) => copies?.files)) ?? [],
+      skip: mergeBy(pick("copies").map((copies) => copies?.skip ?? []), (entry) => entry.file),
+    },
   };
+  if (config.name === undefined) delete config.name;
   if (Object.keys(config.expo ?? {}).length === 0) delete config.expo;
   return { config, sources };
 }

@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.12.0 — 2026-10-27
+
+### Added
+
+- `copies:` in `zeno.yaml` and the `shared-files` check: files every product
+  copies from one source repo stay identical (or identical but for the
+  product's `name:`, or up to a marker line). A product lists what it does
+  without under `copies.skip` with a reason. `zeno copies --sync` repairs a
+  drifted copy.
+- `refs` check: every `.context/` path a tracked file names exists; a
+  `[[link]]` to no page is a note.
+- `tasks` check (blocked items have an id, blocked-by, unblock, next-check),
+  `features` check (id, type, status; a released feature has its Store copy)
+  and `listing` check (fastlane's tree).
+- `context-layout` also flags empty folders, root `TODO.md`/`STATUS.md`/
+  `SETUP.md` and `docs/`, a live product without its go-to-market folders, and
+  an `AGENTS.md` that does not point at `tasks.md`. A wiki `last-verified` in
+  the future is an error.
+- `zeno hooks install [--all]`: a pre-push hook that runs `zeno check`.
+
+### Changed
+
+- `architecture` ignores violations in gitignored files (a stale `dist/`).
+
 ## 0.11.0 — 2026-10-27
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "@freetesh/zeno",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "zeno CLI: keep your domain knowledge and AI rules in your repo, and enforce them.",
   "license": "MIT",
   "author": "Ritesh Firodiya",

@@ -65,6 +65,7 @@ export const wikiFrontmatter: Check = {
       const verified = asDate(data["last-verified"]);
       const age = verified ? Math.floor((today.getTime() - verified.getTime()) / DAY_MS) : 0;
       if (verified && age > STALE_AFTER_DAYS) stale.push({ file, age });
+      if (verified && age < 0) add("error", file, `last-verified ${data["last-verified"]} is in the future`);
 
       if (data.id) filesById.set(String(data.id), [...(filesById.get(String(data.id)) ?? []), file]);
     }

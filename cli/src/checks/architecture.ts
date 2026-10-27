@@ -50,6 +50,13 @@ export function findRules(repo: string): Rules[] {
 
 const fromRoot = (dir: string, path: string) => posix.normalize(posix.join(dir, path));
 
+// The rules are about committed code; a gitignored file (a stale dist/ build) is never shipped.
+function ignoredBy(repo: string, paths: string[]): Set<string> {
+  if (paths.length === 0) return new Set();
+  const result = spawnSync("git", ["-C", repo, "check-ignore", "--stdin"], { input: paths.join("\n"), encoding: "utf8" });
+  return new Set(result.stdout.split("\n").filter(Boolean));
+}
+
 // The repo's own pinned copy, never a global one, so every machine runs the same version.
 function depcruiseBin(repo: string): string | undefined {
   const bin = join(repo, "node_modules", ".bin", "depcruise");
@@ -107,9 +114,9 @@ export const architecture: Check = {
       const result = depcruise(repo, bin, rules, ["--output-type", "json"]);
       try {
         const cruise: { modules: Array<{ source: string }>; summary: { violations: Violation[] } } = JSON.parse(result.stdout);
-        const findings = summarize(
-          cruise.summary.violations.map((v) => ({ ...v, from: fromRoot(rules.dir, v.from), to: fromRoot(rules.dir, v.to) })),
-        );
+        const violations = cruise.summary.violations.map((v) => ({ ...v, from: fromRoot(rules.dir, v.from), to: fromRoot(rules.dir, v.to) }));
+        const ignored = ignoredBy(repo, violations.map((v) => v.from));
+        const findings = summarize(violations.filter((v) => !ignored.has(v.from)));
         return unreadTypeScript(repo, rules, cruise.modules) ? [...findings, ...typeScriptWarning(rules)] : findings;
       } catch {
         const why = (result.error?.message ?? result.stderr).trim().split("\n").slice(-5).join(" ");
