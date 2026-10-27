@@ -2,6 +2,7 @@
 import { resolve } from "node:path";
 import { Command } from "commander";
 import { registerAdd } from "./commands/add.ts";
+import { registerApprove } from "./commands/approve.ts";
 import { registerCheck } from "./commands/check.ts";
 import { registerDoctor } from "./commands/doctor.ts";
 import type { Env } from "./commands/env.ts";
@@ -33,6 +34,7 @@ registerStandards(program, env);
 registerDoctor(program);
 registerUi(program, env);
 registerLearn(program, env);
+registerApprove(program);
 registerWeigh(program);
 
 program.parseAsync().catch((error: Error) => {

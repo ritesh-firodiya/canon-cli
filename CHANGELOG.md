@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `pipeline:` in `zeno.yaml`: ordered stages, each with `done` paths and an
+  optional `gate`. The most specific layer replaces the whole list.
+- `pipeline` check: fails when a stage starts before an earlier gate is
+  approved, once per gate.
+- `zeno approve <stage>`: a person records a gate approval, dated now, in
+  `.context/raw/zeno/gates.jsonl`.
+
 ## 0.10.0 — 2026-10-25
 
 ### Added

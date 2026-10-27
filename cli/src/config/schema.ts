@@ -55,6 +55,16 @@ const wikiType = z
 
 const contextFolder = z.object({ folder: kebab, reason }).strict();
 
+const stage = z
+  .object({
+    id: kebab,
+    /** Paths that exist once the stage has started; any one is enough. */
+    done: z.array(z.string().min(1)).min(1),
+    /** A person must approve this stage (`zeno approve <id>`) before any later stage starts. */
+    gate: z.boolean().default(false),
+  })
+  .strict();
+
 const tool = z.object({ tool: z.string(), why: z.string(), hint: z.string() }).strict();
 
 /** One layer of `.claude/zeno.yaml` as written: every field optional. */
@@ -75,6 +85,8 @@ export const layerSchema = z
     weigh: z.object({ weights: z.record(principleId, z.number().nonnegative()) }).partial(),
     wiki: z.object({ types: z.array(wikiType) }).partial(),
     context: z.object({ folders: z.array(contextFolder) }).partial(),
+    /** The stages work goes through, in order. A more specific layer replaces the whole list. */
+    pipeline: z.array(stage),
   })
   .partial()
   .strict();
@@ -84,6 +96,7 @@ export type CommandSpec = z.infer<typeof command>;
 export type ToolSpec = z.infer<typeof tool>;
 export type WikiTypeSpec = z.infer<typeof wikiType>;
 export type ContextFolderSpec = z.infer<typeof contextFolder>;
+export type StageSpec = z.infer<typeof stage>;
 
 export interface Config {
   /** The zeno version this repo was last synced to. */
@@ -102,6 +115,8 @@ export interface Config {
   wiki: { types: WikiTypeSpec[] };
   /** `.context/` folders added to the built-in ten. */
   context: { folders: ContextFolderSpec[] };
+  /** Ordered stages; empty when no layer declares one. */
+  pipeline: StageSpec[];
 }
 
 export const MODULES_BY_KIND: Record<Kind, Module[]> = {

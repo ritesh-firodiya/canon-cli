@@ -4,6 +4,7 @@ import { contextLayout } from "./context-layout.ts";
 import { staleCopies, standardsCopies } from "./copies.ts";
 import { commandChecks } from "./external.ts";
 import { metricsDefinitions } from "./metrics.ts";
+import { pipeline } from "./pipeline.ts";
 import { sources } from "./sources.ts";
 import type { Check } from "./types.ts";
 import { wikiFrontmatter } from "./wiki-frontmatter.ts";
@@ -17,5 +18,6 @@ export const ALL_CHECKS: Check[] = [
   architecture,
   metricsDefinitions,
   sources,
+  pipeline,
   commandChecks,
 ];

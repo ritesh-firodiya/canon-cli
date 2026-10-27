@@ -56,6 +56,12 @@ It has two halves that read the same config:
 - **Hard rules are checks.** `zeno check` validates layout, wiki frontmatter,
   stale pages, prices with no canonical home, copied standards, and runs every
   checker your config declares.
+- **Stages stop at their gates.** A `pipeline:` in `zeno.yaml` lists your
+  stages in order, with the paths that show each has started. A gated stage
+  needs a person to run `zeno approve <stage>` before any later stage starts;
+  `zeno check` fails otherwise. Approvals are dated in
+  `.context/raw/zeno/gates.jsonl`, so you can see where work waits. A product
+  replaces the estate's pipeline by declaring its own.
 - **Each repo's architecture is enforced.** With the `architecture` module, a
   repo keeps its own import rules in `.dependency-cruiser.cjs` files: one at the
   root, or one per workspace under `apps/` and `packages/` (each runs from its
