@@ -7,7 +7,7 @@ import type { Env } from "../lib/env.ts";
 export function registerStandards(program: Command, env: Env): void {
   program
     .command("standards")
-    .description("list the standards that apply to a repo: canon's defaults, then the estate's and the repo's")
+    .description("list the standards that apply to a repo: canon's defaults, then the ones the repo imports")
     .argument("[repo]", "product repo", ".")
     .option("--json", "print machine-readable JSON")
     .option("--constitution", "print only the principle titles, canon's then any added ones")

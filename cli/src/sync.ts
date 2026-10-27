@@ -8,7 +8,6 @@ import { canonVersion } from "./status.ts";
 
 export interface SyncOptions {
   canonRoot: string;
-  estateRoot?: string;
   cacheDir: string;
   run: CommandRunner;
   fetchText: (url: string) => Promise<string>;
@@ -25,7 +24,7 @@ export interface SyncResult {
 export async function syncRepo(repo: string, options: SyncOptions): Promise<SyncResult> {
   const file = join(repo, ".claude", "canon.yaml");
   if (!existsSync(file)) throw new Error(`${repo} has no .claude/canon.yaml — run \`canon init\` first`);
-  const { config } = loadConfig(repo, { estateRoot: options.estateRoot });
+  const { config } = loadConfig(repo);
 
   const packs = config.packs;
   for (const name of packs) {

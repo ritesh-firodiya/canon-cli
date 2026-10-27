@@ -17,6 +17,8 @@ const BINARY = /\.(png|jpe?g|gif|webp|ico|icns|mp4|mov|pdf|zip|aab|apk|jks|keyst
 const FEATURE_FILE = /^\.context\/features\/(\d{4})-[^/]+\.md$/;
 // A pipeline stage's `done:` paths name what will exist once that stage starts.
 const STAGE_DONE = /^\s*-\s*\{[^}]*\bdone:\s*\[/;
+// A copy set's `to:` path is where the file lands in the products that copy it, not in this repo.
+const COPY_TO = /,\s*to:.*$/;
 
 function git(repo: string, args: string[]): { status: number; stdout: string } {
   const result = spawnSync("git", ["-C", repo, ...args], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
@@ -69,10 +71,12 @@ export const refs: Check = {
       const links = file.startsWith(".context/") && file.endsWith(".md");
       text.split("\n").forEach((line, index) => {
         const at = `${file}:${index + 1}`;
-        const future = file === ".claude/canon.yaml" && STAGE_DONE.test(line);
-        if (!dated && !future && line.includes(".context/") && !FROM_HISTORY.test(line)) {
-          for (const match of line.matchAll(PATH)) {
-            let path = literalPart(match[2], line.slice(match.index! + match[0].length));
+        const inConfig = file === ".claude/canon.yaml";
+        const future = inConfig && STAGE_DONE.test(line);
+        const own = inConfig ? line.replace(COPY_TO, "") : line;
+        if (!dated && !future && own.includes(".context/") && !FROM_HISTORY.test(own)) {
+          for (const match of own.matchAll(PATH)) {
+            let path = literalPart(match[2], own.slice(match.index! + match[0].length));
             if (path === null) continue;
             if (match[1]) path = normalize(join(dirname(file), path)) + (path.endsWith("/") ? "/" : "");
             if (!present(path)) findings.push({ check: "refs", level: "error", file: at, message: `${path} does not exist` });

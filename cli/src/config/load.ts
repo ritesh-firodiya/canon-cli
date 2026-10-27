@@ -1,16 +1,11 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { parse } from "yaml";
-import { isStandardName, MODULES_BY_KIND, layerSchema, type Config, type Kind, type Layer, type Module } from "./schema.ts";
+import { isStandardName, MODULES_BY_KIND, layerSchema, type Config, type CopyFileSpec, type Kind, type Layer, type Module } from "./schema.ts";
 
 export interface ConfigSource {
-  layer: "estate" | "product" | "local";
+  layer: "product" | "local";
   path: string;
-}
-
-export interface LoadOptions {
-  /** The estate folder; found by walking up from the repo when not given. */
-  estateRoot?: string | null;
 }
 
 const EXPO_MARKERS = ["app.config.ts", "app.config.js", "app.json"];
@@ -27,18 +22,6 @@ function readLayer(path: string): Layer {
     throw new Error(`${path} is invalid:\n  ${problems.join("\n  ")}`);
   }
   return parsed.data;
-}
-
-/** The nearest folder at or above `start` whose canon.yaml says `estate: true`, or null. */
-export function findEstate(start: string): string | null {
-  let folder = resolve(start);
-  while (true) {
-    const path = configPath(folder);
-    if (existsSync(path) && readLayer(path).estate === true) return folder;
-    const parent = dirname(folder);
-    if (parent === folder) return null;
-    folder = parent;
-  }
 }
 
 /** The repo root plus each app in a monorepo's apps/ folder. */
@@ -69,9 +52,19 @@ export function inferKind(repo: string): Kind {
 }
 
 export function inferModules(repo: string, kind: Kind): Module[] {
-  const modules = MODULES_BY_KIND[kind];
+  return withDesign(repo, MODULES_BY_KIND[kind]);
+}
+
+/** A repo that draws its screens always gets the design checks, even when its modules list leaves them out. */
+function withDesign(repo: string, modules: Module[]): Module[] {
   const hasDesigns = existsSync(join(repo, ".context", "designs"));
   return hasDesigns && !modules.includes("design") ? [...modules, "design"] : modules;
+}
+
+/** The sets a source repo offers under its own copies.sets; none when the source is not checked out. */
+function sourceSets(source: string | undefined, repo: string): Record<string, CopyFileSpec[]> {
+  if (!source || resolve(source) === resolve(repo) || !existsSync(configPath(source))) return {};
+  return readLayer(configPath(source)).copies?.sets ?? {};
 }
 
 function lastDefined<T>(values: Array<T | undefined>): T | undefined {
@@ -85,15 +78,13 @@ function mergeBy<T>(lists: T[][], key: (item: T) => string): T[] {
 }
 
 /**
- * Reads the estate, product and local canon.yaml layers over defaults inferred
- * from the repo. Scalars: the most specific layer wins. Lists of names add up
+ * Reads the repo's canon.yaml and its uncommitted canon.local.yaml over defaults
+ * inferred from the repo. Scalars: the local layer wins. Lists of names add up
  * (packs, standards); lists of records merge by their key (commands, tools,
- * wiki types, context folders).
+ * wiki types, context folders). Copy sets come from the source repo's canon.yaml.
  */
-export function loadConfig(repo: string, options: LoadOptions = {}): { config: Config; sources: ConfigSource[] } {
-  const estateRoot = options.estateRoot === undefined ? findEstate(dirname(resolve(repo))) : options.estateRoot;
+export function loadConfig(repo: string): { config: Config; sources: ConfigSource[] } {
   const candidates: ConfigSource[] = [
-    ...(estateRoot && resolve(estateRoot) !== resolve(repo) ? [{ layer: "estate" as const, path: configPath(estateRoot) }] : []),
     { layer: "product", path: configPath(repo) },
     { layer: "local", path: join(repo, ".claude", "canon.local.yaml") },
   ];
@@ -102,10 +93,11 @@ export function loadConfig(repo: string, options: LoadOptions = {}): { config: C
   const pick = <K extends keyof Layer>(key: K) => layers.map((layer) => layer.data[key]);
 
   const kind = lastDefined(pick("kind")) ?? inferKind(repo);
+  const source = lastDefined(layers.map((layer) => (layer.data.copies?.source ? resolve(layer.base, layer.data.copies.source) : undefined)));
   const config: Config = {
     canon: lastDefined(pick("canon")),
     kind,
-    modules: lastDefined(pick("modules")) ?? inferModules(repo, kind),
+    modules: withDesign(repo, lastDefined(pick("modules")) ?? MODULES_BY_KIND[kind]),
     expo: Object.assign({}, ...pick("expo")),
     packs: [...new Set(pick("packs").flatMap((packs) => packs ?? []))].sort(),
     standards: [...new Set(layers.flatMap((layer) => (layer.data.standards ?? []).map((entry) => (isStandardName(entry) ? entry : resolve(layer.base, entry)))))],
@@ -116,9 +108,10 @@ export function loadConfig(repo: string, options: LoadOptions = {}): { config: C
     context: { folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder) },
     pipeline: lastDefined(pick("pipeline")) ?? [],
     name: lastDefined(pick("name")),
+    formerly: [...new Set(pick("formerly").flatMap((names) => names ?? []))],
     copies: {
-      source: lastDefined(layers.map((layer) => (layer.data.copies?.source ? resolve(layer.base, layer.data.copies.source) : undefined))),
-      sets: Object.assign({}, ...pick("copies").map((copies) => copies?.sets)),
+      source,
+      sets: Object.assign({}, sourceSets(source, repo), ...pick("copies").map((copies) => copies?.sets)),
       use: [...new Set(pick("copies").flatMap((copies) => copies?.use ?? []))],
     },
   };

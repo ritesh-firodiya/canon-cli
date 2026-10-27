@@ -7,12 +7,12 @@ import type { Env } from "../lib/env.ts";
 export function registerPipeline(program: Command, env: Env): void {
   program
     .command("pipeline")
-    .description("the repo's stages in order — the estate's list unless the product declares its own — and where each stands")
+    .description("the repo's stages in order — and where each stands")
     .argument("[repo]", "product repo", ".")
     .option("--json", "print JSON, for scripts")
     .action((repo: string, options: { json?: boolean }) => {
       const root = resolve(repo);
-      const stages = stagesOf(root, loadConfig(root, { estateRoot: env.estateRoot }).config.pipeline);
+      const stages = stagesOf(root, loadConfig(root).config.pipeline);
       if (options.json) {
         console.log(JSON.stringify(stages, null, 2));
         return;

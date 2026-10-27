@@ -20,7 +20,7 @@ describe("installHook", () => {
     expect(statSync(hook).mode & 0o111).not.toBe(0);
   });
 
-  test("replaces a hook the old estate script wrote, but never someone else's", () => {
+  test("replaces a hook the old ~/git/bin script wrote, but never someone else's", () => {
     const old = repo({ ".context/tasks.md": "" });
     writeFileSync(join(old, ".git/hooks/pre-push"), "#!/bin/sh\n# installed by ~/git/bin/install-hooks\n");
     expect(installHook(old)).toMatch(/^installed/);

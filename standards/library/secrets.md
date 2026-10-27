@@ -6,8 +6,8 @@ Every secret is backed up the moment it exists. Opt in with
 Keep one offline backup folder for every credential, outside every repo. It is
 not a repo and never will be — that is what makes it safe to hold plaintext
 credentials. It mirrors the path layout of the repos, so restoring a file is a
-straight `cp` back. The estate decides where it lives and writes that path in
-its own `CLAUDE.md`.
+straight `cp` back. The owner decides where it lives and writes that path in
+the `CLAUDE.md` above the repos.
 
 **Whenever a secret is created, rotated, or first needed, copy it into the
 backup folder in the same run and add its line to the folder's `INVENTORY.md`.**
@@ -34,4 +34,4 @@ Rules that go with it:
   not. If one is already tracked, untrack it — do not just add it to
   `.gitignore` and move on.
 - The folder is a snapshot, not a sync. Re-copy after every rotation.
-- The estate's secret-leak scan must not start failing because of a new secret.
+- A secret-leak scan must not start failing because of a new secret.

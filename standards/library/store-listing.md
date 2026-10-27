@@ -99,7 +99,7 @@ to the gitignored `out/`, and the command's last step is the mapper.
 "showcase"`, `layout: "classic"`, `screenOnly: true`, Merriweather, the
 `17-pro-silver` frame. Only the background is the app's own. It is written in
 `goldie.config.ts` and again in `goldie.design.json` — the file `goldie studio`
-saves and the CLI lays over the config. An estate check should fail when an app
+saves and the CLI lays over the config. A repo check should fail when an app
 differs from the reference repo's style or when its two files disagree.
 
 ## Release notes come from `features/`

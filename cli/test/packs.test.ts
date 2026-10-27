@@ -43,13 +43,6 @@ describe("addPack", () => {
   test("a product with no canon.yaml is told to run init", () => {
     expect(() => addPack(makeTree({}), "expo", { canonRoot: canon() })).toThrow(/canon init/);
   });
-
-  test("--global writes the estate canon.yaml, creating it if needed", () => {
-    const estate = makeTree({});
-    const result = addPack("/unused", "react", { canonRoot: canon(), global: true, estateRoot: estate });
-    expect(result.file).toBe(join(estate, ".claude/canon.yaml"));
-    expect(readFileSync(result.file, "utf8")).toMatch(/packs:\n\s+- react/);
-  });
 });
 
 describe("fetchPackDocs", () => {

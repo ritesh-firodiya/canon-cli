@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { kindCovers } from "../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 
 const DESIGNS = ".context/designs";
@@ -30,5 +31,17 @@ export const designs: Check = {
       const output = `${result.stdout}\n${result.stderr}`.trim().split("\n").slice(-MAX_OUTPUT_LINES).join("\n");
       return [{ check: "designs", level: "error", file: surface, message: output }];
     });
+  },
+};
+
+/** A repo with screens draws them first (pipeline stage 1): a mobile or web repo keeps .context/designs/. */
+export const designsFirst: Check = {
+  id: "designs-first",
+  module: null,
+  description: "a mobile or web repo draws its screens in .context/designs/ before any code",
+  run({ repo, config }) {
+    const hasScreens = kindCovers(config.kind, "mobile") || kindCovers(config.kind, "web");
+    if (!hasScreens || existsSync(join(repo, DESIGNS))) return [];
+    return [{ check: "designs-first", level: "error", file: DESIGNS, message: "no .context/designs yet — stage 1 (HTML designs) comes before any code" }];
   },
 };

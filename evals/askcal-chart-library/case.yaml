@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: askcal-chart-library
+context:
+  scaffold_script: scaffold.sh

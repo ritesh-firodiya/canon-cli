@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { findEstate, loadConfig } from "../src/config/load.ts";
+import { loadConfig } from "../src/config/load.ts";
 import { kindCovers } from "../src/config/schema.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
@@ -52,29 +52,35 @@ describe("loadConfig", () => {
     expect(sources).toHaveLength(1);
   });
 
-  test("layers merge estate, then product, then local — later wins", () => {
-    const estate = makeTree({
-      ".claude/canon.yaml": "estate: true\nweigh:\n  weights:\n    C-07: 2\n    C-15: 1\n",
-      "app/.claude/canon.yaml": "weigh:\n  weights:\n    C-15: 3\n",
-      "app/.claude/canon.local.yaml": "weigh:\n  weights:\n    C-07: 0.5\n",
-      "app/app.config.ts": "",
+  test("the local layer wins over the repo's canon.yaml", () => {
+    const repo = makeTree({
+      ".claude/canon.yaml": "weigh:\n  weights:\n    C-07: 2\n    C-15: 3\n",
+      ".claude/canon.local.yaml": "weigh:\n  weights:\n    C-07: 0.5\n",
+      "app.config.ts": "",
     });
-    const { config, sources } = loadConfig(`${estate}/app`, { estateRoot: estate });
+    const { config, sources } = loadConfig(repo);
     expect(config.weigh.weights).toEqual({ "C-07": 0.5, "C-15": 3 });
-    expect(sources.map((s) => s.layer)).toEqual(["estate", "product", "local"]);
+    expect(sources.map((s) => s.layer)).toEqual(["product", "local"]);
   });
 
-  test("a later layer's list replaces an earlier one instead of joining it", () => {
-    const estate = makeTree({
-      ".claude/canon.yaml": "modules: [docs, design, listing]\n",
-      "app/.claude/canon.yaml": "modules: [docs]\n",
+  test("a canon.yaml above the repo is never read: each repo carries its own rules", () => {
+    const root = makeTree({ ".claude/canon.yaml": "packs: [react]\n", "app/.claude/canon.yaml": "packs: [expo]\n" });
+    const { config, sources } = loadConfig(`${root}/app`);
+    expect(config.packs).toEqual(["expo"]);
+    expect(sources.map((s) => s.layer)).toEqual(["product"]);
+  });
+
+  test("a repo that draws its screens gets the design checks even when its modules list leaves them out", () => {
+    const repo = makeTree({ ".claude/canon.yaml": "kind: web\nmodules: [docs, code]\n", ".context/designs/web/routes.js": "" });
+    expect(loadConfig(repo).config.modules).toEqual(["docs", "code", "design"]);
+  });
+
+  test("copy sets come from the source repo's canon.yaml", () => {
+    const root = makeTree({
+      "source/.claude/canon.yaml": "copies:\n  sets:\n    upload: [scripts/upload.mjs]\n",
+      "app/.claude/canon.yaml": "copies:\n  source: ../source\n  use: [upload]\n",
     });
-    expect(loadConfig(`${estate}/app`, { estateRoot: estate }).config.modules).toEqual(["docs"]);
-  });
-
-  test("packs add up across layers — a global pack applies to every product", () => {
-    const estate = makeTree({ ".claude/canon.yaml": "packs: [react]\n", "app/.claude/canon.yaml": "packs: [expo]\n" });
-    expect(loadConfig(`${estate}/app`, { estateRoot: estate }).config.packs).toEqual(["expo", "react"]);
+    expect(loadConfig(`${root}/app`).config.copies).toEqual({ source: `${root}/source`, sets: { upload: ["scripts/upload.mjs"] }, use: ["upload"] });
   });
 
   test("an unknown kind is a clear error naming the file", () => {
@@ -82,38 +88,20 @@ describe("loadConfig", () => {
     expect(() => loadConfig(repo)).toThrow(/canon\.yaml.*kind/s);
   });
 
-  test("standards add up across layers, resolved from the folder that holds .claude/", () => {
-    const estate = makeTree({
-      ".claude/canon.yaml": "estate: true\nstandards: [./rules]\n",
-      "app/.claude/canon.yaml": "standards: [docs/rules, design-sets]\n",
-    });
-    expect(loadConfig(`${estate}/app`, { estateRoot: estate }).config.standards).toEqual([
-      `${estate}/rules`,
-      `${estate}/app/docs/rules`,
-      "design-sets",
-    ]);
+  test("standards resolve from the repo: a bare name is canon's, a path is the repo's own folder", () => {
+    const repo = makeTree({ ".claude/canon.yaml": "standards: [docs/rules, design-sets]\n" });
+    expect(loadConfig(repo).config.standards).toEqual([`${repo}/docs/rules`, "design-sets"]);
   });
 
-  test("commands merge by id — a product replaces an estate command of the same id", () => {
-    const estate = makeTree({
-      ".claude/canon.yaml": "estate: true\ncommands:\n  - { id: designs, run: a }\n  - { id: lint, run: b }\n",
-      "app/.claude/canon.yaml": "commands:\n  - { id: designs, run: c, if: x }\n",
+  test("commands merge by id — the local layer replaces a command of the same id", () => {
+    const repo = makeTree({
+      ".claude/canon.yaml": "commands:\n  - { id: designs, run: a }\n  - { id: lint, run: b }\n",
+      ".claude/canon.local.yaml": "commands:\n  - { id: designs, run: c, if: x }\n",
     });
-    expect(loadConfig(`${estate}/app`, { estateRoot: estate }).config.commands).toEqual([
+    expect(loadConfig(repo).config.commands).toEqual([
       { id: "designs", run: "c", if: "x" },
       { id: "lint", run: "b" },
     ]);
-  });
-
-  test("wiki types and context folders add up across layers, merged by name", () => {
-    const estate = makeTree({
-      ".claude/canon.yaml":
-        "estate: true\nwiki:\n  types:\n    - { type: bug, folder: bugs, reason: postmortems, sections: [Summary] }\ncontext:\n  folders:\n    - { folder: research, reason: interviews }\n",
-      "app/.claude/canon.yaml": "wiki:\n  types:\n    - { type: bug, folder: bug-reports, reason: renamed here, sections: [Summary, Fix] }\n",
-    });
-    const { config } = loadConfig(`${estate}/app`, { estateRoot: estate });
-    expect(config.wiki.types).toEqual([{ type: "bug", folder: "bug-reports", reason: "renamed here", sections: ["Summary", "Fix"] }]);
-    expect(config.context.folders).toEqual([{ folder: "research", reason: "interviews" }]);
   });
 
   test("the specs module is gone", () => {
@@ -135,24 +123,3 @@ describe("loadConfig", () => {
     expect(loadConfig(repo).config.doctor.tools).toEqual([{ tool: "rtk", why: "short output", hint: "brew install rtk" }]);
   });
 });
-
-describe("findEstate", () => {
-  test("is the nearest folder above the start whose canon.yaml says estate: true", () => {
-    const root = makeTree({
-      ".claude/canon.yaml": "estate: true\n",
-      "group/.claude/canon.yaml": "kind: web\n",
-      "group/app/README.md": "",
-    });
-    expect(findEstate(`${root}/group/app`)).toBe(root);
-  });
-
-  test("is null when no folder above is marked", () => {
-    expect(findEstate(makeTree({ "app/README.md": "" }) + "/app")).toBeNull();
-  });
-
-  test("a product with no estate gets only its own layers", () => {
-    const root = makeTree({ "app/.claude/canon.yaml": "kind: web\n" });
-    expect(loadConfig(`${root}/app`).sources.map((s) => s.layer)).toEqual(["product"]);
-  });
-});
-

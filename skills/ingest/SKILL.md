@@ -22,7 +22,7 @@ Source to ingest: `$ARGUMENTS`
    - A user journey description → a concept, only if it holds a rule the designs don't show
    - Write nothing an agent could read from the code, the designs or git.
    - Don't force one source into one page — a meeting note can produce multiple pages.
-   - Folders are the four in the schema plus any listed under `wiki.types` in the repo's or the estate's `.claude/canon.yaml`, each with its folder and its required `sections` (use its `sections` headings). Use an added type only when the source fits it.
+   - Folders are the four in the schema plus any listed under `wiki.types` in the repo's `.claude/canon.yaml`, each with its folder and its required `sections` (use its `sections` headings). Use an added type only when the source fits it.
 
 4. **For each page you will create:**
    - Filename: the topic, lowercase kebab-case, no date.

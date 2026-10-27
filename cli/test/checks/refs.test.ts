@@ -55,6 +55,13 @@ describe("refs", () => {
     ).toEqual([]);
   });
 
+  test("a copy set's to: path lands in other repos; only its from: path must exist here", () => {
+    const set = ".claude/canon.yaml";
+    const yaml = "copies:\n  sets:\n    shell:\n      - { from: .context/designs/mobile/a.js, to: .context/designs/web/a.js }\n";
+    expect(run({ [set]: yaml, ".context/designs/mobile/a.js": "" })).toEqual([]);
+    expect(run({ [set]: yaml })).toEqual([expect.objectContaining({ message: ".context/designs/mobile/a.js does not exist" })]);
+  });
+
   test("a pipeline stage's done paths in canon.yaml name what will exist later", () => {
     expect(run({ ".claude/canon.yaml": "pipeline:\n  - { id: live, done: [.context/support] }\n" })).toEqual([]);
   });

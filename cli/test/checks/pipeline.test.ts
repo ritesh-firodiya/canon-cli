@@ -70,7 +70,7 @@ describe("approvals", () => {
   test("stagesOf lists every stage in order with where it started and its gate", () => {
     const repo = makeTree({ ".claude/canon.yaml": PIPELINE, ...DESIGNS, src: "" });
     recordApproval(repo, "designs", "");
-    const stages = stagesOf(repo, loadConfig(repo, { estateRoot: null }).config.pipeline);
+    const stages = stagesOf(repo, loadConfig(repo).config.pipeline);
     expect(stages.map((s) => [s.id, s.startedAt, s.approved])).toEqual([
       ["designs", ".context/designs/mobile/index.html", true],
       ["scaffold", null, null],

@@ -3,10 +3,10 @@ import { chmodSync, existsSync, lstatSync, readFileSync, renameSync, writeFileSy
 import { join, resolve } from "node:path";
 import type { Command } from "commander";
 import { findProducts } from "../check.ts";
-import { requireEstate, type Env } from "../lib/env.ts";
+import { requireWorkspace, type Env } from "../lib/env.ts";
 
 const MARK = "installed by `canon hooks install`";
-// Hooks written by the tools this command replaced (the estate script, then zeno); they are ours to overwrite.
+// Hooks written by the tools this command replaced (the old ~/git/bin script, then zeno); they are ours to overwrite.
 const OLD_MARKS = [MARK, "installed by ~/git/bin/install-hooks", "installed by `zeno hooks install`"];
 
 export const HOOK = `#!/bin/sh
@@ -47,10 +47,10 @@ export function registerHooks(program: Command, env: Env): void {
     .description("install a pre-push hook that runs `canon check`")
     .argument("<action>", "install")
     .argument("[repo]", "product repo", ".")
-    .option("--all", "every product in the estate")
+    .option("--all", "every product in the workspace")
     .action((action: string, repo: string, options: { all?: boolean }) => {
       if (action !== "install") throw new Error(`unknown action ${action} — use: canon hooks install`);
-      const repos = options.all ? findProducts(requireEstate(env)) : [resolve(repo)];
+      const repos = options.all ? findProducts(requireWorkspace(env)) : [resolve(repo)];
       for (const path of repos) console.log(`  ${installHook(path)}`);
     });
 }

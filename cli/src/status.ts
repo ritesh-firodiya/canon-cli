@@ -10,7 +10,7 @@ export function canonVersion(canonRoot: string): string {
 }
 
 export function buildStatus(repo: string, options: RunOptions): string {
-  const { config, sources } = loadConfig(repo, { estateRoot: options.estateRoot });
+  const { config, sources } = loadConfig(repo);
   const report = runChecks(repo, options);
   const errors = report.findings.filter((f) => f.level === "error").length;
   const warnings = report.findings.length - errors;

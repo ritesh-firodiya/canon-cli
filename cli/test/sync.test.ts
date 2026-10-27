@@ -29,12 +29,11 @@ function harness() {
 }
 
 describe("syncRepo", () => {
-  test("refreshes the packs from estate and product, reindexes, and moves the pinned version", async () => {
-    const estate = makeTree({ ".claude/canon.yaml": "packs: [react]\n", "app/.claude/canon.yaml": "# keep\ncanon: 0.3.0\npacks: [expo]\n" });
+  test("refreshes the repo's packs, reindexes, and moves the pinned version", async () => {
+    const root = makeTree({ "app/.claude/canon.yaml": "# keep\ncanon: 0.3.0\npacks: [expo, react]\n" });
     const h = harness();
-    const result = await syncRepo(join(estate, "app"), {
+    const result = await syncRepo(join(root, "app"), {
       canonRoot: canonWith("0.4.0"),
-      estateRoot: estate,
       cacheDir: makeTree({}),
       run: h.run,
       fetchText: h.fetchText,
@@ -42,7 +41,7 @@ describe("syncRepo", () => {
     expect(h.fetched.sort()).toEqual(["https://docs.expo.dev/llms.txt", "https://react.dev/llms.txt"]);
     expect(h.calls.slice(-2)).toEqual([["qmd", "update"], ["qmd", "embed"]]);
     expect(result.version).toEqual({ from: "0.3.0", to: "0.4.0" });
-    const yaml = readFileSync(join(estate, "app/.claude/canon.yaml"), "utf8");
+    const yaml = readFileSync(join(root, "app/.claude/canon.yaml"), "utf8");
     expect(yaml).toContain("# keep");
     expect(yaml).toContain("canon: 0.4.0");
   });
@@ -50,14 +49,14 @@ describe("syncRepo", () => {
   test("a repo already on the current version is left alone", async () => {
     const repo = makeTree({ ".claude/canon.yaml": "canon: 0.4.0\n" });
     const h = harness();
-    const result = await syncRepo(repo, { canonRoot: canonWith("0.4.0"), estateRoot: repo, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
+    const result = await syncRepo(repo, { canonRoot: canonWith("0.4.0"), cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
     expect(result.version).toBeNull();
   });
 
   test("indexes the repo's wiki and features before reindexing, so a late qmd install still finds them", async () => {
     const repo = makeTree({ ".claude/canon.yaml": "canon: 0.4.0\nkind: content\nmodules: [knowledge]\n" });
     const h = harness();
-    await syncRepo(repo, { canonRoot: canonWith("0.4.0"), estateRoot: repo, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
+    await syncRepo(repo, { canonRoot: canonWith("0.4.0"), cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
     const name = repo.split("/").pop();
     expect(h.calls).toEqual([
       ["qmd", "collection", "add", join(repo, ".context", "wiki"), "--name", `${name}-wiki`],
@@ -71,10 +70,10 @@ describe("syncRepo", () => {
     const canon = makeTree({ ".claude-plugin/plugin.json": JSON.stringify({ version: "1" }), "templates/dependency-cruiser/base.cjs": "// v2\n" });
     const drifted = makeTree({ ".claude/canon.yaml": "canon: \"1\"\n", ".dependency-cruiser.base.cjs": "// v1, edited\n" });
     const h = harness();
-    const result = await syncRepo(drifted, { canonRoot: canon, estateRoot: drifted, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
+    const result = await syncRepo(drifted, { canonRoot: canon, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
     expect(result.base).toBe(true);
     expect(readFileSync(join(drifted, ".dependency-cruiser.base.cjs"), "utf8")).toBe("// v2\n");
-    const current = await syncRepo(drifted, { canonRoot: canon, estateRoot: drifted, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
+    const current = await syncRepo(drifted, { canonRoot: canon, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
     expect(current.base).toBe(false);
   });
 
@@ -82,13 +81,13 @@ describe("syncRepo", () => {
     const canon = makeTree({ ".claude-plugin/plugin.json": JSON.stringify({ version: "1" }), "templates/dependency-cruiser/base.cjs": "// v2\n" });
     const repo = makeTree({ ".claude/canon.yaml": "canon: \"1\"\n" });
     const h = harness();
-    expect((await syncRepo(repo, { canonRoot: canon, estateRoot: repo, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText })).base).toBe(false);
+    expect((await syncRepo(repo, { canonRoot: canon, cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText })).base).toBe(false);
   });
 
   test("a repo with no canon.yaml is told to run init", async () => {
     const h = harness();
     await expect(
-      syncRepo(makeTree({}), { canonRoot: canonWith("1"), estateRoot: "/none", cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText }),
+      syncRepo(makeTree({}), { canonRoot: canonWith("1"), cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText }),
     ).rejects.toThrow(/canon init/);
   });
 });

@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.18.0 — 2026-10-27
+
+### Removed
+
+- The estate layer. Every repo carries its own rules in `.claude/canon.yaml`;
+  canon never reads a `canon.yaml` above the repo, and `estate: true` is now an
+  error. `canon add --global` is gone.
+
+### Changed
+
+- Copy sets live in the source repo's own `canon.yaml` (`copies.sets`); a
+  product names the source (`copies.source: ../charades`) and the sets it uses.
+- Commands that span products (`check --all`, `hooks --all`, `ui`, `learn`,
+  `flow`) use the folder holding the repo you are in, or `CANON_WORKSPACE`
+  (was `CANON_ESTATE`). The `canon learn` decisions log moves to
+  `~/.claude/canon/decisions.jsonl`.
+- A repo that draws its screens always gets the design checks, even when its
+  `modules:` list leaves `design` out.
+
+### Added
+
+- `designs-first`, built in: a mobile or web repo keeps `.context/designs/`.
+- `canon flow <product>` and `canon arch-set <spec>` (were `~/git/bin` scripts),
+  and `formerly:` for a repo's older folder names.
+- `canon doctor` checks python3, which the design checks need.
+- Plugin eval cases over real product repos (`evals/_scaffold/product.sh`).
+
+### Fixed
+
+- `refs` no longer reads a copy set's `to:` path as a file of the source repo.
+
 ## 0.17.0 — 2026-10-27
 
 ### Added

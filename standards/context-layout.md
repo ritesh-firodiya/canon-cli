@@ -48,7 +48,7 @@ folder.
 |---|---|
 | any repo | `README.md` · `tasks.md` |
 | uses the `docs` or `knowledge` module | + `raw/` · `wiki/` · `features/` |
-| draws its UI | + `designs/` (optional; an estate can require it with a command) |
+| draws its UI | + `designs/` (required for a mobile or web repo: designs come first) |
 | has a store presence | + `listing/` |
 | is live to users | + `marketing/` · `metrics/` · `support/` · `legal/` |
 | once something runs | + `ops/` |

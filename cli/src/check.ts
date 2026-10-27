@@ -1,5 +1,5 @@
 import { existsSync, readdirSync } from "node:fs";
-import { basename, join } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { ALL_CHECKS } from "./checks/index.ts";
 import type { Check, Finding } from "./checks/types.ts";
 import { loadConfig } from "./config/load.ts";
@@ -15,7 +15,6 @@ export interface Report {
 export interface RunOptions {
   checks?: Check[];
   canonRoot: string;
-  estateRoot?: string | null;
   today?: Date;
 }
 
@@ -27,7 +26,7 @@ export function runChecks(repo: string, options: RunOptions): Report {
   }
   let config;
   try {
-    config = loadConfig(repo, { estateRoot: options.estateRoot }).config;
+    config = loadConfig(repo).config;
   } catch (error) {
     report.findings.push({ check: "config", level: "error", message: (error as Error).message });
     return report;
@@ -49,10 +48,21 @@ export function runChecks(repo: string, options: RunOptions): Report {
   return report;
 }
 
-/** Product repos in the estate: every direct child folder holding a .context/. */
-export function findProducts(estateRoot: string): string[] {
-  return readdirSync(estateRoot, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && existsSync(join(estateRoot, entry.name, ".context")))
-    .map((entry) => join(estateRoot, entry.name))
+/** Product repos in a workspace: every direct child folder holding a .context/. */
+export function findProducts(workspace: string): string[] {
+  return readdirSync(workspace, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && existsSync(join(workspace, entry.name, ".context")))
+    .map((entry) => join(workspace, entry.name))
     .sort();
+}
+
+/**
+ * The folder holding the product repos: the parent of the git repo `start` sits in, or `start`
+ * itself outside any repo. Null when that folder holds no product.
+ */
+export function findWorkspace(start: string): string | null {
+  let folder = resolve(start);
+  while (!existsSync(join(folder, ".git")) && dirname(folder) !== folder) folder = dirname(folder);
+  const workspace = existsSync(join(folder, ".git")) ? dirname(folder) : resolve(start);
+  return findProducts(workspace).length > 0 ? workspace : null;
 }

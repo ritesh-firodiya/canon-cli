@@ -16,14 +16,15 @@ import { registerStatus } from "./commands/status.ts";
 import { registerSync } from "./commands/sync.ts";
 import { registerUi } from "./commands/ui.ts";
 import { registerWeigh } from "./commands/weigh.ts";
-import { findEstate } from "./config/load.ts";
+import { findWorkspace } from "./check.ts";
 import { registerMcp } from "./commands/mcp.ts";
 import { registerSearch } from "./commands/search.ts";
+import { registerScripts } from "./commands/scripts.ts";
 import { canonVersion } from "./status.ts";
 
 const env: Env = {
   canonRoot: resolve(import.meta.dirname, "..", ".."),
-  estateRoot: process.env.CANON_ESTATE ?? findEstate(process.cwd()),
+  workspace: process.env.CANON_WORKSPACE ?? findWorkspace(process.cwd()),
 };
 
 const program = new Command("canon")
@@ -44,6 +45,7 @@ registerLearn(program, env);
 registerApprove(program);
 registerPipeline(program, env);
 registerWeigh(program);
+registerScripts(program, env);
 
 registerSearch(program);
 registerMcp(program);

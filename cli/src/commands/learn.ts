@@ -1,9 +1,12 @@
+import { homedir } from "node:os";
 import type { Command } from "commander";
 import { proposals, readDecisions, readVerdicts, recordDecision, summarise } from "../learn.ts";
 import { findProducts } from "../check.ts";
-import { requireEstate, type Env } from "../lib/env.ts";
+import { requireWorkspace, type Env } from "../lib/env.ts";
 
 const DEFAULT_THRESHOLD = 3;
+// The decisions log lives in the user's home: it spans every product and must survive canon upgrades.
+const DECISIONS_HOME = homedir();
 
 export function registerLearn(program: Command, env: Env): void {
   program
@@ -14,14 +17,13 @@ export function registerLearn(program: Command, env: Env): void {
     .option("--reject <id>", "mark a proposal rejected; it returns only with new evidence")
     .option("--note <text>", "why, for --approve / --reject", "")
     .action((options: { threshold: string; approve?: string; reject?: string; note: string }) => {
-      const estateRoot = requireEstate(env);
-      const entries = readVerdicts(findProducts(estateRoot));
-      const found = proposals(entries, { threshold: Number(options.threshold), decisions: readDecisions(estateRoot) });
+      const entries = readVerdicts(findProducts(requireWorkspace(env)));
+      const found = proposals(entries, { threshold: Number(options.threshold), decisions: readDecisions(DECISIONS_HOME) });
       const target = options.approve ?? options.reject;
       if (target) {
         const proposal = found.find((p) => p.id === target);
         if (!proposal) throw new Error(`no open proposal "${target}" — run \`canon learn\` to list them`);
-        recordDecision(estateRoot, { id: target, decision: options.approve ? "approved" : "rejected", count: proposal.count, note: options.note });
+        recordDecision(DECISIONS_HOME, { id: target, decision: options.approve ? "approved" : "rejected", count: proposal.count, note: options.note });
         console.log(`${options.approve ? "approved" : "rejected"} ${target}`);
         return;
       }

@@ -14,19 +14,19 @@ const canon = () =>
 describe("resolveStandards", () => {
   test("canon's defaults first, then each configured folder; a later file of the same name wins", () => {
     const root = canon();
-    const estate = makeTree({ "wiki-schema.md": "estate schema", "design-sets.md": "designs" });
-    const found = resolveStandards(root, [estate]);
+    const rules = makeTree({ "wiki-schema.md": "repo schema", "design-sets.md": "designs" });
+    const found = resolveStandards(root, [rules]);
     expect(found).toEqual([
       { name: "constitution", path: join(root, "standards/constitution.md"), from: "canon" },
-      { name: "design-sets", path: join(estate, "design-sets.md"), from: estate },
-      { name: "wiki-schema", path: join(estate, "wiki-schema.md"), from: estate },
+      { name: "design-sets", path: join(rules, "design-sets.md"), from: rules },
+      { name: "wiki-schema", path: join(rules, "wiki-schema.md"), from: rules },
     ]);
   });
 
-  test("an estate constitution is listed beside canon's, because it extends rather than replaces", () => {
+  test("a repo.s own constitution is listed beside canon's, because it extends rather than replaces", () => {
     const root = canon();
-    const estate = makeTree({ "constitution.md": "### C-20 More\n" });
-    expect(resolveStandards(root, [estate]).filter((s) => s.name === "constitution").map((s) => s.from)).toEqual(["canon", estate]);
+    const rules = makeTree({ "constitution.md": "### C-20 More\n" });
+    expect(resolveStandards(root, [rules]).filter((s) => s.name === "constitution").map((s) => s.from)).toEqual(["canon", rules]);
   });
 
   test("a bare name imports canon's library standard; an unknown name lists what canon has", () => {
@@ -45,10 +45,10 @@ describe("resolveStandards", () => {
 });
 
 describe("constitutionTitles", () => {
-  test("reads principle headings from every constitution in order, estate additions after canon's", () => {
+  test("reads principle headings from every constitution in order, the repo.s additions after canon's", () => {
     const root = canon();
-    const estate = makeTree({ "constitution.md": "### C-01 Ship\n### C-20 Designs before code\n" });
-    expect(constitutionTitles(root, [estate])).toEqual(["C-01 Ship", "C-02 Write less", "C-20 Designs before code"]);
+    const rules = makeTree({ "constitution.md": "### C-01 Ship\n### C-20 Designs before code\n" });
+    expect(constitutionTitles(root, [rules])).toEqual(["C-01 Ship", "C-02 Write less", "C-20 Designs before code"]);
   });
 
   test("an imported library standard adds its principles", () => {

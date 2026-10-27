@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { designs, designSurfaces } from "../../src/checks/designs.ts";
+import { designs, designsFirst, designSurfaces } from "../../src/checks/designs.ts";
+import { loadConfig } from "../../src/config/load.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 
@@ -20,5 +21,23 @@ describe("designs", () => {
 
   test("a repo with no drawn surface has nothing to check", () => {
     expect(designs.run({ ...contextFor(makeTree({ "README.md": "" })), canonRoot: makeTree(CANON) })).toEqual([]);
+  });
+});
+
+describe("designs-first", () => {
+  const run = (files: Record<string, string>) => {
+    const repo = makeTree(files);
+    return designsFirst.run(contextFor(repo, { config: loadConfig(repo).config }));
+  };
+
+  test("a mobile or web repo with no .context/designs is an error", () => {
+    expect(run({ "app.config.ts": "" })).toEqual([expect.objectContaining({ check: "designs-first", level: "error" })]);
+    expect(run({ ".claude/canon.yaml": "kind: mobile-and-web\n" })).toHaveLength(1);
+  });
+
+  test("passes once the designs exist, and never applies to a package or content repo", () => {
+    expect(run({ "next.config.ts": "", ".context/designs/web/routes.js": "" })).toEqual([]);
+    expect(run({ ".claude/canon.yaml": "kind: package\n" })).toEqual([]);
+    expect(run({ "README.md": "" })).toEqual([]);
   });
 });

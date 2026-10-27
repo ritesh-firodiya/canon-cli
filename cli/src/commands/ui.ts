@@ -7,7 +7,7 @@ import { formatReports } from "../format.ts";
 import { CACHE_DIR } from "../lib/system.ts";
 import { findProducts, runChecks } from "../check.ts";
 import { buildSite, quartzConfig } from "../ui.ts";
-import { requireEstate, type Env } from "../lib/env.ts";
+import { requireWorkspace, type Env } from "../lib/env.ts";
 
 // Quartz v5 has no tagged release yet, so pin the exact commit: an unpinned
 // clone could change the site under us on the next fresh install.
@@ -40,11 +40,11 @@ export function registerUi(program: Command, env: Env): void {
     .option("--ws-port <port>", "live-reload socket port", "4612")
     .action((options: { port: string; designsPort: string; wsPort: string }) => {
       ensureQuartz();
-      const products = findProducts(requireEstate(env));
+      const products = findProducts(requireWorkspace(env));
       const siteDir = join(CACHE_DIR, "site");
       const designsDir = join(CACHE_DIR, "designs");
       const designsUrl = `http://127.0.0.1:${options.designsPort}`;
-      const report = formatReports(products.map((repo) => runChecks(repo, { canonRoot: env.canonRoot, estateRoot: env.estateRoot })));
+      const report = formatReports(products.map((repo) => runChecks(repo, { canonRoot: env.canonRoot })));
       buildSite(products, { siteDir, designsDir, designsUrl, report, graph: architectureGraph });
 
       const designs = spawn("python3", ["-m", "http.server", options.designsPort, "--bind", "127.0.0.1", "--directory", designsDir], {

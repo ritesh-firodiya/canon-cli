@@ -6,7 +6,7 @@ import { buildSite, quartzConfig } from "../src/ui.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 describe("buildSite", () => {
-  const estate = () =>
+  const workspace = () =>
     makeTree({
       "alpha/.context/wiki/index.md": "# a",
       "alpha/.context/designs/mobile/index.html": "<html>",
@@ -14,7 +14,7 @@ describe("buildSite", () => {
     });
 
   test("links each wiki into the site and each designs folder into the designs root", () => {
-    const root = estate();
+    const root = workspace();
     const out = makeTree({});
     buildSite([join(root, "alpha"), join(root, "beta")], { siteDir: join(out, "site"), designsDir: join(out, "designs"), designsUrl: "http://127.0.0.1:8081", report: "r" });
     expect(readlinkSync(join(out, "site/alpha"))).toBe(join(root, "alpha/.context/wiki"));
@@ -23,7 +23,7 @@ describe("buildSite", () => {
   });
 
   test("writes a home page linking each product's wiki and designs, plus the check report", () => {
-    const root = estate();
+    const root = workspace();
     const out = makeTree({});
     buildSite([join(root, "alpha"), join(root, "beta")], { siteDir: out, designsDir: join(out, "_designs"), designsUrl: "http://127.0.0.1:8081", report: "alpha  ok" });
     const home = readFileSync(join(out, "index.md"), "utf8");
@@ -54,7 +54,7 @@ describe("buildSite", () => {
   });
 
   test("gives each product with architecture rules a graph page, linked from home", () => {
-    const root = estate();
+    const root = workspace();
     const out = makeTree({});
     const graph = (repo: string) => (repo.endsWith("alpha") ? "```mermaid\nflowchart LR\n  1[\"web\"]-->2[\"ui\"]\n```" : undefined);
     buildSite([join(root, "alpha"), join(root, "beta")], { siteDir: out, designsDir: join(out, "_d"), designsUrl: "u", report: "", graph });
@@ -66,7 +66,7 @@ describe("buildSite", () => {
   });
 
   test("rebuilding replaces old links instead of failing", () => {
-    const root = estate();
+    const root = workspace();
     const out = makeTree({});
     const options = { siteDir: out, designsDir: join(out, "_d"), designsUrl: "u", report: "" };
     buildSite([join(root, "alpha")], options);

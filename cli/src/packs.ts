@@ -44,19 +44,15 @@ export function findPack(canonRoot: string, name: string): Pack {
 
 interface AddOptions {
   canonRoot: string;
-  global?: boolean;
-  estateRoot?: string;
 }
 
-/** Records a pack in canon.yaml (product, or estate with --global), keeping the file's comments and other keys. */
+/** Records a pack in the repo's canon.yaml, keeping the file's comments and other keys. */
 export function addPack(repo: string, name: string, options: AddOptions): { file: string; added: boolean } {
   findPack(options.canonRoot, name);
-  if (options.global && !options.estateRoot) throw new Error("--global needs an estate (a folder whose canon.yaml says estate: true)");
-  const base = options.global ? (options.estateRoot as string) : repo;
-  const file = join(base, ".claude", "canon.yaml");
-  if (!existsSync(file) && !options.global) throw new Error(`${repo} has no .claude/canon.yaml — run \`canon init\` first`);
+  const file = join(repo, ".claude", "canon.yaml");
+  if (!existsSync(file)) throw new Error(`${repo} has no .claude/canon.yaml — run \`canon init\` first`);
 
-  const document = parseDocument(existsSync(file) ? readFileSync(file, "utf8") : "");
+  const document = parseDocument(readFileSync(file, "utf8"));
   const current = (document.get("packs") as { toJSON(): string[] } | undefined)?.toJSON() ?? [];
   if (current.includes(name)) return { file, added: false };
   document.set("packs", [...current, name]);

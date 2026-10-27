@@ -107,15 +107,15 @@ export function proposals(all: VerdictEntry[], options: { threshold: number; dec
   return found.filter((p) => !decidedAt.has(p.id) || p.count > (decidedAt.get(p.id) ?? 0));
 }
 
-// In the estate, not the canon install: a global npm install may be read-only and is replaced on upgrade.
+// Under <home>/.claude/canon, not the canon install: a global npm install may be read-only and is replaced on upgrade.
 const DECISIONS_DIR = join(".claude", "canon");
 const DECISIONS = join(DECISIONS_DIR, "decisions.jsonl");
 
-export function readDecisions(estateRoot: string): Decision[] {
-  return readJsonLines<Decision>(join(estateRoot, DECISIONS));
+export function readDecisions(home: string): Decision[] {
+  return readJsonLines<Decision>(join(home, DECISIONS));
 }
 
-export function recordDecision(estateRoot: string, decision: Omit<Decision, "at">): void {
-  mkdirSync(join(estateRoot, DECISIONS_DIR), { recursive: true });
-  appendFileSync(join(estateRoot, DECISIONS), `${JSON.stringify({ ...decision, at: new Date().toISOString() })}\n`);
+export function recordDecision(home: string, decision: Omit<Decision, "at">): void {
+  mkdirSync(join(home, DECISIONS_DIR), { recursive: true });
+  appendFileSync(join(home, DECISIONS), `${JSON.stringify({ ...decision, at: new Date().toISOString() })}\n`);
 }

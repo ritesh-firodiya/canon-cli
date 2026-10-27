@@ -6,7 +6,7 @@ export function contextFor(repo: string, overrides: Partial<CheckContext> = {}):
   return {
     repo,
     name: basename(repo),
-    config: loadConfig(repo, { estateRoot: repo }).config,
+    config: loadConfig(repo).config,
     canonRoot: repo,
     today: new Date("2026-10-23"),
     ...overrides,

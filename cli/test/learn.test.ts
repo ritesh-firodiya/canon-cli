@@ -7,7 +7,7 @@ import { makeTree } from "./helpers/fixture.ts";
 const line = (principles: string[], reason: string, request = "r") =>
   JSON.stringify({ at: "2026-10-01T00:00:00Z", verdict: "push-back", principles, request, reason });
 
-function estate() {
+function workspace() {
   return makeTree({
     "a/.context/raw/canon/verdicts.jsonl": [line(["C-07"], "demo tomorrow"), line(["C-07", "C-02"], "client asked")].join("\n") + "\n",
     "b/.context/raw/canon/verdicts.jsonl": line(["C-07"], "demo tomorrow") + "\nnot json\n",
@@ -17,14 +17,14 @@ function estate() {
 
 describe("readVerdicts", () => {
   test("reads every product's log, tags the product, and skips broken lines", () => {
-    const root = estate();
+    const root = workspace();
     const entries = readVerdicts([join(root, "a"), join(root, "b"), join(root, "c")]);
     expect(entries.map((e) => e.product)).toEqual(["a", "a", "b"]);
   });
 });
 
 describe("proposals", () => {
-  const root = estate();
+  const root = workspace();
   const entries = readVerdicts([join(root, "a"), join(root, "b")]);
 
   test("a principle overridden at least `threshold` times becomes a proposal", () => {
@@ -68,11 +68,11 @@ describe("every verdict is logged, only overrides teach", () => {
 });
 
 describe("recordDecision", () => {
-  test("appends to the estate's decisions log and reads it back", () => {
-    const estate = makeTree({});
-    recordDecision(estate, { id: "principle:C-07", decision: "rejected", count: 3, note: "cost rule is fine" });
-    expect(readDecisions(estate)).toEqual([expect.objectContaining({ id: "principle:C-07" })]);
-    const saved = readFileSync(join(estate, ".claude/canon/decisions.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+  test("appends to the decisions log in the home folder and reads it back", () => {
+    const home = makeTree({});
+    recordDecision(home, { id: "principle:C-07", decision: "rejected", count: 3, note: "cost rule is fine" });
+    expect(readDecisions(home)).toEqual([expect.objectContaining({ id: "principle:C-07" })]);
+    const saved = readFileSync(join(home, ".claude/canon/decisions.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
     expect(saved).toEqual([expect.objectContaining({ id: "principle:C-07", decision: "rejected", count: 3 })]);
   });
 });

@@ -95,8 +95,6 @@ const tool = z.object({ tool: z.string(), why: z.string(), hint: z.string() }).s
 /** One layer of `.claude/canon.yaml` as written: every field optional. */
 export const layerSchema = z
   .object({
-    /** Marks the folder holding this file as an estate: the parent of several products. */
-    estate: z.boolean(),
     canon: z.string(),
     kind: z.enum(KINDS),
     modules: z.array(z.enum(MODULES)),
@@ -113,9 +111,11 @@ export const layerSchema = z
     pipeline: z.array(stage),
     /** How the product is written in prose, for files shared with only the name changed. */
     name: z.string().min(1),
+    /** The repo's older folder names, so `canon flow` still counts conversations held under them. */
+    formerly: z.array(z.string().min(1)),
     /**
-     * Files copied from one source repo. The estate names sets of them; a product lists the sets it
-     * uses, and only those are held equal to the source.
+     * Files copied from one source repo. The source names sets of them in its own canon.yaml; a
+     * product names the source and lists the sets it uses, and only those are held equal to it.
      */
     copies: z.object({ source: z.string().min(1), sets: z.record(kebab, z.array(copyFile).min(1)), use: z.array(kebab) }).partial().strict(),
   })
@@ -137,7 +137,7 @@ export interface Config {
   modules: Module[];
   expo?: { sdk?: number };
   packs: string[];
-  /** Library standard names and absolute folders, estate first; a later file of the same name wins. */
+  /** Library standard names and absolute folders; a later file of the same name wins. */
   standards: string[];
   commands: CommandSpec[];
   doctor: { tools: ToolSpec[] };
@@ -149,6 +149,8 @@ export interface Config {
   /** Ordered stages; empty when no layer declares one. */
   pipeline: StageSpec[];
   name?: string;
+  /** Older folder names of the repo. */
+  formerly: string[];
   /** `source` is absolute, resolved from the layer that set it. `use` adds up across layers. */
   copies: { source?: string; sets: Record<string, CopyFileSpec[]>; use: string[] };
 }

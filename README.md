@@ -74,57 +74,61 @@ argument captures what a session taught.
 ```bash
 canon init             # write .claude/canon.yaml and the missing .context files
 canon add              # list packs; `canon add expo` adds one and indexes its docs
-canon check            # this repo against the standards (exit 1 on any error); --all for the estate
+canon check            # this repo against the standards (exit 1 on any error); --all for every repo beside it
 canon copies --sync    # repair drifted shared files from copies.source (never adds one)
 canon hooks install    # a pre-push hook that runs `canon check` (--all: every product)
 canon standards        # which standards apply here, and where each comes from
 canon sync             # refresh pack docs and the search index, move the pinned version
 canon status           # version, kind, modules, config layers, check summary
-canon doctor           # node, git, qmd — plus any tools your config lists
+canon doctor           # node, git, python3, qmd — plus any tools your config lists
 canon learn            # proposals from overridden verdicts
 canon approve <stage>  # a person records a pipeline gate approval
 canon pipeline         # the stages this repo resolves to, and where each stands
 canon weigh "<ask>"    # the decision gate from the terminal
 canon ui               # every wiki and design gallery on localhost
 canon search "<q>"     # search the knowledge index
+canon flow <product>   # how far each local Claude conversation got against the pipeline (--write: metrics/flow.json)
+canon arch-set <spec>  # give a design set its architecture screens
 canon mcp              # the search MCP server, for any MCP client
 ```
 
 ## Config
 
-`.claude/canon.yaml`, read in layers — **estate → repo → local**
-(`canon.local.yaml`, not committed). The estate is the nearest folder above a
-repo whose `canon.yaml` says `estate: true`, or `CANON_ESTATE`.
+Every repo carries its own rules in `.claude/canon.yaml`; nothing above the repo
+is read. An uncommitted `canon.local.yaml` beside it overrides it on one machine.
+Commands that span products (`--all`, `ui`, `learn`, `flow`) use the folder that
+holds the repo you are in, or `CANON_WORKSPACE`.
 
 ```yaml
-# <estate>/.claude/canon.yaml — shared by every repo below it
-estate: true
+# <repo>/.claude/canon.yaml — written by `canon init`
+canon: 0.18.0
+kind: mobile                        # mobile | web | mobile-and-web | package | content
+standards: [design-sets, pipeline, expo]   # canon's library standards this repo follows; ./rules adds a folder of its own
+modules: [docs, knowledge, code, listing, refs]
+packs: [expo]
+name: Acme                          # how the product is written; `named` copies swap it in
+formerly: [acme-old]                # older folder names, so `canon flow` counts their conversations
 commands:                           # your own checkers, run by `canon check`
   - { id: lint-copy, run: ./scripts/lint-copy.sh, if: .context/designs, module: design }
-  - { id: designs-first, run: test -d .context/designs, kinds: [mobile, web] }   # only repos that ship screens
-copies:                             # files products copy from one source repo, in named sets
-  source: design-system
+copies:                             # files copied from one source repo, kept equal to it
+  source: ../design-system
+  use: [upload, shell-web]          # sets the source names under its own copies.sets
+```
+
+```yaml
+# ../design-system/.claude/canon.yaml — the source names its sets
+copies:
   sets:
     upload: [scripts/upload.mjs]
     shell-web:
       - { from: designs/mobile/index.html, to: designs/web/index.html, named: true }
 ```
 
-```yaml
-# <repo>/.claude/canon.yaml — written by `canon init`
-canon: 0.17.0
-kind: mobile                        # mobile | web | mobile-and-web | package | content
-standards: [design-sets, pipeline, expo]   # canon's library standards this repo follows; ./rules adds a folder of its own
-modules: [docs, knowledge, code, listing, refs]
-packs: [expo]
-name: Acme                          # how the product is written; `named` copies swap it in
-copies:
-  use: [upload, shell-web]          # the sets this repo uses; only these are held to the source
-```
+Built in, for every repo: a mobile or web repo keeps `.context/designs/` (designs
+first), and a repo that draws its screens always gets the design checks.
 
-Scalars: the most specific layer wins. `packs`, `standards` and `copies.use`
-add up across layers; `commands`, `doctor.tools`, `wiki.types` and
-`context.folders` merge by name.
+Lists of names (`packs`, `standards`, `copies.use`) add up across the two files;
+`commands`, `doctor.tools`, `wiki.types` and `context.folders` merge by name.
 
 ## Layout
 
@@ -136,8 +140,8 @@ hooks/            session start: constitution titles, qmd refresh
 standards/        default standards
 packs/            vendor doc packs
 templates/        files init writes (dependency-cruiser base and starters)
-scripts/          log-verdict.mjs — the verdict log
-evals/            plugin evals and the fixture product
+scripts/          log-verdict.mjs (the verdict log), check-designs.py, flow.py, arch-set.py
+evals/            plugin evals: the fixture product, and cases over real product repos (_scaffold/product.sh)
 cli/              the canon CLI (TypeScript, vitest); `@freetesh/canon/api` for tools built on it
 ```
 
@@ -148,7 +152,7 @@ index.ts          the program: registers every command
 api.ts            what other tools import (`@freetesh/canon/api`)
 commands/         one file per command — options and output only
 checks/           one file per check, named by its id; index.ts lists them
-config/           .claude/canon.yaml: schema, layered loading, estate discovery
+config/           .claude/canon.yaml: schema and loading
 lib/              shared helpers: files, frontmatter, env, qmd, system calls
 <name>.ts         the logic the commands call: check (+ format for its output), init, packs (add), sync, …
 ```

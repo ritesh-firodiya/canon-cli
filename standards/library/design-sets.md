@@ -719,7 +719,7 @@ check a lie.
 **The canonical set lives in the repo named in `copies.source`** in
 `.claude/canon.yaml`. It should exercise nearly everything in this guide: the
 reserved flows, a few domain flows, modal screens, a state variant, and at least
-one edge of each of the four kinds. If it draws one theme only, the estate names
+one edge of each of the four kinds. If it draws one theme only, the repo names
 a second reference for a two-theme palette. **Copy from those and from nothing
 else** — other sets may be on older versions of the shared files, and copying
 from them silently reverts the bar, the chart, or both. A migration that copied

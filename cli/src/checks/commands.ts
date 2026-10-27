@@ -11,7 +11,7 @@ function tail(text: string): string {
 }
 
 /**
- * Runs each checker a repo or its estate declares under `commands:` in
+ * Runs each checker a repo declares under `commands:` in
  * canon.yaml. canon does not know what they check; a non-zero exit is an error
  * reported under the command's own id.
  */

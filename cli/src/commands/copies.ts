@@ -12,7 +12,7 @@ export function registerCopies(program: Command, env: Env): void {
     .option("--sync", "overwrite drifted copies from the source (never adds a missing file)")
     .action((repo: string, options: { sync?: boolean }) => {
       const path = resolve(repo);
-      const { config } = loadConfig(path, { estateRoot: env.estateRoot });
+      const { config } = loadConfig(path);
       if (options.sync) {
         const written = syncCopies(path, config);
         console.log(written.length ? written.map((file) => `  synced: ${file}`).join("\n") : "  nothing to sync");

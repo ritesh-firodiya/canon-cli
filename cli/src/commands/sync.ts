@@ -13,7 +13,7 @@ export function registerSync(program: Command, env: Env): void {
     .argument("[repo]", "product repo", ".")
     .action(async (repo: string) => {
       const path = resolve(repo);
-      const result = await syncRepo(path, { canonRoot: env.canonRoot, estateRoot: env.estateRoot ?? undefined, cacheDir: CACHE_DIR, fetchText, run: runCommand });
+      const result = await syncRepo(path, { canonRoot: env.canonRoot, cacheDir: CACHE_DIR, fetchText, run: runCommand });
       console.log(`packs refreshed: ${result.packs.join(", ") || "none"}`);
       if (result.base) console.log("architecture base updated from canon's template");
       if (result.version) console.log(`canon ${result.version.from ?? "unpinned"} → ${result.version.to}`);
