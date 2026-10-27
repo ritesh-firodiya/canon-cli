@@ -10,6 +10,23 @@
   approved, once per gate.
 - `zeno approve <stage>`: a person records a gate approval, dated now, in
   `.context/raw/zeno/gates.jsonl`.
+- `context-size` check (warnings): page 60 lines, decision 30, `README.md` 30,
+  `tasks.md` 100; dated decision file names; `wiki/flows/`;
+  `## Done` or `## Session Notes` in `tasks.md`.
+- `wiki-frontmatter` warns on placeholder text (`TBD`, `none yet`).
+
+### Changed
+
+- The wiki keeps only what an agent would get wrong without: `last-verified` is
+  the only required field, no section is required, and the schema is 70 lines
+  instead of 299.
+- No page per screen: a `surfaces/` page exists only for a screen with notes its
+  HTML can't show. No `flow` type; a journey worth keeping is a concept.
+- Decisions are one file per topic (`decisions/pricing.md`), overwritten when
+  the choice changes, with a `Rejected:` line. No supersede chains.
+- `tasks.md` holds open work only; a done task is deleted. `zeno init` writes
+  the shorter template.
+- `canonical-values` also checks prices in decisions.
 
 ## 0.10.0 — 2026-10-25
 

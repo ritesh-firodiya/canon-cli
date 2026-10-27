@@ -15,9 +15,8 @@ Question: `$ARGUMENTS`
    - `entity` pages for "what is the value / price / name of X"
    - `synthesis` pages for cross-cutting summaries (use these before chasing individual entities)
    - `concept` pages for "why" or "what does X mean" questions
-   - `surface` pages for "what does this screen do"
-   - `flow` pages for "how does the user get from A to B"
-   - `decision` pages for "why did we choose X over Y"
+   - `decision` pages for "why did we choose X over Y", and its `Rejected:` line for "did we consider Y"
+   - for "what does this screen do", the HTML in `.context/designs/` is the spec; its `surfaces/` note, if any, says why
 
 3. **Read the candidate pages.** Follow `[[wikilinks]]` one hop if the answer is incomplete. Stop at two hops — if you need three, the wiki is missing a synthesis page; say so.
 
@@ -35,8 +34,7 @@ Question: `$ARGUMENTS`
 
 ## Rules
 
-- **Never read `.context/raw/` or `.context/designs/` from this skill.** If the answer requires raw inspection, refuse and recommend `/ingest`.
+- **Never read `.context/raw/` from this skill.** If the answer requires raw inspection, recommend `/ingest`. Designs may be read for screen questions.
 - **Never invent facts.** If a canonical value isn't in an `entity` page, say "not in the wiki".
 - **Every cited page must actually exist.** Don't fabricate a `[[wikilink]]` to make the answer look authoritative.
-- A page with `status: superseded` is not canonical — follow `superseded-by` to the current page.
 - A page with `last-verified` > 90 days is stale — flag it in the answer ("last verified 2025-11-04 — may be out of date").

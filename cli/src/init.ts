@@ -93,12 +93,12 @@ const FIRST_FILE: Record<string, string> = {
   features: ".context/features/index.md",
 };
 
-function template(file: string, today: string): string {
+function template(file: string): string {
   switch (file) {
     case ".context/README.md":
       return "# .context\n\nProduct material, in the ten folders of the zeno context layout.\n\n## Absent folders\n\n- listing/ — n/a — no store presence yet\n- marketing/, metrics/, support/, legal/ — n/a — not live yet\n- ops/ — n/a — nothing to run yet\n";
     case ".context/tasks.md":
-      return `---\nupdated: ${today}\nhorizon: ${today}\n---\n\n# Tasks\n\n## Now\n\n## Parallel\n\n## Blocked\n\n## Waiting\n\n## Done\n\n## Session Notes\n`;
+      return "# Tasks\n\n## Now\n\n## Blocked\n\n## Waiting\n";
     case ".context/wiki/index.md":
       return "# Wiki index\n\nPages by type. Schema: the zeno plugin's wiki-schema standard.\n";
     case ".context/features/index.md":
@@ -128,8 +128,7 @@ export function planInit(repo: string, answers: InitAnswers): InitPlan {
   return { config, create };
 }
 
-export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; name: string; zenoRoot: string; today?: string }): void {
-  const today = options.today ?? new Date().toISOString().slice(0, 10);
+export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; name: string; zenoRoot: string }): void {
   const write = (file: string, content: string) => {
     mkdirSync(dirname(join(repo, file)), { recursive: true });
     writeFileSync(join(repo, file), content);
@@ -138,7 +137,7 @@ export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; 
   const starters = new Map(architectureStarters(repo).map((s) => [s.file, s.template]));
   for (const file of plan.create) {
     const starter = starters.get(file);
-    write(file, starter ? readFileSync(join(options.zenoRoot, ARCHITECTURE_TEMPLATES, starter), "utf8") : template(file, today));
+    write(file, starter ? readFileSync(join(options.zenoRoot, ARCHITECTURE_TEMPLATES, starter), "utf8") : template(file));
   }
 
   if (plan.config.modules.includes("knowledge")) indexKnowledge(repo, options.name, options.run);

@@ -24,10 +24,22 @@ describe("wiki-frontmatter", () => {
     expect(findings).toEqual([expect.objectContaining({ level: "error", message: expect.stringMatching(/frontmatter/) })]);
   });
 
-  test("a missing required field is an error naming the field", () => {
-    const { status: _, ...noStatus } = good;
-    const findings = run({ ".context/wiki/concepts/upload-only.md": wikiPage(noStatus) });
-    expect(findings[0].message).toMatch(/status/);
+  test("last-verified is the only required field", () => {
+    expect(run({ ".context/wiki/concepts/upload-only.md": wikiPage({ "last-verified": "2026-10-01" }) })).toEqual([]);
+    const findings = run({ ".context/wiki/concepts/upload-only.md": wikiPage({ type: "concept" }) });
+    expect(findings[0].message).toMatch(/last-verified/);
+  });
+
+  test("an untyped page outside a wiki folder is an error", () => {
+    const findings = run({ ".context/wiki/notes/home.md": wikiPage({ "last-verified": "2026-10-01" }) });
+    expect(findings[0].message).toMatch(/notes\/ is not a wiki folder/);
+  });
+
+  test("placeholder text is a warning, but not inside a code block", () => {
+    const page = (body: string) => wikiPage(good, body);
+    const findings = run({ ".context/wiki/concepts/upload-only.md": page("## Copy\n_(none yet)_\n") });
+    expect(findings).toEqual([expect.objectContaining({ level: "warn", message: expect.stringMatching(/placeholder "none yet"/) })]);
+    expect(run({ ".context/wiki/concepts/upload-only.md": page("```\nTODO: TBD\n```\n") })).toEqual([]);
   });
 
   test("type must match its folder", () => {
@@ -64,11 +76,6 @@ describe("wiki-frontmatter", () => {
         message: "2 pages last verified over 90 days ago — oldest: concepts/b.md (175d), concepts/a.md (144d)",
       }),
     ]);
-  });
-
-  test("superseded without superseded-by is an error", () => {
-    const page = wikiPage({ ...good, status: "superseded", "superseded-by": "null" });
-    expect(run({ ".context/wiki/concepts/upload-only.md": page })[0].message).toMatch(/superseded-by/);
   });
 
   test("two pages with the same id is an error", () => {

@@ -2,10 +2,13 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { listFiles } from "../lib/files.ts";
 import { parseFrontmatter } from "../lib/frontmatter.ts";
-import { WIKI_FOLDER_BY_TYPE } from "../config/schema.ts";
+import { REMOVED_WIKI_FOLDERS, WIKI_FOLDER_BY_TYPE } from "../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 
-const REQUIRED_FIELDS = ["id", "type", "status", "last-verified"];
+const REQUIRED_FIELDS = ["last-verified"];
+// Filler an agent would read as fact: a section with nothing to say is deleted, not stubbed.
+const PLACEHOLDER = /\bTBD\b|\bnone yet\b|\bpopulate when\b/i;
+const CODE_BLOCK = /```[\s\S]*?```/g;
 const STALE_AFTER_DAYS = 90;
 const DAY_MS = 86_400_000;
 const NOT_PAGES = ["index.md", "CLAUDE.md"];
@@ -23,7 +26,7 @@ function asDate(value: unknown): Date | null {
 export const wikiFrontmatter: Check = {
   id: "wiki-frontmatter",
   module: "docs",
-  description: "every wiki page has id, type, status and last-verified; type matches folder; ids are unique; nothing stale",
+  description: "every wiki page has last-verified and no placeholder text; a type, if set, matches its folder; ids are unique; nothing stale",
   run({ repo, config, today }) {
     const folderByType = { ...WIKI_FOLDER_BY_TYPE, ...Object.fromEntries(config.wiki.types.map((entry) => [entry.type, entry.folder])) };
     // Built-in types' sections are linted by the wiki-lint skill; added types carry theirs in config.
@@ -35,6 +38,8 @@ export const wikiFrontmatter: Check = {
     const stale: Array<{ file: string; age: number }> = [];
 
     for (const file of wikiPages(repo)) {
+      const folder = file.split("/")[2];
+      if (folder in REMOVED_WIKI_FOLDERS) continue; // context-size reports the folder once
       const { data, body } = parseFrontmatter(readFileSync(join(repo, file), "utf8"));
       if (!data) {
         add("error", file, "no frontmatter");
@@ -43,9 +48,9 @@ export const wikiFrontmatter: Check = {
       const missing = REQUIRED_FIELDS.filter((field) => data[field] === undefined || data[field] === null);
       if (missing.length > 0) add("error", file, `missing ${missing.join(", ")}`);
 
-      const folder = file.split("/")[2];
       const expected = folderByType[String(data.type)];
       if (data.type && expected !== folder) add("error", file, `type ${data.type} does not belong in ${folder}/`);
+      if (!data.type && !Object.values(folderByType).includes(folder)) add("error", file, `${folder}/ is not a wiki folder`);
 
       const sections = sectionsByType.get(String(data.type));
       if (sections) {
@@ -54,7 +59,8 @@ export const wikiFrontmatter: Check = {
         if (absent.length > 0) add("error", file, `missing sections: ${absent.join(", ")}`);
       }
 
-      if (data.status === "superseded" && !data["superseded-by"]) add("error", file, "superseded without superseded-by");
+      const placeholder = body.replace(CODE_BLOCK, "").match(PLACEHOLDER);
+      if (placeholder) add("warn", file, `placeholder "${placeholder[0]}" — write the fact or delete the section`);
 
       const verified = asDate(data["last-verified"]);
       const age = verified ? Math.floor((today.getTime() - verified.getTime()) / DAY_MS) : 0;

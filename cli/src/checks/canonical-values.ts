@@ -24,19 +24,20 @@ function heldAmounts(text: string): string[] {
   return amounts(text.replace(CODE_BLOCK, ""));
 }
 
+const folderOf = (file: string) => file.split("/")[2];
+
 export const canonicalValues: Check = {
   id: "canonical-values",
   module: "docs",
-  description: "a price shown on a surface page is held by an entity page — one home per fact (C-04)",
+  description: "a price stated in a decision or screen note is held by an entity page — one home per fact (C-02)",
   run({ repo }) {
     const pages = wikiPages(repo).map((file) => ({ file, ...parseFrontmatter(readFileSync(join(repo, file), "utf8")) }));
-    const live = pages.filter((page) => page.data?.status !== "superseded");
-    const held = new Set(live.filter((page) => page.data?.type === "entity").flatMap((page) => heldAmounts(page.body)));
+    const held = new Set(pages.filter((page) => folderOf(page.file) === "entities").flatMap((page) => heldAmounts(page.body)));
 
-    // Surfaces are where store prices get restated. Concepts legitimately carry
+    // Decisions and screen notes are where prices get restated. Concepts legitimately carry
     // example amounts (a tax product explains slabs with them).
-    return live
-      .filter((page) => page.data?.type === "surface")
+    return pages
+      .filter((page) => ["decisions", "surfaces"].includes(folderOf(page.file)))
       .flatMap((page): Finding[] => {
         const orphans = pricesIn(page.body).filter((price) => !held.has(price));
         if (orphans.length === 0) return [];

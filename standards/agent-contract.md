@@ -8,7 +8,7 @@ file with its own `agent-contract.md` in a configured standards folder.
 - Read the repo's `CLAUDE.md` / `AGENTS.md`: stack, layout, the rules that are
   the repo's own.
 - Read `.context/tasks.md`. It is the ordered queue — the top item of `## Now`
-  is the next action. After finishing, tick the task and append a Session Note.
+  is the next action. After finishing, delete the task.
 - For a non-trivial request, run the weigh gate first (`/zeno:weigh`).
 
 ## Repository rules
@@ -40,7 +40,8 @@ function's own name.
 
 ## Before calling work done
 
-1. Reflect changed behaviour in `CLAUDE.md` and any affected `.context/` page.
+1. Update any `.context/` page the change made wrong. Add a page only if an
+   agent would get something wrong without it.
 2. Run the repo's own lint, typecheck and tests.
 3. Run `zeno check`. Every checker the repo declares under `commands:` runs
    with it.

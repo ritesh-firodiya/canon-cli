@@ -52,10 +52,10 @@ folder.
 
 ## Naming and frontmatter
 
-- Append-only, time-ordered files → ISO date: `YYYY-MM-DD-slug.md`.
-- Files referenced by a stable ID → zero-padded number: `NNNN-slug.md`.
-- Frontmatter follows the wiki schema: `id`, `type`, `status`, `last-verified`,
-  `supersedes`, `superseded-by`. Kebab-case keys.
+- Dated sources (`raw/`) → ISO date: `YYYY-MM-DD-slug.md`.
+- Features → zero-padded number: `NNNN-slug.md`.
+- Everything else is named by topic and edited in place.
+- Frontmatter: `last-verified`, kebab-case keys. See the wiki schema.
 
 ## Where each kind of document lives
 
@@ -64,8 +64,8 @@ separate folder per name.
 
 | Document | Home |
 |---|---|
-| ADR | `wiki/decisions/`, `status: canonical` |
-| RFC | `wiki/decisions/`, `status: draft` — the same page becomes the ADR when accepted |
+| ADR | `wiki/decisions/<topic>.md`, overwritten when the choice changes |
+| RFC | `features/`; once accepted, the choice goes in `wiki/decisions/` |
 | PRD | `features/`, `type: feature` |
 | Experiment | `features/`, `type: experiment`; the result is a decision page |
 | Initiative | `wiki/synthesis/`, linking its features and decisions |
@@ -99,24 +99,16 @@ An experiment adds `## Hypothesis`, `## Metric` (a name from
 `metrics/definitions.yml`) and `## Result` once it has run.
 
 The wiki describes what *is*; `features/` describes what is *next*. A shipped
-feature goes `status: shipped` and is never deleted.
+feature goes `status: shipped`.
 
-## `tasks.md` — the ordered queue
+## `tasks.md` — open work only
 
 ```markdown
----
-updated: 2026-09-29
-horizon: 2026-10-13        # this file is stale after this date
----
-
 # Tasks
 
 ## Now                       <!-- position is the dependency; do in order -->
 1. [ ] T001 Add a screenshot mode  `feat:0002`  ~1d
 2. [ ] T002 Write the capture flows  needs:T001  ~3h
-
-## Parallel                  <!-- independent, safe to batch -->
-- [ ] T004 [P] Move the SKU IDs into the wiki  ~1h
 
 ## Blocked
 - [ ] T005 Submit the iOS build
@@ -125,14 +117,9 @@ horizon: 2026-10-13        # this file is stale after this date
 
 ## Waiting                   <!-- deferred by time, not by a task -->
 - [ ] T006 Second-language listing  wait:2026-11-01
-
-## Done
-- [x] T000 Set up .context  done:2026-09-29
-
-## Session Notes
-### 2026-09-29
-- Done: T000.  Learned: …  Next: T001.
 ```
 
-A blocker with no named unblocking action and no check date is a silent leak.
-A task that needs more than a line and a continuation is a `features/` page.
+Delete a task when it is done — the commit records it. No `## Done`, no session
+notes. Cap: 100 lines. A blocker with no unblocking action and no check date is a
+silent leak. A task that needs more than a line and a continuation is a
+`features/` page.

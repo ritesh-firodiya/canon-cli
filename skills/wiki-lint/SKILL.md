@@ -9,10 +9,11 @@ Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 
 ## Steps
 
-1. **Read the wiki schema** to refresh schema, ID conventions, required sections, and the lint-rules table.
+1. **Read the wiki schema** to refresh the folders, the one test and the caps.
 
 2. **Run `zeno check` first** if the CLI is installed. It checks frontmatter,
-   duplicate IDs, staleness and prices held by no entity in under a second,
+   placeholders, caps, dated decision names, duplicate IDs, staleness and
+   prices held by no entity in under a second,
    plus any checker the repo declares. Start from its output rather than
    re-deriving it.
 
@@ -29,30 +30,27 @@ Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 
 | Check | Rule |
 |---|---|
-| Missing required section | Per the wiki schema § "Page body — required sections" |
 | Broken `[[wikilink]]` | Target page does not exist |
 | Duplicate `id` | Two pages claim the same ID |
 | Contradictory canonical value | Two `entity` pages list the same key with different values |
-| `status: superseded` with no `superseded-by` | Set or remove the status |
-| Filename ↔ id slug mismatch | The filename must match the slug portion of the ID |
-| `type` does not match folder | `type: concept` must live in `concepts/`, etc. A type added under `wiki.types` in `.claude/zeno.yaml` lives in its configured folder and has every heading in its `sections`. |
+| Placeholder text | `TBD`, `none yet`: write the fact or delete the section |
+| `type` does not match folder | If a page sets `type`, it lives in that type's folder |
 
 ### Warnings
 
 | Check | Rule |
 |---|---|
-| Orphan page | Zero inbound `[[wikilinks]]`. Exception: `decision` and `synthesis` pages are commonly orphan-source. |
+| Over a cap | Page 60 lines, decision 30, README 30, tasks 100 |
+| Restates code, a design or git | Delete the lines; link the source instead |
+| Two pages on one topic | Merge into one, edited in place |
 | Stale `last-verified` | > 90 days from today. |
 | Unprocessed raw file | A file under `.context/raw/` that no wiki page references in its `Sources`. |
-| Stale synthesis | A `synthesis` page where any `Built from` page was modified after the synthesis's `Last refresh`. |
-| Page missing two outbound links | Body has fewer than two `[[wikilinks]]`. |
 | User-facing string violates copy rules | Check quoted copy against the rules in the root `CLAUDE.md`. Best-effort. |
 
 6. **Auto-fix (only if `--fix` is in `$ARGUMENTS`):**
    - Regenerate `.context/wiki/index.md` from scratch: enumerate pages by type, sort alphabetically by slug, keep the structure the file already has.
    - Fix `last-verified` to today's date on any page whose body was edited in the working tree.
-   - Fix filename ↔ id slug mismatches (rename the file; do NOT change the ID).
-   - **Never** auto-fix: contradictory canonical values, missing required sections, broken `[[wikilinks]]`. These need a human decision.
+   - **Never** auto-fix: contradictory canonical values, broken `[[wikilinks]]`, merges or cuts. These need a human decision.
 
 7. **Report.** Print:
    - Counts: pages, blockers, warnings, auto-fixes applied.
@@ -63,7 +61,7 @@ Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 ## Rules
 
 - **Never edit pages other than auto-fixes above.** Lint reports; the user (or `/ingest`) fixes.
-- **Never delete pages.** Superseded pages stay on disk with `status: superseded` and `superseded-by: <new-id>`.
+- **Never delete pages from this skill.** Propose the cut; the user approves it. Git keeps what is deleted.
 - **Never modify `.context/raw/`** except to warn about unprocessed files.
 - If a blocker resists auto-fix, exit non-zero (in CI mode) but always print the full report first.
 - Today's date is in the session context — use it for staleness math (>90 days).

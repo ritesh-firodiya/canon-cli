@@ -3,14 +3,20 @@ import { z } from "zod";
 export const KINDS = ["expo-app", "web", "content"] as const;
 export const MODULES = ["docs", "design", "knowledge", "metrics", "code", "architecture", "listing"] as const;
 
-/** The wiki page types every repo has, and the folder each lives in. A repo adds more under `wiki.types`. */
+/**
+ * The wiki page types every repo has, and the folder each lives in. A repo adds more under `wiki.types`.
+ * No flow type: a journey worth keeping is a concept. A surface page is a screen's notes, only where it has real ones.
+ */
 export const WIKI_FOLDER_BY_TYPE: Record<string, string> = {
   concept: "concepts",
   entity: "entities",
   surface: "surfaces",
-  flow: "flows",
   decision: "decisions",
   synthesis: "synthesis",
+};
+/** Wiki folders that no longer exist, and what to do with what was in them. */
+export const REMOVED_WIKI_FOLDERS: Record<string, string> = {
+  flows: "fold a journey worth keeping into a concept page",
 };
 /** The `.context/` folders every repo may have. A repo adds more under `context.folders`. */
 export const CONTEXT_FOLDERS = ["raw", "wiki", "features", "designs", "listing", "marketing", "metrics", "support", "legal", "ops"];

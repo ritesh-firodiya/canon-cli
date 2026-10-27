@@ -1,299 +1,71 @@
-# Wiki — schema and rules
+# Wiki — rules
 
-This folder is a **Claude-maintained knowledge base** for the product. The model is the LLM-Wiki pattern: `.context/raw/` holds immutable sources, `.context/wiki/` holds synthesised pages with `[[wikilinks]]`, this file defines the schema.
+`.context/wiki/` holds what an agent would get wrong without being told. `.context/raw/` holds
+sources, never edited. Answer from the wiki, not from raw.
 
-**Read this file before creating or editing any page under `.context/wiki/`.**
+## The test
 
----
+Keep a line only if an agent would make a mistake without it. Never write what the
+code, an HTML design, or `git log` already says. Describe what is true **now**:
+history is git's job.
 
-## Three layers
+## Folders
 
-| Layer | Path | Mutability | Who writes |
-|---|---|---|---|
-| Raw | `.context/raw/`, `.context/designs/` | **Immutable** — never edit | Humans (or external systems) |
-| Wiki | `.context/wiki/` | Mutable, schema-bound | Claude (via `/zeno:ingest`, `/zeno:ask`, `/zeno:wiki-lint`) |
-| Index | `.context/wiki/index.md` | Auto-maintained | `/zeno:ingest` and `/zeno:wiki-lint` |
-
-The wiki is the **only** layer Claude reads for `/zeno:ask`. Never answer from `.context/raw/` directly — the synthesis must be written down or it doesn't exist.
-
----
-
-## Page types
-
-Every page in `.context/wiki/` belongs to exactly one type. The folder name is the type.
-
-| Type | Folder | What it owns | Example |
-|---|---|---|---|
-| `concept` | `concepts/` | An idea, principle, or invariant. Prose-shaped. | `offline-first`, `money-in-minor-units` |
-| `entity` | `entities/` | A thing with canonical values (price, name, enum). Table-shaped. | `plan-pro`, `plan-free` |
-| `surface` | `surfaces/` | One screen / route / email / callable. Links to a raw wireframe. | `onboarding-welcome` |
-| `flow` | `flows/` | A user journey. Ordered list of `[[surface]]` steps. | `new-user-to-first-save` |
-| `decision` | `decisions/` | One ADR. Filename = `YYYY-MM-DD-slug.md`. Append-only. | `2026-06-24-annual-plan-only` |
-| `synthesis` | `synthesis/` | Cross-cutting page built from many entities/concepts. Refreshable. | `pricing`, `launch-checklist` |
-
-A page cannot be two types. If it feels like it is, it's two pages — split it.
-
-A product adds a type in `.claude/zeno.yaml`, with the reason and the `## `
-sections every page of it must have:
-
-```yaml
-wiki:
-  types:
-    - { type: postmortem, folder: postmortems, reason: …, sections: [Summary, Timeline, Root cause, Fix, Sources] }
-```
-
-`zeno check` fails a page of that type that misses a section. Its ID is
-`<TYPE>.<SLUG>` (`POSTMORTEM.MIDNIGHT-RESET`). The six built-in types and their
-folders cannot be redefined. Try the six first — an added type is a shape every
-reader and every product must learn.
-
-### Data sources
-
-Each tool that holds product data (Datadog, Sentry, Snowflake, an analytics
-console) is one `entity` page, `id: SOURCE.<NAME>`, in `entities/`:
-
-```markdown
-## Summary
-What this source holds, in one sentence.
-
-## Canonical values
-| Key | Value | Last changed |
+| Folder | Holds | Example |
 |---|---|---|
-| SOURCE.SENTRY.PROJECT | streaks-mobile | 2026-10-23 |
-| SOURCE.SENTRY.ACCESS | mcp: sentry | 2026-10-23 |
+| `concepts/` | a rule or invariant | `money-in-minor-units` |
+| `entities/` | canonical values (prices, SKUs, limits) — the one home for each | `plan-pro` |
+| `decisions/` | one file per topic: the current choice | `pricing` |
+| `surfaces/` | a screen's notes: what its HTML can't show (only screens that have some) | `paywall` |
+| `synthesis/` | research and cross-cutting analysis | `tax-table-verification-ay-2026-27` |
 
-## How to query
-The claims this source can answer, and one example query for each.
-```
+There is no page per screen: the HTML design is the screen spec. A screen gets a
+`surfaces/<slug>.md` only when it has a constraint or decision invisible in its pixels;
+the design set's notes button shows it, and `routes.js` sets `notes: null` for every
+other screen. A user journey worth keeping is a concept.
+A product may add a folder in `.claude/zeno.yaml` under `wiki.types`, with a reason.
 
-zeno has no connector of its own. The repo picks what does the reading, and
-`ACCESS` names it: `mcp: <server>`, `skill: <name>`, `cli: <command>`, or
-`manual: <where>` for a dashboard with no API, which a person reads and pastes
-into `raw/`. A `cli:` must also be in `doctor.tools` in `.claude/zeno.yaml`, so `zeno doctor`
-reports when it is missing. `zeno check` fails a source page that breaks either
-rule or has no `## How to query`. Never put a key or token on the page.
+## Pages
 
-The weigh gate reads sources to check a claim (C-14). Every query follows these
-rules:
+- Frontmatter: `last-verified: YYYY-MM-DD` is the only required field. `id` is kept
+  where code references it (`SOURCE.*`, entity keys).
+- Write only the sections you have something to say in. No `TBD`, no `none yet`.
+- One file per topic, edited in place. No dated names, no `v2`, no supersede chains.
+- Caps: page 60 lines, decision 30. Synthesis is exempt.
+- Link with `[[slug]]` (the file name without `.md`). `index.md` is one line per page.
 
-- **Read only.** Never create, change or delete anything in the source.
-- **Small.** One or two queries per claim, with a row limit. Some sources bill
-  per query.
-- **No user data in git.** Save counts, totals and rates, never rows that name
-  a person, an email or a device. Results that back a decision go to
-  `raw/YYYY-MM-DD-<source>-<slug>.md`: the query, the date and the numbers.
+## Decisions
 
----
-
-## Frontmatter (mandatory)
-
-Every page begins with YAML frontmatter:
-
-```yaml
----
-id: PLAN.PRO                  # Stable, uppercase, dot-separated. Never changes. Referenced from code.
-type: entity                  # concept | entity | surface | flow | decision | synthesis
-status: canonical             # canonical | draft | superseded
-last-verified: 2026-06-24     # ISO date. /zeno:wiki-lint flags pages > 90 days.
-supersedes: []                # IDs this page replaces (decisions only)
-superseded-by: null           # If non-null, this page is no longer canonical
----
-```
-
-### ID conventions
-
-| Type | ID shape | Example |
-|---|---|---|
-| concept | `CONCEPT.<SLUG>` | `CONCEPT.OFFLINE-FIRST` |
-| entity | `<DOMAIN>.<NAME>` | `PLAN.PRO`, `PLAN.FREE` |
-| surface | `SURFACE.<APP>.<PATH>` | `SURFACE.MOBILE.ONBOARDING.WELCOME` |
-| flow | `FLOW.<SLUG>` | `FLOW.NEW-USER-TO-FIRST-SAVE` |
-| decision | `DECISION.<YYYY-MM-DD>.<SLUG>` | `DECISION.2026-06-24.ANNUAL-PLAN-ONLY` |
-| synthesis | `SYNTHESIS.<SLUG>` | `SYNTHESIS.PRICING` |
-
-Once assigned, an ID never changes. If a page is renamed, the ID stays. If the thing it describes is killed, mark `status: superseded` and set `superseded-by`; do not delete.
-
----
-
-## Page body — required sections
-
-Each type has a required section list. `/zeno:wiki-lint` fails the page if any are missing.
-
-### `concept`
 ```markdown
-## Summary
-One sentence — what the concept is.
-
-## Why it matters
-Why this is a load-bearing idea. Tie it to a constraint, an incident, or a principle.
-
-## Implications
-Bulleted: what this forces / forbids in practice.
-
-## Related
-- [[other-concept]] — relationship
-- [[entity-x]] — where this applies
-
-## Sources
-- .context/raw/<source> or .context/designs/<surface>/<flow>/<screen>.html
-```
-
-### `entity`
-```markdown
-## Summary
-One sentence — what this entity is.
-
-## Canonical values
-| Key | Value | Last changed |
-|---|---|---|
-| PRICE.PRO.YEARLY | $49 | 2026-04-12 |
-| STORAGE.PRO | 5 GB | 2026-04-12 |
-
-## Related
-- [[concept-x]] — concept this entity instantiates
-- [[entity-y]] — sibling / upgrade-from
-
-## Sources
-- .context/raw/<source>
-```
-
-The `Canonical values` table is the single source of truth. Any value here that disagrees with the codebase is a bug — fix the code or update this page.
-
-### `surface`
-```markdown
-## Summary
-One sentence — what this screen does.
-
-## Raw wireframe
-- .context/designs/<surface>/<flow>/<screen>.html
-
-## Copy
-Verbatim user-visible strings. Each must pass the [[copy-voice]] rules.
-
-## Flows that touch this surface
-- [[new-user-to-first-save]] — step 4
-
-## Entities referenced
-- [[plan-free]]
-- [[privacy-consent]]
-
-## Sources
-- .context/raw/<source>
-```
-
-### `flow`
-```markdown
-## Summary
-One sentence — what journey this is.
-
-## Audience
-end-user | admin
-
-## Entry
-Where the user arrives from.
-
-## Steps
-| # | Step | Surface | Notes |
-|---|---|---|---|
-| 1 | Welcome | [[welcome]] | First launch |
-| 2 | Sign up | [[sign-up]] | Email |
-| ... |
-
-## Exit
-The success state.
-
-## Escapes
-Back-button, skips, abandonment outcomes.
-
-## Sources
-- .context/raw/<source>
-```
-
-### `decision`
-```markdown
-## Decision
-One-line statement.
-
-## Why
-The motivation. Cite the trigger — incident, user feedback, regulator, scope cut.
-
-## Impact
-What changes downstream. Which [[entities]] / [[surfaces]] / [[concepts]] update.
-
-## Status
-Active | Superseded by [[decision-id]]
-
-## Sources
-- .context/raw/<source>
-```
-
-Decisions are append-only. To reverse a decision, write a new one with `supersedes: [DECISION.<old>]` and mark the old one's `superseded-by`.
-
-### `synthesis`
-```markdown
-## Summary
-What this synthesis combines.
-
-## Built from
-- [[entity-x]]
-- [[entity-y]]
-- [[concept-z]]
-
-## Body
-The cross-cutting answer. Every claim links back to a source page.
-
-## Last refresh
-2026-06-24 — refresh when any "Built from" page changes.
-
-## Sources
-- (synthesis pages cite wiki pages, not raw files)
-```
-
-Synthesis pages are **derived**. If a source page changes, `/zeno:wiki-lint` marks the synthesis stale.
-
 ---
-
-## Linking
-
-- Use `[[page-slug]]` — the filename without `.md`. Match the file exactly (case-sensitive on case-sensitive filesystems).
-- Cross-folder links use the slug, not the path: `[[tier-self]]`, not `[[entities/tier-self]]`.
-- An `[[unknown-link]]` is a TODO marker — `/zeno:wiki-lint` reports it. Never silently delete a broken link; either create the target page or rename the link.
-- The `Related` section is what makes the graph navigable. Every page must have at least two outbound links (or be flagged as orphan-source).
-
+last-verified: 2026-10-27
 ---
+# Pricing
+**Choice:** annual plan only, ₹249 ([[plan-pro]]).
+**Why:** monthly churn was 3× annual in the 2026-06 test.
+**Rejected:** monthly plan (churn) · lifetime deal (no recurring revenue).
+```
 
-## Lint rules (what `/zeno:wiki-lint` enforces)
+When the choice changes, overwrite the file. `Rejected:` is what stops the same idea
+being proposed again; keep it. Fix lists and audit results go in commit messages or
+`CHANGELOG.md`, not here.
 
-| Rule | Failure |
-|---|---|
-| Missing required section | Block — must be fixed |
-| `[[wikilink]]` to a non-existent page | Block — create target or rename link |
-| Orphan page (zero inbound links) | Warn |
-| Two entities claim the same `id` | Block |
-| Two entities have contradictory canonical values for the same key | Block |
-| `last-verified` > 90 days | Warn |
-| `status: superseded` without `superseded-by` | Block |
-| Source file in `.context/raw/` not referenced by any wiki page | Warn |
-| Synthesis page where a `Built from` page changed after `Last refresh` | Warn |
-| Filename does not match the `id`'s slug portion | Block |
+## Data sources
 
-`/zeno:wiki-lint --fix` auto-fixes: filename ↔ id mismatches, missing `last-verified` (sets to today if the page is touched), index regeneration.
+Each tool that holds product data is one entity page, `id: SOURCE.<NAME>`, with a
+`## How to query` section and a `SOURCE.<NAME>.ACCESS` row: `mcp: <server>`,
+`skill: <name>`, `cli: <command>` (also listed in `doctor.tools`) or `manual: <where>`.
+Queries are read-only, one or two per claim, with a row limit. Save counts and
+rates to `raw/YYYY-MM-DD-<source>-<slug>.md`, never rows that name a person. Never
+put a key or token on the page.
 
----
+## Not for
 
-## What the wiki is NOT for
+Code docs (they go next to the code) · tasks (`tasks.md`) · plans (`features/`) ·
+chat logs · session notes · changelogs.
 
-- **Not for code documentation.** Docstrings stay in code. The wiki is product-shaped, not API-shaped.
-- **Not for transient task tracking.** Use `TaskCreate` / PR descriptions / commit messages for ephemeral work.
-- **Not for chat logs.** If a chat produces a decision, write a `decision` page; throw the chat away.
-- **Not for drafts of code.** If it would be a comment, it's a comment.
+## Checked by `zeno check`
 
----
-
-## Source of truth
-
-`.context/wiki/` is the canonical knowledge base, and every page in it follows
-the schema above — there are no plan-shaped exceptions. What is *next* lives in
-`.context/features/`, and the ordered queue lives in `.context/tasks.md`; the
-wiki describes what is, not what is planned. The repo root holds no
-product-knowledge `.md` files.
+`wiki-frontmatter` (last-verified, placeholders, stale > 90 days) · `context-size`
+(caps, dated decision names, no `flows/`) · `canonical-values` (a
+price in a decision or screen note is held by an entity) · `sources`.

@@ -88,7 +88,7 @@ describe("applyInit", () => {
 
     expect(parse(readFileSync(join(repo, ".claude/zeno.yaml"), "utf8"))).toEqual(plan.config);
     expect(readFileSync(join(repo, ".context/README.md"), "utf8")).toBe("mine");
-    expect(readFileSync(join(repo, ".context/tasks.md"), "utf8")).toMatch(/^---\nupdated: /);
+    expect(readFileSync(join(repo, ".context/tasks.md"), "utf8")).toMatch(/^# Tasks\n\n## Now\n/);
     expect(existsSync(join(repo, ".context/raw/.gitkeep"))).toBe(true);
     expect(calls).toEqual([
       ["qmd", "collection", "add", join(repo, ".context/wiki"), "--name", "demo-wiki"],
