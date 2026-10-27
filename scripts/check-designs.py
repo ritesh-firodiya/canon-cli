@@ -251,7 +251,7 @@ head('architecture — the overview is declared and every framed diagram has its
 arch_page = R.get('architecture')
 arch_flow = next((fl for fl in R['flows'] if fl.get('flow') == 'architecture'), None)
 if not arch_page:
-    bad('routes.js names no `architecture` page — run bin/arch-set with this set\'s spec')
+    bad('routes.js names no `architecture` page — run `canon arch-set` with this set\'s spec')
 elif arch_page not in declared_files:
     bad('`architecture: "%s"` is not a declared screen' % arch_page)
 if arch_flow is None:
