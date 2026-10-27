@@ -110,6 +110,9 @@ feature goes `status: shipped`.
 1. [ ] T001 Add a screenshot mode  `feat:0002`  ~1d
 2. [ ] T002 Write the capture flows  needs:T001  ~3h
 
+## Parallel                  <!-- independent, safe to batch -->
+- [ ] T004 Move the SKU IDs into the wiki  ~1h
+
 ## Blocked
 - [ ] T005 Submit the iOS build
       blocked-by: store account access  since:2026-09-16
