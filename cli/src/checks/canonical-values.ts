@@ -15,8 +15,11 @@ function amounts(text: string): string[] {
   return (text.match(PRICE) ?? []).map((price) => price.replace(/\s/g, ""));
 }
 
+// A decision's `Rejected:` line names old prices on purpose; they are history, not a second home.
+const REJECTED = /^\*\*Rejected:\*\*/;
+
 function pricesIn(text: string): string[] {
-  const paragraphs = text.replace(CODE_BLOCK, "").split(/\n\s*\n/);
+  const paragraphs = text.replace(CODE_BLOCK, "").split(/\n\s*\n/).filter((paragraph) => !REJECTED.test(paragraph.trim()));
   return [...new Set(paragraphs.filter((paragraph) => PRICE_WORDS.test(paragraph)).flatMap(amounts))];
 }
 

@@ -45,6 +45,11 @@ describe("canonical-values", () => {
     expect(findings[0].message).not.toMatch(/₹999/);
   });
 
+  test("prices on a decision's Rejected line are history and pass", () => {
+    const page = decision("**Choice:** one plan.\n\n**Rejected:** a pack at $0.99 and a bundle at $3.99.");
+    expect(run({ ".context/wiki/decisions/pricing.md": page })).toEqual([]);
+  });
+
   test("an amount in a paragraph that is not about price is an example, not a price", () => {
     const page = decision("Ravi paid ₹6,200 for dinner and Asha owes ₹1,600.\n\nThe Pro plan costs ₹249\na year, or ₹29 a month.");
     const findings = run({ ".context/wiki/decisions/split.md": page });
