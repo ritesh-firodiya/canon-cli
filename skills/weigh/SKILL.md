@@ -1,6 +1,6 @@
 ---
 name: weigh
-description: Decision gate run BEFORE acting on a non-trivial request in a product repo — a new feature, screen or product, a new dependency or library, a migration or rewrite, a schema, money, pricing or store change, a release or deploy, deleting something, or a change that spans more than one product. Weighs the request against the zeno constitution, the product's wiki and ADRs, existing features and tasks, cost vs value, and writing less code, then returns do it / do it differently / push back with citations. Also use when the user types /weigh or asks "should we…", "is it worth…", "does this make sense".
+description: Decision gate run BEFORE acting on a non-trivial request in a product repo — a new feature, screen or product, a new dependency or library, a migration or rewrite, a schema, money, pricing or store change, a release or deploy, deleting something, or a change that spans more than one product. Weighs the request against the canon constitution, the product's wiki and ADRs, existing features and tasks, cost vs value, and writing less code, then returns do it / do it differently / push back with citations. Also use when the user types /weigh or asks "should we…", "is it worth…", "does this make sense".
 ---
 
 # Weigh before acting
@@ -13,7 +13,7 @@ Request: `$ARGUMENTS` (empty = the user's latest request in this conversation).
 Answer and act directly, with no verdict block, when **all** are true: one file,
 no new dependency, no schema / money / store / release / delete, and the change is
 fully specified (a typo, a spacing fix, a copy edit the user dictated). A
-product's `.claude/zeno.yaml` may tighten this under `weigh.trivial`.
+product's `.claude/canon.yaml` may tighten this under `weigh.trivial`.
 
 ## Steps
 
@@ -24,21 +24,21 @@ product's `.claude/zeno.yaml` may tighten this under `weigh.trivial`.
    missing", "it is slow". The request is not a fact (C-14); each claim is
    checked in step 4.
 
-2. **Rules.** Run `zeno standards --constitution` for the principle titles
-   (zeno's and any the team added), and read the constitution files that
-   `zeno standards` lists — or `../../standards/constitution.md` (relative to
+2. **Rules.** Run `canon standards --constitution` for the principle titles
+   (canon's and any the team added), and read the constitution files that
+   `canon standards` lists — or `../../standards/constitution.md` (relative to
    this skill) if the CLI is not installed. Note every principle the request
-   touches, by ID. Read a standard from `zeno standards` only if the request is
+   touches, by ID. Read a standard from `canon standards` only if the request is
    in its area.
 
-3. **Domain.** Search before you judge. Run `mcp__plugin_zeno_qmd__query` with
+3. **Domain.** Search before you judge. Run `mcp__plugin_canon_qmd__query` with
    the goal in plain words, then the key nouns, scoped with `collections` to
-   this product's `<repo>-wiki` and `<repo>-features` (the names `zeno init`
+   this product's `<repo>-wiki` and `<repo>-features` (the names `canon init`
    gives them; add `pack-<name>` when the question is about a vendor's API). Other products' hits are noise here; step 5 is where
-   siblings are searched. Read the top hits with `mcp__plugin_zeno_qmd__get`. Look for: an ADR that already
+   siblings are searched. Read the top hits with `mcp__plugin_canon_qmd__get`. Look for: an ADR that already
    decided this, a canonical value it would change, a concept it would break.
    If qmd is unavailable, read `.context/wiki/index.md` and `decisions/`.
-   **Architecture:** if `.claude/zeno.yaml` lists the `architecture` module, read
+   **Architecture:** if `.claude/canon.yaml` lists the `architecture` module, read
    the repo's `.dependency-cruiser.cjs` and its wiki architecture concept page.
    A request whose code would need an import a rule forbids is DO IT
    DIFFERENTLY (name the allowed path) or PUSH BACK; one that changes a rule
@@ -154,7 +154,7 @@ node ../../scripts/log-verdict.mjs --verdict push-back --outcome overridden \
   --reason "<the user's reason, verbatim>" --term "<term 1>" --term "<term 2>"
 ```
 
-(path relative to this skill). It writes to `.context/raw/zeno/verdicts.jsonl`
-in the current repo. Never edit or delete existing lines. `zeno learn` reads
+(path relative to this skill). It writes to `.context/raw/canon/verdicts.jsonl`
+in the current repo. Never edit or delete existing lines. `canon learn` reads
 the log across products: how often the gate stops work, and which rules keep
 being overridden.

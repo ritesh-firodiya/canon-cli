@@ -26,8 +26,8 @@ const exploding: Check = {
 
 describe("runChecks", () => {
   test("runs checks whose module is enabled and skips the rest", () => {
-    const repo = makeTree({ ".claude/zeno.yaml": "modules: [docs]\n" });
-    const report = runChecks(repo, { checks: [always, designOnly], zenoRoot: repo, estateRoot: repo });
+    const repo = makeTree({ ".claude/canon.yaml": "modules: [docs]\n" });
+    const report = runChecks(repo, { checks: [always, designOnly], canonRoot: repo, estateRoot: repo });
     expect(report.findings.map((f) => f.check)).toEqual(["always"]);
     expect(report.skipped).toEqual([{ check: "design-only", why: "module design is off" }]);
   });
@@ -35,7 +35,7 @@ describe("runChecks", () => {
 
   test("a check that throws becomes an error finding instead of crashing the run", () => {
     const repo = makeTree({ "README.md": "" });
-    const report = runChecks(repo, { checks: [exploding, always], zenoRoot: repo, estateRoot: repo });
+    const report = runChecks(repo, { checks: [exploding, always], canonRoot: repo, estateRoot: repo });
     expect(report.findings).toEqual([
       expect.objectContaining({ check: "exploding", level: "error", message: expect.stringMatching(/boom/) }),
       expect.objectContaining({ check: "always" }),
@@ -43,13 +43,13 @@ describe("runChecks", () => {
   });
 
   test("a path that is not a folder is one clear error", () => {
-    const report = runChecks("/no/such/repo", { checks: [always], zenoRoot: "/", estateRoot: "/" });
+    const report = runChecks("/no/such/repo", { checks: [always], canonRoot: "/", estateRoot: "/" });
     expect(report.findings).toEqual([expect.objectContaining({ check: "repo", message: "no folder at /no/such/repo" })]);
   });
 
-  test("an invalid zeno.yaml is reported as one error", () => {
-    const repo = makeTree({ ".claude/zeno.yaml": "kind: desktop\n" });
-    const report = runChecks(repo, { checks: [always], zenoRoot: repo, estateRoot: repo });
+  test("an invalid canon.yaml is reported as one error", () => {
+    const repo = makeTree({ ".claude/canon.yaml": "kind: desktop\n" });
+    const report = runChecks(repo, { checks: [always], canonRoot: repo, estateRoot: repo });
     expect(report.findings).toEqual([expect.objectContaining({ check: "config", level: "error" })]);
   });
 });

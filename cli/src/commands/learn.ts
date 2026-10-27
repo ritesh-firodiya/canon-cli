@@ -20,7 +20,7 @@ export function registerLearn(program: Command, env: Env): void {
       const target = options.approve ?? options.reject;
       if (target) {
         const proposal = found.find((p) => p.id === target);
-        if (!proposal) throw new Error(`no open proposal "${target}" — run \`zeno learn\` to list them`);
+        if (!proposal) throw new Error(`no open proposal "${target}" — run \`canon learn\` to list them`);
         recordDecision(estateRoot, { id: target, decision: options.approve ? "approved" : "rejected", count: proposal.count, note: options.note });
         console.log(`${options.approve ? "approved" : "rejected"} ${target}`);
         return;

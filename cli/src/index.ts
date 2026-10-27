@@ -10,22 +10,25 @@ import { registerHooks } from "./commands/hooks.ts";
 import type { Env } from "./commands/env.ts";
 import { registerInit } from "./commands/init.ts";
 import { registerLearn } from "./commands/learn.ts";
+import { registerPipeline } from "./commands/pipeline.ts";
 import { registerStandards } from "./commands/standards.ts";
 import { registerStatus } from "./commands/status.ts";
 import { registerSync } from "./commands/sync.ts";
 import { registerUi } from "./commands/ui.ts";
 import { registerWeigh } from "./commands/weigh.ts";
 import { findEstate } from "./config/load.ts";
-import { zenoVersion } from "./status.ts";
+import { registerMcp } from "./search/mcp.ts";
+import { registerSearch } from "./search/search.ts";
+import { canonVersion } from "./status.ts";
 
 const env: Env = {
-  zenoRoot: resolve(import.meta.dirname, "..", ".."),
-  estateRoot: process.env.ZENO_ESTATE ?? findEstate(process.cwd()),
+  canonRoot: resolve(import.meta.dirname, "..", ".."),
+  estateRoot: process.env.CANON_ESTATE ?? findEstate(process.cwd()),
 };
 
-const program = new Command("zeno")
+const program = new Command("canon")
   .description("Shared standards, knowledge and decision checks for every product.")
-  .version(zenoVersion(env.zenoRoot));
+  .version(canonVersion(env.canonRoot));
 
 registerInit(program, env);
 registerAdd(program, env);
@@ -39,9 +42,13 @@ registerHooks(program, env);
 registerUi(program, env);
 registerLearn(program, env);
 registerApprove(program);
+registerPipeline(program, env);
 registerWeigh(program);
 
+registerSearch(program);
+registerMcp(program);
+
 program.parseAsync().catch((error: Error) => {
-  console.error(`zeno: ${error.message}`);
+  console.error(`canon: ${error.message}`);
   process.exitCode = 1;
 });

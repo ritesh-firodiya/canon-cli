@@ -50,9 +50,13 @@ describe("refs", () => {
         "notes.md": "git show abc:.context/old/a.md\nbuilt to .context/listing/out/\n",
         ".gitignore": ".context/listing/out/\n",
         "scripts/shared.py": "default .context/designs/mobile\n",
-        ".claude/zeno.yaml": "copies:\n  source: ../src\n  sets:\n    designs: [scripts/shared.py]\n  use: [designs]\n",
+        ".claude/canon.yaml": "copies:\n  source: ../src\n  sets:\n    designs: [scripts/shared.py]\n  use: [designs]\n",
       }),
     ).toEqual([]);
+  });
+
+  test("a pipeline stage's done paths in canon.yaml name what will exist later", () => {
+    expect(run({ ".claude/canon.yaml": "pipeline:\n  - { id: live, done: [.context/support] }\n" })).toEqual([]);
   });
 
   test("a folder that is not a git repo has nothing to check", () => {

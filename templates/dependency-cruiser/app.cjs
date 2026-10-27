@@ -1,6 +1,6 @@
 /* global module */
-// This app's architecture rules, enforced by `zeno check` (architecture module).
-// zeno wrote this starter once; it is yours now. Add the layers this app has
+// This app's architecture rules, enforced by `canon check` (architecture module).
+// canon wrote this starter once; it is yours now. Add the layers this app has
 // and keep the why in a wiki concept page.
 // Rule reference: https://github.com/sverweij/dependency-cruiser/blob/main/doc/rules-reference.md
 
@@ -17,7 +17,7 @@ module.exports = {
     },
   ],
   options: {
-    // The level `zeno ui` draws the architecture graph at: one box per match.
+    // The level `canon ui` draws the architecture graph at: one box per match.
     reporterOptions: { archi: { collapsePattern: "^src/[^/]+/[^/]+|^src/[^/]+|^[^/.][^/]*|^\\.\\./\\.\\./packages/[^/]+" } },
   },
 };

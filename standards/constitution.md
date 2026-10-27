@@ -5,9 +5,9 @@ The other standards say *how* things are done; this file says what wins when a
 request and a rule disagree.
 
 Each principle has an ID that verdicts cite (`C-05`). IDs never change; a
-dropped principle is struck through, not reused. IDs C-01 to C-19 are zeno's.
+dropped principle is struck through, not reused. IDs C-01 to C-19 are canon's.
 A team adds its own from C-20 up in a `constitution.md` in one of its configured
-standards folders; zeno reads both.
+standards folders; canon reads both.
 
 ## How a request is weighed
 
@@ -77,6 +77,10 @@ asked; push only when asked.
 ### C-12 Reversible before irreversible
 Prefer the change that can be undone. Deletes, force-pushes, store submissions,
 production deploys and permission changes are confirmed first, every time.
+Changing who can see, install or use what ships — a repo's visibility, a
+licence, a package name, merging or splitting repos — is in this class: weigh it
+before anything else, and when the owner picks an option, say what each one
+loses first.
 
 ### C-13 Users' money and data are handled exactly
 Money in integer minor units; privacy promises match what the code does; store
@@ -94,7 +98,7 @@ Say what was checked, what was found and what happens next.
 
 ## Weights
 
-A repo's `.claude/zeno.yaml` may raise or lower the weight of a principle under
+A repo's `.claude/canon.yaml` may raise or lower the weight of a principle under
 `weigh.weights` (a game might weigh C-05 higher; a finance product C-13). It may
 not remove one without a written reason, and every override shows up in
-`zeno check`.
+`canon check`.

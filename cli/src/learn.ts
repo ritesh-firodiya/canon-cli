@@ -43,7 +43,7 @@ export interface Proposal {
   reasons: string[];
 }
 
-const LOG = join(".context", "raw", "zeno", "verdicts.jsonl");
+const LOG = join(".context", "raw", "canon", "verdicts.jsonl");
 const MAX_REASONS = 5;
 
 function readJsonLines<T>(path: string): T[] {
@@ -107,8 +107,8 @@ export function proposals(all: VerdictEntry[], options: { threshold: number; dec
   return found.filter((p) => !decidedAt.has(p.id) || p.count > (decidedAt.get(p.id) ?? 0));
 }
 
-// In the estate, not the zeno install: a global npm install may be read-only and is replaced on upgrade.
-const DECISIONS_DIR = join(".claude", "zeno");
+// In the estate, not the canon install: a global npm install may be read-only and is replaced on upgrade.
+const DECISIONS_DIR = join(".claude", "canon");
 const DECISIONS = join(DECISIONS_DIR, "decisions.jsonl");
 
 export function readDecisions(estateRoot: string): Decision[] {

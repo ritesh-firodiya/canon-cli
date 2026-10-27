@@ -10,7 +10,7 @@ const source = (access: string | null, how = HOW, id = "SOURCE.SENTRY") =>
     { id, type: "entity", status: "canonical", "last-verified": "2026-10-01" },
     `## Summary\nCrashes.\n\n## Canonical values\n| Key | Value | Last changed |\n|---|---|---|\n| SOURCE.SENTRY.PROJECT | app | 2026-10-01 |\n${access === null ? "" : `| SOURCE.SENTRY.ACCESS | ${access} | 2026-10-01 |\n`}\n${how}`,
   );
-const SENTRY_CLI = { ".claude/zeno.yaml": "doctor:\n  tools:\n    - { tool: sentry-cli, why: reads Sentry, hint: brew install getsentry/tools/sentry-cli }\n" };
+const SENTRY_CLI = { ".claude/canon.yaml": "doctor:\n  tools:\n    - { tool: sentry-cli, why: reads Sentry, hint: brew install getsentry/tools/sentry-cli }\n" };
 
 function run(files: Record<string, string>) {
   return sources.run(contextFor(makeTree(files)));

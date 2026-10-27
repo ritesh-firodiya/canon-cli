@@ -44,7 +44,7 @@ export function registerUi(program: Command, env: Env): void {
       const siteDir = join(CACHE_DIR, "site");
       const designsDir = join(CACHE_DIR, "designs");
       const designsUrl = `http://127.0.0.1:${options.designsPort}`;
-      const report = formatReports(products.map((repo) => runChecks(repo, { zenoRoot: env.zenoRoot, estateRoot: env.estateRoot })));
+      const report = formatReports(products.map((repo) => runChecks(repo, { canonRoot: env.canonRoot, estateRoot: env.estateRoot })));
       buildSite(products, { siteDir, designsDir, designsUrl, report, graph: architectureGraph });
 
       const designs = spawn("python3", ["-m", "http.server", options.designsPort, "--bind", "127.0.0.1", "--directory", designsDir], {

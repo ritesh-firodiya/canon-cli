@@ -1,6 +1,6 @@
 ---
 name: ingest
-description: Read a raw source (wireframe, meeting note, research doc) and draft the wiki page(s) that summarise it. Adds frontmatter, [[wikilinks]], and updates .context/wiki/index.md. Usage `/ingest <path-to-raw-file>`.
+description: Turn a raw source (wireframe, meeting note, research doc) — or, with no argument, what this session taught — into wiki pages that pass the admission test, and update .context/wiki/index.md. Usage `/ingest [path-to-raw-file]`.
 ---
 
 You are ingesting a raw source into the wiki at `.context/wiki/`.
@@ -9,9 +9,10 @@ Source to ingest: `$ARGUMENTS`
 
 ## Steps
 
-1. **Read the wiki schema (the `wiki-schema.md` that `zeno standards` lists — a team's own replaces zeno's; without the CLI, `../../standards/wiki-schema.md` relative to this skill) first.** It defines the folders, the one test for what belongs, and the caps. Every page you write must conform.
+1. **Read the wiki schema (the `wiki-schema.md` that `canon standards` lists — a team's own replaces canon's; without the CLI, `../../standards/wiki-schema.md` relative to this skill) first.** It defines the folders, the one test for what belongs, and the caps. Every page you write must conform.
 
 2. **Read the raw source** at the path in `$ARGUMENTS`. Accepted: anything under `.context/raw/` or `.context/designs/`, and application source in this repository. Refuse paths outside the repo.
+   With no argument, the source is this session: list what it established that a later agent would get wrong without (a rule, a value, a choice and what was rejected). Search the wiki first and update a page rather than add one. Show the proposed changes and stop; write only when the user says so.
 
 3. **Classify** the source into one or more wiki page types:
    - HTML wireframe → nothing; the HTML is the spec. Only a constraint it can't show becomes that screen's `surfaces/<slug>.md` note.
@@ -21,7 +22,7 @@ Source to ingest: `$ARGUMENTS`
    - A user journey description → a concept, only if it holds a rule the designs don't show
    - Write nothing an agent could read from the code, the designs or git.
    - Don't force one source into one page — a meeting note can produce multiple pages.
-   - Folders are the four in the schema plus any listed under `wiki.types` in the repo's or the estate's `.claude/zeno.yaml`, each with its folder and its required `sections` (use its `sections` headings). Use an added type only when the source fits it.
+   - Folders are the four in the schema plus any listed under `wiki.types` in the repo's or the estate's `.claude/canon.yaml`, each with its folder and its required `sections` (use its `sections` headings). Use an added type only when the source fits it.
 
 4. **For each page you will create:**
    - Filename: the topic, lowercase kebab-case, no date.

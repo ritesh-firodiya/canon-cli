@@ -6,7 +6,7 @@
     <path d="M360 156L152 356" fill="none" stroke="#5cc3bd" stroke-width="60" stroke-linecap="round"/>
   </g>
   <g font-family="Helvetica Neue, Helvetica, Arial, sans-serif" fill="#e4e8ef">
-    <text x="440" y="300" font-size="112" font-weight="700">zeno</text>
+    <text x="440" y="300" font-size="112" font-weight="700">canon</text>
     <text x="444" y="370" font-size="38" fill="#98a2b3">Facts, not assumptions.</text>
     <text x="444" y="420" font-size="38" fill="#98a2b3">Your rules, kept in your repo. Enforced.</text>
     <text x="444" y="490" font-size="26" fill="#5cc3bd" font-family="Menlo, monospace">Claude Code plugin + CLI · MIT</text>

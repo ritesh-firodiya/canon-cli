@@ -8,7 +8,7 @@ export interface SiteOptions {
   /** Static folder for the design galleries: one symlink per product designs/. */
   designsDir: string;
   designsUrl: string;
-  /** `zeno check --all` output, shown as its own page. */
+  /** `canon check --all` output, shown as its own page. */
   report: string;
   /** A product's architecture as markdown with mermaid graphs, or undefined when it has none. */
   graph?: (repo: string) => string | undefined;
@@ -57,7 +57,7 @@ export function buildSite(products: string[], options: SiteOptions): void {
       mkdirSync(join(options.siteDir, "architecture"), { recursive: true });
       writeFileSync(
         join(options.siteDir, "architecture", `${name}.md`),
-        `---\ntitle: ${name} architecture\n---\n\nImports between parts of ${name}, from its \`.dependency-cruiser.cjs\`. Broken rules fail \`zeno check\`.\n\n${graph}\n`,
+        `---\ntitle: ${name} architecture\n---\n\nImports between parts of ${name}, from its \`.dependency-cruiser.cjs\`. Broken rules fail \`canon check\`.\n\n${graph}\n`,
       );
       links.push(`[[architecture/${name}|architecture graph]]`);
     }
@@ -74,11 +74,11 @@ export function buildSite(products: string[], options: SiteOptions): void {
 
   writeFileSync(
     join(options.siteDir, "index.md"),
-    `---\ntitle: zeno\n---\n\nEvery product's wiki, searchable and linked. Each surface opens its flow chart, screenshots and architecture overview; products with architecture rules also get an import graph.\n\n${rows.join("\n")}\n\n[[zeno-check|Standards check]]\n`,
+    `---\ntitle: canon\n---\n\nEvery product's wiki, searchable and linked. Each surface opens its flow chart, screenshots and architecture overview; products with architecture rules also get an import graph.\n\n${rows.join("\n")}\n\n[[canon-check|Standards check]]\n`,
   );
   writeFileSync(
-    join(options.siteDir, "zeno-check.md"),
-    `---\ntitle: Standards check\n---\n\nOutput of \`zeno check --all\` when this site was built.\n\n\`\`\`\n${options.report}\n\`\`\`\n`,
+    join(options.siteDir, "canon-check.md"),
+    `---\ntitle: Standards check\n---\n\nOutput of \`canon check --all\` when this site was built.\n\n\`\`\`\n${options.report}\n\`\`\`\n`,
   );
 }
 
@@ -87,7 +87,7 @@ const IGNORED = ["**/CLAUDE.md", "_designs"];
 /** Quartz's default config, adjusted for a private local site: no analytics, no schema files as pages. */
 export function quartzConfig(defaultsYaml: string): string {
   const document = parseDocument(defaultsYaml);
-  document.setIn(["configuration", "pageTitle"], "zeno");
+  document.setIn(["configuration", "pageTitle"], "canon");
   document.setIn(["configuration", "analytics"], null);
   document.setIn(["configuration", "baseUrl"], "localhost");
   const current = (document.getIn(["configuration", "ignorePatterns"]) as { toJSON(): string[] } | undefined)?.toJSON() ?? [];

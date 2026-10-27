@@ -4,7 +4,7 @@ import { parseFrontmatter } from "../lib/frontmatter.ts";
 import type { Check, Finding } from "./types.ts";
 import { wikiPages } from "./wiki-frontmatter.ts";
 
-// zeno has no connectors: a source page must say which MCP server, skill or CLI
+// canon has no connectors: a source page must say which MCP server, skill or CLI
 // reads it, or that a person reads it by hand (`manual:`), or the weigh gate
 // cannot turn a claim into a fact.
 const ACCESS = /^(mcp|skill|cli|manual):\s*(\S+)/;
@@ -34,7 +34,7 @@ export const sources: Check = {
       const match = access === null ? null : ACCESS.exec(access);
       if (access === null) add(`no ${id}.ACCESS row — say how to read it`);
       else if (!match) add(`${id}.ACCESS is "${access}" — write mcp: <server>, skill: <name>, cli: <command> or manual: <where>`);
-      else if (match[1] === "cli" && !tools.has(match[2])) add(`cli ${match[2]} is not in doctor.tools — zeno doctor cannot report it missing`);
+      else if (match[1] === "cli" && !tools.has(match[2])) add(`cli ${match[2]} is not in doctor.tools — canon doctor cannot report it missing`);
       return findings;
     });
   },

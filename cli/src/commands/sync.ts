@@ -9,15 +9,15 @@ import type { Env } from "./env.ts";
 export function registerSync(program: Command, env: Env): void {
   program
     .command("sync")
-    .description("refresh pack docs and the search index, move the pinned zeno version, then check")
+    .description("refresh pack docs and the search index, move the pinned canon version, then check")
     .argument("[repo]", "product repo", ".")
     .action(async (repo: string) => {
       const path = resolve(repo);
-      const result = await syncRepo(path, { zenoRoot: env.zenoRoot, estateRoot: env.estateRoot ?? undefined, cacheDir: CACHE_DIR, fetchText, run: runCommand });
+      const result = await syncRepo(path, { canonRoot: env.canonRoot, estateRoot: env.estateRoot ?? undefined, cacheDir: CACHE_DIR, fetchText, run: runCommand });
       console.log(`packs refreshed: ${result.packs.join(", ") || "none"}`);
-      if (result.base) console.log("architecture base updated from zeno's template");
-      if (result.version) console.log(`zeno ${result.version.from ?? "unpinned"} → ${result.version.to}`);
-      const report = runChecks(path, { zenoRoot: env.zenoRoot });
+      if (result.base) console.log("architecture base updated from canon's template");
+      if (result.version) console.log(`canon ${result.version.from ?? "unpinned"} → ${result.version.to}`);
+      const report = runChecks(path, { canonRoot: env.canonRoot });
       console.log(formatReports([report]));
       process.exitCode = exitCode([report]);
     });

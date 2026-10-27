@@ -19,7 +19,7 @@ copies:
 /** An estate with a source product and one product using `use`; `files` are the product's files. */
 function estate(use: string[], files: Record<string, string>) {
   const root = makeTree({
-    ".claude/zeno.yaml": ESTATE,
+    ".claude/canon.yaml": ESTATE,
     "source/.context/README.md": "# .context — Charades\n",
     "source/scripts/upload.mjs": "upload v2\n",
     "source/designs/mobile/shell.html": "<title>Charades</title>\n",
@@ -28,7 +28,7 @@ function estate(use: string[], files: Record<string, string>) {
     ...Object.fromEntries(Object.entries(files).map(([path, text]) => [`app/${path}`, text])),
   });
   mkdirSync(join(root, "app", ".claude"), { recursive: true });
-  writeFileSync(join(root, "app", ".claude", "zeno.yaml"), use.length ? `copies:\n  use: [${use.join(", ")}]\n` : "{}\n");
+  writeFileSync(join(root, "app", ".claude", "canon.yaml"), use.length ? `copies:\n  use: [${use.join(", ")}]\n` : "{}\n");
   return join(root, "app");
 }
 

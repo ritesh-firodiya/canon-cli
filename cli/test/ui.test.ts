@@ -30,7 +30,7 @@ describe("buildSite", () => {
     expect(home).toContain("[[alpha/index|alpha]]");
     expect(home).toContain("mobile: [flow chart](http://127.0.0.1:8081/alpha/mobile/index.html)");
     expect(home).not.toContain("http://127.0.0.1:8081/beta");
-    expect(readFileSync(join(out, "zeno-check.md"), "utf8")).toContain("alpha  ok");
+    expect(readFileSync(join(out, "canon-check.md"), "utf8")).toContain("alpha  ok");
   });
 
   test("links every drawn surface to its flow chart, screenshots and architecture overview", () => {
@@ -79,7 +79,7 @@ describe("quartzConfig", () => {
 
   test("names the site, turns analytics off, serves locally and hides schema files", () => {
     const config = parse(quartzConfig(defaults)).configuration;
-    expect(config.pageTitle).toBe("zeno");
+    expect(config.pageTitle).toBe("canon");
     expect(config.analytics).toBeNull();
     expect(config.baseUrl).toBe("localhost");
     expect(config.ignorePatterns).toEqual(["private", "**/CLAUDE.md", "_designs"]);

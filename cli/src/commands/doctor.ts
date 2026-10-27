@@ -5,7 +5,7 @@ import { runDoctor, systemProbe } from "../doctor.ts";
 export function registerDoctor(program: Command): void {
   program
     .command("doctor")
-    .description("check that zeno's tools, and any this repo declares, are installed")
+    .description("check that canon's tools, and any this repo declares, are installed")
     .action(() => {
       const results = runDoctor(systemProbe, loadConfig(process.cwd()).config.doctor.tools);
       for (const result of results) {

@@ -4,7 +4,7 @@ import { readApprovals } from "../pipeline.ts";
 import type { Check, Finding } from "./types.ts";
 
 /**
- * Stages run in the order zeno.yaml lists them. A stage has started once one
+ * Stages run in the order canon.yaml lists them. A stage has started once one
  * of its `done` paths exists; a gated stage must be approved before any later
  * stage starts. Each unapproved gate is reported once, at the first later
  * stage that started.
@@ -26,7 +26,7 @@ export const pipeline: Check = {
           check: "pipeline",
           level: "error",
           file: startedAt[later],
-          message: `stage "${stage.id}" started before gate "${gate.id}" was approved — review ${gate.id}, then a person runs \`zeno approve ${gate.id}\``,
+          message: `stage "${stage.id}" started before gate "${gate.id}" was approved — review ${gate.id}, then a person runs \`canon approve ${gate.id}\``,
         },
       ];
     });

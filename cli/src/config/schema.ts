@@ -39,7 +39,7 @@ const command = z
   .strict();
 
 const kebab = z.string().regex(/^[a-z0-9-]+$/, "use lowercase-kebab");
-/** An addition to zeno's layout says why, so products drifting apart is written down. */
+/** An addition to canon's layout says why, so products drifting apart is written down. */
 const reason = z.string().min(1);
 
 const wikiType = z
@@ -77,19 +77,19 @@ const stage = z
     id: kebab,
     /** Paths that exist once the stage has started; any one is enough. */
     done: z.array(z.string().min(1)).min(1),
-    /** A person must approve this stage (`zeno approve <id>`) before any later stage starts. */
+    /** A person must approve this stage (`canon approve <id>`) before any later stage starts. */
     gate: z.boolean().default(false),
   })
   .strict();
 
 const tool = z.object({ tool: z.string(), why: z.string(), hint: z.string() }).strict();
 
-/** One layer of `.claude/zeno.yaml` as written: every field optional. */
+/** One layer of `.claude/canon.yaml` as written: every field optional. */
 export const layerSchema = z
   .object({
     /** Marks the folder holding this file as an estate: the parent of several products. */
     estate: z.boolean(),
-    zeno: z.string(),
+    canon: z.string(),
     kind: z.enum(KINDS),
     modules: z.array(z.enum(MODULES)),
     expo: z.object({ sdk: z.number().int().positive() }).partial(),
@@ -123,8 +123,8 @@ export type StageSpec = z.infer<typeof stage>;
 export type CopyFileSpec = z.infer<typeof copyFile>;
 
 export interface Config {
-  /** The zeno version this repo was last synced to. */
-  zeno?: string;
+  /** The canon version this repo was last synced to. */
+  canon?: string;
   kind: Kind;
   modules: Module[];
   expo?: { sdk?: number };

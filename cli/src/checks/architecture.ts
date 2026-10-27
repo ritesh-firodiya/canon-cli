@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 import { join, posix } from "node:path";
 import type { Check, Finding } from "./types.ts";
 
-// The names dependency-cruiser itself looks for; `zeno init` writes the first.
+// The names dependency-cruiser itself looks for; `canon init` writes the first.
 export const RULES_FILES = [".dependency-cruiser.cjs", ".dependency-cruiser.js", ".dependency-cruiser.mjs", ".dependency-cruiser.json"];
 const DEFAULT_COLLAPSE = "^(apps|packages)/[^/]+|^[^/]+/[^/]+";
 const SHOWN_PER_RULE = 3;
@@ -105,7 +105,7 @@ export const architecture: Check = {
     const finding = (message: string, file?: string): Finding[] => [{ check: "architecture", level: "error", file, message }];
     const all = findRules(repo);
     if (all.length === 0) {
-      return finding("no architecture rules — run `zeno init --force --modules ...,architecture` for a starter, or write one", RULES_FILES[0]);
+      return finding("no architecture rules — run `canon init --force --modules ...,architecture` for a starter, or write one", RULES_FILES[0]);
     }
     const bin = depcruiseBin(repo);
     if (!bin) return finding("dependency-cruiser is not installed here — add it as a devDependency (e.g. `pnpm add -D dependency-cruiser`)", "package.json");

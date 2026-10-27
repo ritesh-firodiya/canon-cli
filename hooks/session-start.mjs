@@ -9,9 +9,9 @@ const root = process.env.CLAUDE_PLUGIN_ROOT ?? join(import.meta.dirname, "..");
 const PRINCIPLE = /^### (C-\d{2} .+)$/;
 
 // The CLI knows the team's additions (configured standards folders); without
-// it, zeno's own constitution is still enough to weigh with.
+// it, canon's own constitution is still enough to weigh with.
 function principleTitles() {
-  const cli = spawnSync("zeno", ["standards", "--constitution", "--json"], { encoding: "utf8", timeout: 5000 });
+  const cli = spawnSync("canon", ["standards", "--constitution", "--json"], { encoding: "utf8", timeout: 5000 });
   if (cli.status === 0) {
     try {
       return JSON.parse(cli.stdout).map((title) => `- ${title}`);
@@ -36,15 +36,15 @@ function refreshSearchIndex() {
 refreshSearchIndex();
 
 const context = [
-  "zeno constitution — run the weigh skill on any non-trivial request before acting;",
-  "cite principle IDs in verdicts. `zeno standards` lists every standard that applies here.",
+  "canon constitution — run the weigh skill on any non-trivial request before acting;",
+  "cite principle IDs in verdicts. `canon standards` lists every standard that applies here.",
   "A request is not a fact: check its claims before acting (C-14). Reply in plain words (C-15).",
   ...principleTitles(),
   "",
   "Knowledge lookup: for any question about a product's prices, rules, decisions,",
-  "features or past choices, call mcp__plugin_zeno_qmd__query FIRST, then read the",
-  "hits with mcp__plugin_zeno_qmd__get. Use grep only for code, or when qmd finds nothing.",
-  "Decisions and ADRs: use the zeno decision skill (it follows the wiki schema), not other ADR skills.",
+  "features or past choices, call mcp__plugin_canon_qmd__query FIRST, then read the",
+  "hits with mcp__plugin_canon_qmd__get. Use grep only for code, or when qmd finds nothing.",
+  "Decisions and ADRs: use the canon decision skill (it follows the wiki schema), not other ADR skills.",
 ].join("\n");
 
 process.stdout.write(

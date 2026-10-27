@@ -4,7 +4,7 @@ import type { Config, CopyFileSpec } from "../config/schema.ts";
 import { loadConfig } from "../config/load.ts";
 import type { Check, Finding } from "./types.ts";
 
-// zeno init writes the README heading `# .context — <Name>`; a product without a `name:` is read from it.
+// canon init writes the README heading `# .context — <Name>`; a product without a `name:` is read from it.
 const README_NAME = /^# \.context — (.+)$/m;
 
 export interface Pair {
@@ -87,11 +87,11 @@ export const sharedFiles: Check = {
     const source = config.copies.source ? basename(config.copies.source) : "copies.source";
     return compareCopies(repo, config).flatMap(({ pair, state }): Finding[] => {
       const finding = (file: string, message: string): Finding[] => [{ check: "shared-files", level: "error", file, message }];
-      if (state === "unknown-set") return finding(".claude/zeno.yaml", `copies.use names ${pair.set}, which no copies.sets defines`);
+      if (state === "unknown-set") return finding(".claude/canon.yaml", `copies.use names ${pair.set}, which no copies.sets defines`);
       if (state === "no-source") return finding(pair.to, `${source} has no ${pair.from} (set ${pair.set})`);
       if (state === "missing") return finding(pair.to, `missing — set ${pair.set} is in use; copy it from ${source}`);
-      if (state === "unnamed") return finding(pair.to, "no product name to compare with — set name: in zeno.yaml");
-      if (state === "drift") return finding(pair.to, `differs from ${source}${pair.until ? " above the shared block's end" : ""} — \`zeno copies --sync\` copies it`);
+      if (state === "unnamed") return finding(pair.to, "no product name to compare with — set name: in canon.yaml");
+      if (state === "drift") return finding(pair.to, `differs from ${source}${pair.until ? " above the shared block's end" : ""} — \`canon copies --sync\` copies it`);
       return [];
     });
   },

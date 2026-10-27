@@ -12,7 +12,7 @@ function repo(files: Record<string, string>): string {
 }
 
 describe("installHook", () => {
-  test("writes an executable pre-push hook that runs zeno check", () => {
+  test("writes an executable pre-push hook that runs canon check", () => {
     const root = repo({ ".context/tasks.md": "# Tasks\n" });
     expect(installHook(root)).toMatch(/^installed/);
     const hook = join(root, ".git/hooks/pre-push");
@@ -24,9 +24,12 @@ describe("installHook", () => {
     const old = repo({ ".context/tasks.md": "" });
     writeFileSync(join(old, ".git/hooks/pre-push"), "#!/bin/sh\n# installed by ~/git/bin/install-hooks\n");
     expect(installHook(old)).toMatch(/^installed/);
+    const zeno = repo({ ".context/tasks.md": "" });
+    writeFileSync(join(zeno, ".git/hooks/pre-push"), "#!/bin/sh\n# installed by `zeno hooks install`\n");
+    expect(installHook(zeno)).toMatch(/^installed/);
     const theirs = repo({ ".context/tasks.md": "" });
     writeFileSync(join(theirs, ".git/hooks/pre-push"), "#!/bin/sh\nnpm test\n");
-    expect(installHook(theirs)).toMatch(/^SKIPPED.*not zeno's/);
+    expect(installHook(theirs)).toMatch(/^SKIPPED.*not canon's/);
     expect(readFileSync(join(theirs, ".git/hooks/pre-push"), "utf8")).toBe("#!/bin/sh\nnpm test\n");
   });
 

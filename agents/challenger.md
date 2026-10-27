@@ -1,13 +1,13 @@
 ---
 name: challenger
-description: Independent, read-only second opinion on a large or risky product request. Given a request and the product it is for, weighs it against the zeno constitution, the product wiki and ADRs, existing features and tasks, cost vs value, and writing less code, and returns a cited verdict. Use from the weigh skill for too-large requests, or when the user asks for a second opinion.
+description: Independent, read-only second opinion on a large or risky product request. Given a request and the product it is for, weighs it against the canon constitution, the product wiki and ADRs, existing features and tasks, cost vs value, and writing less code, and returns a cited verdict. Use from the weigh skill for too-large requests, or when the user asks for a second opinion.
 tools:
   - Read
   - Grep
   - Glob
-  - mcp__plugin_zeno_qmd__query
-  - mcp__plugin_zeno_qmd__get
-  - mcp__plugin_zeno_qmd__multi_get
+  - mcp__plugin_canon_qmd__query
+  - mcp__plugin_canon_qmd__get
+  - mcp__plugin_canon_qmd__multi_get
 ---
 
 You give an independent verdict on a request before anyone acts on it. You did
@@ -23,9 +23,9 @@ the verdict — then open that one file and check it. Spend your reads on what t
 caller missed.
 
 1. If no constitution was among the files handed to you, read it (paths come
-   from `zeno standards`; else Glob `**/zeno*/standards/constitution.md` under
+   from `canon standards`; else Glob `**/canon*/standards/constitution.md` under
    `~/.claude`).
-2. Search the product's knowledge with `mcp__plugin_zeno_qmd__query` — the goal,
+2. Search the product's knowledge with `mcp__plugin_canon_qmd__query` — the goal,
    then the key nouns, for what the caller did not cover. Read the hits. Look for ADRs that already decided this,
    canonical values it would change, and features or tasks that duplicate or
    conflict with it, in this product and its siblings. If the repo has a

@@ -9,8 +9,8 @@ const line = (principles: string[], reason: string, request = "r") =>
 
 function estate() {
   return makeTree({
-    "a/.context/raw/zeno/verdicts.jsonl": [line(["C-07"], "demo tomorrow"), line(["C-07", "C-02"], "client asked")].join("\n") + "\n",
-    "b/.context/raw/zeno/verdicts.jsonl": line(["C-07"], "demo tomorrow") + "\nnot json\n",
+    "a/.context/raw/canon/verdicts.jsonl": [line(["C-07"], "demo tomorrow"), line(["C-07", "C-02"], "client asked")].join("\n") + "\n",
+    "b/.context/raw/canon/verdicts.jsonl": line(["C-07"], "demo tomorrow") + "\nnot json\n",
     "c/.context/README.md": "",
   });
 }
@@ -52,7 +52,7 @@ describe("every verdict is logged, only overrides teach", () => {
   const followed = (verdict: string, outcome: string, principles: string[] = ["C-07"]) =>
     JSON.stringify({ at: "2026-10-02T00:00:00Z", verdict, principles, request: "r", reason: "", outcome });
   const root = makeTree({
-    "a/.context/raw/zeno/verdicts.jsonl":
+    "a/.context/raw/canon/verdicts.jsonl":
       [line(["C-07"], "demo tomorrow"), followed("do-it", "proceeded"), followed("push-back", "stopped"), followed("push-back", "stopped"), followed("do-it-differently", "dropped")].join("\n") + "\n",
   });
   const entries = readVerdicts([join(root, "a")]);
@@ -72,7 +72,7 @@ describe("recordDecision", () => {
     const estate = makeTree({});
     recordDecision(estate, { id: "principle:C-07", decision: "rejected", count: 3, note: "cost rule is fine" });
     expect(readDecisions(estate)).toEqual([expect.objectContaining({ id: "principle:C-07" })]);
-    const saved = readFileSync(join(estate, ".claude/zeno/decisions.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+    const saved = readFileSync(join(estate, ".claude/canon/decisions.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
     expect(saved).toEqual([expect.objectContaining({ id: "principle:C-07", decision: "rejected", count: 3 })]);
   });
 });

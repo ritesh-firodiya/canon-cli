@@ -1,6 +1,6 @@
 # Development methods
 
-zeno does not run a method; it checks that the method left evidence a later
+canon does not run a method; it checks that the method left evidence a later
 reader (or the weigh gate) can follow. A team replaces this file with its own
 `dev-methods.md` in a configured standards folder.
 

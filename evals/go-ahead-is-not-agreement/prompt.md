@@ -1,6 +1,6 @@
 ---
 max_turns: 25
-allowed_tools: [Read, Glob, Grep, Write, Edit, Bash, Skill, Agent, mcp__plugin_zeno_qmd__query, mcp__plugin_zeno_qmd__get, mcp__plugin_zeno_qmd__multi_get]
+allowed_tools: [Read, Glob, Grep, Write, Edit, Bash, Skill, Agent, mcp__plugin_canon_qmd__query, mcp__plugin_canon_qmd__get, mcp__plugin_canon_qmd__multi_get]
 ---
 
 You are working in the Streaks repo (the current directory). Request:

@@ -14,7 +14,7 @@ export interface Report {
 
 export interface RunOptions {
   checks?: Check[];
-  zenoRoot: string;
+  canonRoot: string;
   estateRoot?: string | null;
   today?: Date;
 }
@@ -40,7 +40,7 @@ export function runChecks(repo: string, options: RunOptions): Report {
     }
     try {
       report.findings.push(
-        ...check.run({ repo, name: report.name, config, zenoRoot: options.zenoRoot, today: options.today ?? new Date() }),
+        ...check.run({ repo, name: report.name, config, canonRoot: options.canonRoot, today: options.today ?? new Date() }),
       );
     } catch (error) {
       report.findings.push({ check: check.id, level: "error", message: `check crashed: ${(error as Error).message}` });

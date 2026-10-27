@@ -44,12 +44,12 @@ function sharedFraction(standard: string, candidate: string): number {
 export const standardsCopies: Check = {
   id: "standards-copies",
   module: null,
-  description: "shared rules and skills come from zeno, not from a copy in the product",
-  run({ repo, zenoRoot }) {
+  description: "shared rules and skills come from canon, not from a copy in the product",
+  run({ repo, canonRoot }) {
     const findings: Finding[] = [];
     for (const { file, standard } of STANDARD_COPIES) {
       const productFile = join(repo, file);
-      const standardFile = join(zenoRoot, standard);
+      const standardFile = join(canonRoot, standard);
       if (!existsSync(productFile) || !existsSync(standardFile)) continue;
       const fraction = sharedFraction(readFileSync(standardFile, "utf8"), readFileSync(productFile, "utf8"));
       if (fraction >= COPY_THRESHOLD) {
@@ -57,22 +57,22 @@ export const standardsCopies: Check = {
           check: "standards-copies",
           level: "warn",
           file,
-          message: `${Math.round(fraction * 100)}% copy of zeno ${standard} — replace with a pointer`,
+          message: `${Math.round(fraction * 100)}% copy of canon ${standard} — replace with a pointer`,
         });
       }
     }
 
-    const zenoSkills = join(zenoRoot, "skills");
+    const canonSkills = join(canonRoot, "skills");
     const productSkills = join(repo, ".claude", "skills");
-    if (existsSync(zenoSkills) && existsSync(productSkills)) {
-      const provided = new Set(readdirSync(zenoSkills));
+    if (existsSync(canonSkills) && existsSync(productSkills)) {
+      const provided = new Set(readdirSync(canonSkills));
       for (const skill of readdirSync(productSkills)) {
         if (!provided.has(skill)) continue;
         findings.push({
           check: "standards-copies",
           level: "warn",
           file: `.claude/skills/${skill}`,
-          message: `zeno provides this as zeno:${skill} — delete the product copy`,
+          message: `canon provides this as canon:${skill} — delete the product copy`,
         });
       }
     }

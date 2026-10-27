@@ -6,7 +6,7 @@ import { RULES_FILES } from "../checks/architecture.ts";
 import { applyInit, parseChoices, planInit, type InitAnswers, type InitPlan } from "../init.ts";
 import { listPacks, type Pack } from "../packs.ts";
 import { runCommand } from "../lib/system.ts";
-import { zenoVersion } from "../status.ts";
+import { canonVersion } from "../status.ts";
 import type { Env } from "./env.ts";
 
 function cancelled<T>(value: T | symbol): value is symbol {
@@ -34,7 +34,7 @@ async function askAnswers(inferred: InitPlan, packs: Pack[]): Promise<Choices | 
   const forKind = packs.filter((pack) => pack.kinds.includes(kind));
   if (forKind.length === 0) return { kind, modules, packs: [] };
   const chosen = await prompts.multiselect({
-    message: "Which vendor doc packs? (indexed for search on `zeno sync`)",
+    message: "Which vendor doc packs? (indexed for search on `canon sync`)",
     initialValues: inferred.config.packs ?? [],
     options: forKind.map((pack) => ({ value: pack.name, label: pack.name, hint: pack.description })),
     required: false,
@@ -54,18 +54,18 @@ interface InitOptions {
 export function registerInit(program: Command, env: Env): void {
   program
     .command("init")
-    .description("set zeno up for a product: write .claude/zeno.yaml and the missing .context files")
+    .description("set canon up for a product: write .claude/canon.yaml and the missing .context files")
     .argument("[repo]", "product repo", ".")
-    .option("-y, --yes", "accept what zeno infers (and any flags below), no questions")
+    .option("-y, --yes", "accept what canon infers (and any flags below), no questions")
     .addOption(new Option("--kind <kind>", "product kind").choices(KINDS))
     .option("--modules <list>", `comma list, empty for none: ${MODULES.join(", ")}`)
-    .option("--packs <list>", "comma list of vendor doc packs (see `zeno add`)")
-    .option("--force", "redo a repo that already has zeno.yaml")
+    .option("--packs <list>", "comma list of vendor doc packs (see `canon add`)")
+    .option("--force", "redo a repo that already has canon.yaml")
     .action(async (repo: string, options: InitOptions) => {
       const path = resolve(repo);
-      const packs = listPacks(env.zenoRoot);
+      const packs = listPacks(env.canonRoot);
       const flags: InitAnswers = {
-        zenoVersion: zenoVersion(env.zenoRoot),
+        canonVersion: canonVersion(env.canonRoot),
         force: options.force,
         kind: options.kind,
         modules: options.modules === undefined ? undefined : parseChoices(options.modules, MODULES, "module"),
@@ -76,10 +76,10 @@ export function registerInit(program: Command, env: Env): void {
       if (!options.yes && answers === null) return;
       const plan = answers ? planInit(path, { ...flags, ...answers }) : inferred;
 
-      applyInit(path, plan, { name: basename(path), zenoRoot: env.zenoRoot, run: (command, args) => void runCommand(command, args) });
-      console.log(`wrote .claude/zeno.yaml (${plan.config.kind}: ${plan.config.modules.join(", ")})`);
+      applyInit(path, plan, { name: basename(path), canonRoot: env.canonRoot, run: (command, args) => void runCommand(command, args) });
+      console.log(`wrote .claude/canon.yaml (${plan.config.kind}: ${plan.config.modules.join(", ")})`);
       for (const file of plan.create) console.log(`created ${file}`);
       if (plan.create.some((file) => file.endsWith(RULES_FILES[0]))) console.log("architecture: add the checker with `pnpm add -D dependency-cruiser`, then edit the .dependency-cruiser.cjs files to this repo's layers");
-      console.log(plan.config.packs ? "next: zeno sync (fetches the packs), then zeno check" : "next: zeno check");
+      console.log(plan.config.packs ? "next: canon sync (fetches the packs), then canon check" : "next: canon check");
     });
 }

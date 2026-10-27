@@ -8,7 +8,7 @@ export function registerWeigh(program: Command): void {
     .argument("<request...>", "what you want to do")
     .action((words: string[]) => {
       const request = words.join(" ");
-      const result = spawnSync("claude", ["-p", `/zeno:weigh ${request}\n\nWeigh only. Do not start the work.`], {
+      const result = spawnSync("claude", ["-p", `/canon:weigh ${request}\n\nWeigh only. Do not start the work.`], {
         stdio: "inherit",
       });
       if (result.error) throw new Error(`could not run claude: ${result.error.message}`);

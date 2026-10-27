@@ -37,7 +37,7 @@ export const contextLayout: Check = {
       file,
       message,
     });
-    if (!existsSync(context)) return [finding("error", ".context", "no .context/ folder — run `zeno init`")];
+    if (!existsSync(context)) return [finding("error", ".context", "no .context/ folder — run `canon init`")];
 
     const findings = requiredContext(config.modules).filter((name) => !existsSync(join(context, name))).map((name) =>
       finding("error", `.context/${name}`, `required ${name} is missing`),
@@ -46,7 +46,7 @@ export const contextLayout: Check = {
     for (const entry of readdirSync(context, { withFileTypes: true })) {
       if (entry.name === ".DS_Store") continue;
       if (entry.isDirectory() && !allowed.includes(entry.name)) {
-        findings.push(finding("error", `.context/${entry.name}`, `${entry.name}/ is not an allowed folder — move it, or add it under context.folders in zeno.yaml`));
+        findings.push(finding("error", `.context/${entry.name}`, `${entry.name}/ is not an allowed folder — move it, or add it under context.folders in canon.yaml`));
       }
       if (entry.isFile() && !ROOT_FILES.includes(entry.name)) {
         findings.push(finding("error", `.context/${entry.name}`, "only README.md and tasks.md may sit at .context/ root"));

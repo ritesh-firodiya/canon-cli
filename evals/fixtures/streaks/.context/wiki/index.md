@@ -1,6 +1,6 @@
 # Wiki index
 
-One line per page. Rules: `zeno standards` → `wiki-schema`.
+One line per page. Rules: `canon standards` → `wiki-schema`.
 
 ## Concepts
 - [[offline-first]] — All habit data lives on the device; the app works with no network.

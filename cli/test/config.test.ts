@@ -3,7 +3,7 @@ import { findEstate, loadConfig } from "../src/config/load.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 describe("loadConfig", () => {
-  test("infers kind expo-app from app.config.ts when there is no zeno.yaml", () => {
+  test("infers kind expo-app from app.config.ts when there is no canon.yaml", () => {
     const repo = makeTree({ "app.config.ts": "export default {}" });
     const { config } = loadConfig(repo);
     expect(config.kind).toBe("expo-app");
@@ -28,10 +28,10 @@ describe("loadConfig", () => {
     expect(config.modules).toContain("design");
   });
 
-  test("product zeno.yaml overrides the inferred defaults", () => {
+  test("product canon.yaml overrides the inferred defaults", () => {
     const repo = makeTree({
       "app.config.ts": "",
-      ".claude/zeno.yaml": "kind: web\nmodules: [docs]\nexpo:\n  sdk: 57\n",
+      ".claude/canon.yaml": "kind: web\nmodules: [docs]\nexpo:\n  sdk: 57\n",
     });
     const { config, sources } = loadConfig(repo);
     expect(config.kind).toBe("web");
@@ -42,9 +42,9 @@ describe("loadConfig", () => {
 
   test("layers merge estate, then product, then local — later wins", () => {
     const estate = makeTree({
-      ".claude/zeno.yaml": "estate: true\nweigh:\n  weights:\n    C-07: 2\n    C-15: 1\n",
-      "app/.claude/zeno.yaml": "weigh:\n  weights:\n    C-15: 3\n",
-      "app/.claude/zeno.local.yaml": "weigh:\n  weights:\n    C-07: 0.5\n",
+      ".claude/canon.yaml": "estate: true\nweigh:\n  weights:\n    C-07: 2\n    C-15: 1\n",
+      "app/.claude/canon.yaml": "weigh:\n  weights:\n    C-15: 3\n",
+      "app/.claude/canon.local.yaml": "weigh:\n  weights:\n    C-07: 0.5\n",
       "app/app.config.ts": "",
     });
     const { config, sources } = loadConfig(`${estate}/app`, { estateRoot: estate });
@@ -54,26 +54,26 @@ describe("loadConfig", () => {
 
   test("a later layer's list replaces an earlier one instead of joining it", () => {
     const estate = makeTree({
-      ".claude/zeno.yaml": "modules: [docs, design, listing]\n",
-      "app/.claude/zeno.yaml": "modules: [docs]\n",
+      ".claude/canon.yaml": "modules: [docs, design, listing]\n",
+      "app/.claude/canon.yaml": "modules: [docs]\n",
     });
     expect(loadConfig(`${estate}/app`, { estateRoot: estate }).config.modules).toEqual(["docs"]);
   });
 
   test("packs add up across layers — a global pack applies to every product", () => {
-    const estate = makeTree({ ".claude/zeno.yaml": "packs: [react]\n", "app/.claude/zeno.yaml": "packs: [expo]\n" });
+    const estate = makeTree({ ".claude/canon.yaml": "packs: [react]\n", "app/.claude/canon.yaml": "packs: [expo]\n" });
     expect(loadConfig(`${estate}/app`, { estateRoot: estate }).config.packs).toEqual(["expo", "react"]);
   });
 
   test("an unknown kind is a clear error naming the file", () => {
-    const repo = makeTree({ ".claude/zeno.yaml": "kind: desktop\n" });
-    expect(() => loadConfig(repo)).toThrow(/zeno\.yaml.*kind/s);
+    const repo = makeTree({ ".claude/canon.yaml": "kind: desktop\n" });
+    expect(() => loadConfig(repo)).toThrow(/canon\.yaml.*kind/s);
   });
 
   test("standards add up across layers, resolved from the folder that holds .claude/", () => {
     const estate = makeTree({
-      ".claude/zeno.yaml": "estate: true\nstandards: [rules]\n",
-      "app/.claude/zeno.yaml": "standards: [docs/rules]\n",
+      ".claude/canon.yaml": "estate: true\nstandards: [rules]\n",
+      "app/.claude/canon.yaml": "standards: [docs/rules]\n",
     });
     expect(loadConfig(`${estate}/app`, { estateRoot: estate }).config.standards).toEqual([
       `${estate}/rules`,
@@ -83,8 +83,8 @@ describe("loadConfig", () => {
 
   test("commands merge by id — a product replaces an estate command of the same id", () => {
     const estate = makeTree({
-      ".claude/zeno.yaml": "estate: true\ncommands:\n  - { id: designs, run: a }\n  - { id: lint, run: b }\n",
-      "app/.claude/zeno.yaml": "commands:\n  - { id: designs, run: c, if: x }\n",
+      ".claude/canon.yaml": "estate: true\ncommands:\n  - { id: designs, run: a }\n  - { id: lint, run: b }\n",
+      "app/.claude/canon.yaml": "commands:\n  - { id: designs, run: c, if: x }\n",
     });
     expect(loadConfig(`${estate}/app`, { estateRoot: estate }).config.commands).toEqual([
       { id: "designs", run: "c", if: "x" },
@@ -94,9 +94,9 @@ describe("loadConfig", () => {
 
   test("wiki types and context folders add up across layers, merged by name", () => {
     const estate = makeTree({
-      ".claude/zeno.yaml":
+      ".claude/canon.yaml":
         "estate: true\nwiki:\n  types:\n    - { type: bug, folder: bugs, reason: postmortems, sections: [Summary] }\ncontext:\n  folders:\n    - { folder: research, reason: interviews }\n",
-      "app/.claude/zeno.yaml": "wiki:\n  types:\n    - { type: bug, folder: bug-reports, reason: renamed here, sections: [Summary, Fix] }\n",
+      "app/.claude/canon.yaml": "wiki:\n  types:\n    - { type: bug, folder: bug-reports, reason: renamed here, sections: [Summary, Fix] }\n",
     });
     const { config } = loadConfig(`${estate}/app`, { estateRoot: estate });
     expect(config.wiki.types).toEqual([{ type: "bug", folder: "bug-reports", reason: "renamed here", sections: ["Summary", "Fix"] }]);
@@ -104,11 +104,11 @@ describe("loadConfig", () => {
   });
 
   test("the specs module is gone", () => {
-    expect(() => loadConfig(makeTree({ ".claude/zeno.yaml": "modules: [specs]\n" }))).toThrow(/modules/);
+    expect(() => loadConfig(makeTree({ ".claude/canon.yaml": "modules: [specs]\n" }))).toThrow(/modules/);
   });
 
   test("a wiki type or context folder needs a reason, and cannot redefine a built-in", () => {
-    const load = (yaml: string) => () => loadConfig(makeTree({ ".claude/zeno.yaml": yaml }));
+    const load = (yaml: string) => () => loadConfig(makeTree({ ".claude/canon.yaml": yaml }));
     expect(load("wiki:\n  types:\n    - { type: bug, folder: bugs, sections: [Summary] }\n")).toThrow(/reason/);
     expect(load("wiki:\n  types:\n    - { type: bug, folder: bugs, reason: x }\n")).toThrow(/sections/);
     expect(load("wiki:\n  types:\n    - { type: bug, folder: bugs, reason: x, sections: [] }\n")).toThrow(/sections/);
@@ -118,16 +118,16 @@ describe("loadConfig", () => {
   });
 
   test("doctor tools merge by tool name", () => {
-    const repo = makeTree({ ".claude/zeno.yaml": "doctor:\n  tools:\n    - { tool: rtk, why: short output, hint: brew install rtk }\n" });
+    const repo = makeTree({ ".claude/canon.yaml": "doctor:\n  tools:\n    - { tool: rtk, why: short output, hint: brew install rtk }\n" });
     expect(loadConfig(repo).config.doctor.tools).toEqual([{ tool: "rtk", why: "short output", hint: "brew install rtk" }]);
   });
 });
 
 describe("findEstate", () => {
-  test("is the nearest folder above the start whose zeno.yaml says estate: true", () => {
+  test("is the nearest folder above the start whose canon.yaml says estate: true", () => {
     const root = makeTree({
-      ".claude/zeno.yaml": "estate: true\n",
-      "group/.claude/zeno.yaml": "kind: web\n",
+      ".claude/canon.yaml": "estate: true\n",
+      "group/.claude/canon.yaml": "kind: web\n",
       "group/app/README.md": "",
     });
     expect(findEstate(`${root}/group/app`)).toBe(root);
@@ -138,7 +138,7 @@ describe("findEstate", () => {
   });
 
   test("a product with no estate gets only its own layers", () => {
-    const root = makeTree({ "app/.claude/zeno.yaml": "kind: web\n" });
+    const root = makeTree({ "app/.claude/canon.yaml": "kind: web\n" });
     expect(loadConfig(`${root}/app`).sources.map((s) => s.layer)).toEqual(["product"]);
   });
 });

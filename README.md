@@ -1,244 +1,147 @@
 <p align="center">
-  <img src=".github/assets/icon.svg" width="96" height="96" alt="zeno icon">
+  <img src=".github/assets/icon.svg" width="96" height="96" alt="canon icon">
 </p>
 
-<h1 align="center">zeno</h1>
+<h1 align="center">canon</h1>
+
+<p align="center"><b>Facts, not assumptions.</b> Your rules and knowledge, kept in your repos. Enforced.</p>
+
+canon keeps domain knowledge, decisions and AI rules in each repo's `.context/`,
+enforces them, and makes them searchable. Claude searches them before it
+answers, weighs each request against them before it acts, and checks every
+claim in a request against facts. `canon check` fails when code or docs break a
+rule. The AI guesses less, and you redo less work.
 
 <p align="center">
-  <b>Facts, not assumptions.</b> Your rules, kept in your repo. Enforced.<br>
-  A Claude Code plugin and CLI · MIT
+  <img src=".github/assets/demo.svg" alt="canon weighs a request. Two of three claims have no facts and the request breaks a decided rule, so it pushes back and stops until the user brings facts, agrees to terms, or drops it.">
 </p>
 
-<p align="center">
-  <a href="https://www.npmjs.com/package/@freetesh/zeno"><img alt="npm" src="https://img.shields.io/npm/v/@freetesh/zeno"></a>
-  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue"></a>
-</p>
-
-zeno keeps your domain knowledge, decisions and AI rules in your own repos, and
-enforces them. Claude searches them before it answers. It weighs each request
-against them before it acts, and it checks every claim in the request against
-facts. `zeno check` fails when code or docs break a rule. The AI guesses less,
-and you redo less work.
-
-<p align="center">
-  <img src=".github/assets/demo.svg" alt="zeno weighs a request. Two of three claims have no facts and the request breaks a decided rule, so it pushes back and stops until the user brings facts, agrees to terms, or drops it.">
-</p>
-
-It has two halves that read the same config:
+Two parts, free and MIT, that read the same config:
 
 - **a Claude Code plugin** — skills, a decision gate, a session hook and a
   search server, so every session in every repo starts with the same rules;
-- **the `zeno` CLI** — set up, check, sync and browse your repos.
+- **the `canon` CLI** — set up, check, sync and search your repos.
+
+A hosted knowledge site, with every repo's `.context/` in one place for a team,
+is a separate paid product built on this CLI.
 
 ## What it does
 
 - **Weigh before acting.** For a non-trivial request Claude checks the
-  constitution, your wiki and decision records, existing features and tasks,
-  cost vs value, and the write-less ladder, then answers **DO IT**, **DO IT
-  DIFFERENTLY** or **PUSH BACK** with citations. Push back stops work until you
-  give a reason. Every verdict is logged; `zeno learn` shows how often the gate
-  stops you and turns repeated overrides into proposals.
-- **No assumptions.** A request is not a fact. Each claim in it ("users want
-  this", "it is slow") is checked against the repo and its data sources and
-  marked backed or not. Work that rests on an assumption stops until you agree
-  to written, numbered terms. Replies use plain words.
-- **Your data sources, your tools.** zeno has no connectors. A repo describes
-  each tool that holds its data (Sentry, Datadog, Snowflake) on a `SOURCE.*`
-  wiki page that names the MCP server, skill or CLI that reads it. The gate
-  queries it, read-only, to back or reject a claim, and `zeno check` fails a
-  source page that does not say how to read it.
-- **Knowledge that is found, not remembered.** Every repo's `.context/wiki` and
-  feature board is indexed with [QMD](https://github.com/tobi/qmd) (local hybrid
-  search). Claude is told to search before answering.
-- **Standards with one home.** zeno ships defaults (constitution, wiki schema,
-  `.context` layout, agent contract). A team adds or replaces them from its own
-  folder; a repo can override again. `zeno standards` shows what applies.
-- **Hard rules are checks.** `zeno check` validates layout, wiki frontmatter,
-  stale pages, placeholder text, page and `tasks.md` size caps, blocked tasks,
-  feature pages, the store listing tree, dead `.context/` paths, prices with no
-  canonical home, files shared across products, and runs every checker your
-  config declares. `zeno hooks install` makes every push run it.
+  constitution, the wiki and decisions, features and tasks, cost against value,
+  and the write-less ladder, then answers **DO IT**, **DO IT DIFFERENTLY** or
+  **PUSH BACK** with citations. Every verdict is logged; `canon learn` turns
+  repeated overrides into proposals.
+- **No assumptions.** Each claim in a request ("users want this", "it is slow")
+  is checked against the repo and its data sources and marked backed or not.
+- **Your data sources, your tools.** A repo describes each tool that holds its
+  data on a `SOURCE.*` wiki entity that names the MCP server, skill or CLI that
+  reads it. The gate queries it read-only to back or reject a claim.
+- **Knowledge that is found.** Every repo's wiki and feature board is indexed
+  with [QMD](https://github.com/tobi/qmd); Claude searches before answering.
 - **Context stays small.** A line belongs in `.context/` only if an agent would
   get something wrong without it. Decisions are one file per topic, overwritten
   when the choice changes; `tasks.md` holds open work only; history is git's.
-- **Stages stop at their gates.** A `pipeline:` in `zeno.yaml` lists your
-  stages in order, with the paths that show each has started. A gated stage
-  needs a person to run `zeno approve <stage>` before any later stage starts;
-  `zeno check` fails otherwise. Approvals are dated in
-  `.context/raw/zeno/gates.jsonl`, so you can see where work waits. A product
-  replaces the estate's pipeline by declaring its own.
-- **Each repo's architecture is enforced.** With the `architecture` module, a
-  repo keeps its own import rules in `.dependency-cruiser.cjs` files: one at the
-  root, or one per workspace under `apps/` and `packages/` (each runs from its
-  folder, since apps map `@/` to their own `src`). `zeno init` writes starters and
-  `.dependency-cruiser.base.cjs`, the shared base they extend; that base is zeno's,
-  and `zeno sync` keeps it current. Add `dependency-cruiser` as a devDependency.
-  `zeno check` fails on a broken boundary or a cycle, the gate weighs requests
-  against the rules, and `zeno ui` draws each repo's import graph.
-- **Products evolve together.** Packs index vendor docs (`llms.txt`) for a stack;
-  `zeno sync` refreshes them and moves each repo to the current zeno version.
+- **Hard rules are checks.** `canon check` validates layout, wiki frontmatter,
+  stale pages, placeholders, size caps, blocked tasks, feature pages, the store
+  listing tree, dead `.context/` paths, prices with no canonical home, shared
+  files, the import architecture, pipeline gates, and every checker your config
+  declares. `canon hooks install` makes every push run it.
+- **Standards with one home.** canon ships defaults; an estate adds or replaces
+  them from its own folder; a repo can override again. `canon standards` shows
+  what applies.
+- **A repo names only what it uses.** Modules, packs and shared-file sets are
+  opt-in; there is no skip list and no setting that turns a check off.
 
 ## Install
 
 ```bash
-# plugin (from GitHub)
-claude plugin marketplace add ritesh-firodiya/zeno
-claude plugin install zeno@zeno
-
-# CLI (Node 22+)
-npm install -g @freetesh/zeno
-
-# search
+claude plugin marketplace add ritesh-firodiya/canon-cli
+claude plugin install canon@canon
+npm install -g @freetesh/canon
 npm install -g @tobilu/qmd --allow-scripts=node-llama-cpp,tree-sitter-go,tree-sitter-python,tree-sitter-rust,tree-sitter-typescript,tree-sitter-javascript
-
-# optional: write-less discipline for the efficiency step of the gate
-claude plugin marketplace add DietrichGebert/ponytail && claude plugin install ponytail@ponytail
 ```
 
-## Quickstart (5 minutes)
-
-In any git repo, after the install above:
-
-```bash
-zeno doctor                 # node, git, qmd — fix anything marked ✗ first
-zeno init                   # pick kind, modules and doc packs; writes .claude/zeno.yaml and .context/
-zeno check                  # should print "<repo>  ok"
-zeno sync                   # fetches the packs you picked and indexes the wiki for search
-```
-
-Then start Claude Code in the repo. The session hook loads the constitution,
-and a non-trivial request is weighed before Claude acts on it — try
-`/zeno:weigh add a dark mode toggle`. Write decisions to `.context/wiki/` as
-you make them (`/zeno:decision`) and ask about them later with `/zeno:ask`.
-
-Want import rules too? `zeno init --force --modules docs,knowledge,architecture`
-(keep the modules you already had), `npm i -D dependency-cruiser`, then edit the
-starter `.dependency-cruiser.cjs` to your layers. `evals/fixtures/streaks` is a
-small product with a wiki and decision records, if you want to see the
-`.context/` layout before touching your own repo.
+Then in any repo: `canon doctor`, `canon init`, `canon check`, `canon sync`.
+Try `/canon:weigh add a dark mode toggle` in a session; record choices with
+`/canon:decision` and ask about them with `/canon:ask`. `/canon:ingest` with no
+argument captures what a session taught.
 
 ## CLI
 
 ```bash
-zeno init             # write .claude/zeno.yaml and the missing .context files (asks kind, modules, packs)
-zeno init -y --kind web --modules docs,code --packs nextjs   # same, no questions
-zeno add              # list packs; `zeno add expo` adds one and indexes its docs (-g: whole estate)
-zeno check            # this repo against the standards (exit 1 on any error)
-zeno check --all -q   # every repo in the estate, only the ones with findings
-zeno copies --sync    # overwrite drifted shared files from copies.source (never adds one)
-zeno hooks install    # a pre-push hook that runs `zeno check` (--all: every product)
-zeno standards        # which standards apply here, and where each comes from
-zeno sync             # refresh pack docs + search index, move the pinned zeno version, then check
-zeno status           # version, kind, modules, config layers, check summary
-zeno doctor           # node, git, qmd — plus any tools your config lists
-zeno learn            # proposals from overridden verdicts; --approve/--reject <id>
-zeno weigh "<ask>"    # the decision gate from the terminal (runs Claude, weighs only)
-zeno ui               # every wiki (search, backlinks, graph) on :4610, design galleries on :4611
+canon init             # write .claude/canon.yaml and the missing .context files
+canon add              # list packs; `canon add expo` adds one and indexes its docs
+canon check            # this repo against the standards (exit 1 on any error); --all for the estate
+canon copies --sync    # repair drifted shared files from copies.source (never adds one)
+canon hooks install    # a pre-push hook that runs `canon check` (--all: every product)
+canon standards        # which standards apply here, and where each comes from
+canon sync             # refresh pack docs and the search index, move the pinned version
+canon status           # version, kind, modules, config layers, check summary
+canon doctor           # node, git, qmd — plus any tools your config lists
+canon learn            # proposals from overridden verdicts
+canon approve <stage>  # a person records a pipeline gate approval
+canon pipeline         # the stages this repo resolves to, and where each stands
+canon weigh "<ask>"    # the decision gate from the terminal
+canon ui               # every wiki and design gallery on localhost
+canon search "<q>"     # search the knowledge index
+canon mcp              # the search MCP server, for any MCP client
 ```
 
 ## Config
 
-`.claude/zeno.yaml`, read in layers — **estate → repo → local**
-(`zeno.local.yaml`, not committed). The estate is the nearest folder above a
-repo whose `zeno.yaml` says `estate: true`, or `ZENO_ESTATE`.
+`.claude/canon.yaml`, read in layers — **estate → repo → local**
+(`canon.local.yaml`, not committed). The estate is the nearest folder above a
+repo whose `canon.yaml` says `estate: true`, or `CANON_ESTATE`.
 
 ```yaml
-# <estate>/.claude/zeno.yaml — shared by every repo below it
+# <estate>/.claude/canon.yaml — shared by every repo below it
 estate: true
-standards: [.zeno/standards]        # team rules; same name replaces a zeno default
-commands:                           # your own checkers, run by `zeno check`
-  - id: designs
-    run: ./scripts/check-designs.sh
-    if: .context/designs            # only where this path exists
-doctor:
-  tools:
-    - { tool: pnpm, why: product scripts, hint: npm i -g pnpm }
-wiki:
-  types:                            # added to the built-in folders (concepts, entities, decisions, surfaces, synthesis)
-    - type: postmortem
-      folder: postmortems
-      reason: incidents need a timeline and a fix
-      sections: [Summary, Timeline, Root cause, Fix, Sources]   # zeno check requires each `## ` heading
-context:
-  folders:                          # added to the ten .context folders
-    - { folder: research, reason: interview notes, kept apart from raw/ }
+standards: [.canon/standards]       # estate rules; same name replaces a canon default
+commands:                           # your own checkers, run by `canon check`
+  - { id: designs, run: ./scripts/check-designs.sh, if: .context/designs, module: design }
 copies:                             # files products copy from one source repo, in named sets
-  source: charades                  # a folder beside the estate config
+  source: design-system
   sets:
-    play-upload: [scripts/play-upload.mjs]            # the same path on both sides
-    design-shell-web:
-      - { from: .context/designs/mobile/index.html, to: .context/designs/web/index.html, named: true }
-      - { from: .context/designs/mobile/shared.css, to: .context/designs/web/shared.css, until: "PALETTE — " }
+    upload: [scripts/upload.mjs]
+    shell-web:
+      - { from: designs/mobile/index.html, to: designs/web/index.html, named: true }
 ```
 
 ```yaml
-# <repo>/.claude/zeno.yaml — written by `zeno init`
-zeno: 0.13.0
+# <repo>/.claude/canon.yaml — written by `canon init`
+canon: 0.14.0
 kind: expo-app                      # expo-app | web | content
-modules: [docs, knowledge, code, listing]   # all optional; design is added when .context/designs exists, metrics only when asked
+modules: [docs, knowledge, code, listing, refs]
 packs: [expo]
-weigh:
-  weights: { C-05: 2 }
-name: Chitragupt                    # how the product is written; `named` copies swap it in
+name: Acme                          # how the product is written; `named` copies swap it in
 copies:
-  use: [play-upload, design-shell-web]   # the sets this product uses; only these are held to the source
+  use: [upload, shell-web]          # the sets this repo uses; only these are held to the source
 ```
 
-Scalars: the most specific layer wins. `packs` and `standards` add up across
-layers; `commands`, `doctor.tools`, `wiki.types` and `context.folders` merge
-by name; `copies.use` adds up. Built-in types and folders cannot be removed or
-redefined. A repo names only what it uses: a check applies through the modules
-it turns on, and there is no setting to skip one.
-
-## Standards
-
-| zeno default | What it holds |
-|---|---|
-| `constitution.md` | Principles C-01–C-15 a request is weighed against. A team adds C-20+ in its own `constitution.md`. |
-| `wiki-schema.md` | What belongs in the wiki, its folders, decisions, frontmatter and size caps |
-| `context-layout.md` | The `.context/` ten-folder layout, `features/` and `tasks.md` (open work only) |
-| `agent-contract.md` | What every agent does before, during and after work |
-
-## Packs
-
-`packs/<name>/pack.yaml` names the vendor docs to index. Shipped: expo,
-uniwind, react, nextjs, firebase, revenuecat. A pack is three lines of YAML; add
-your own.
-
-## Evals
-
-`evals/` runs nine requests against a fixture product (`evals/fixtures/streaks`)
-with and without the plugin, each in a sandbox seeded with the fixture and a
-local QMD index:
-
-```bash
-claude plugin eval . --scaffold --mocks off --allow-tools 'mcp__plugin_zeno_qmd__*' Write Edit --runs 2
-```
+Scalars: the most specific layer wins. `packs`, `standards` and `copies.use`
+add up across layers; `commands`, `doctor.tools`, `wiki.types` and
+`context.folders` merge by name.
 
 ## Layout
 
 ```
 .claude-plugin/   plugin manifest and marketplace
 skills/           weigh, standards, ask, ingest, decision, wiki-lint
-agents/           challenger — independent second opinion for too-large requests
+agents/           challenger — a second opinion for too-large requests
 hooks/            session start: constitution titles, qmd refresh
 standards/        default standards
 packs/            vendor doc packs
-templates/        files init writes: dependency-cruiser base (synced) and starters
-scripts/          log-verdict.mjs — append-only verdict log
-cli/              the zeno CLI (TypeScript, vitest; built to cli/dist for npm)
+templates/        files init writes (dependency-cruiser base and starters)
+scripts/          log-verdict.mjs — the verdict log
 evals/            plugin evals and the fixture product
+cli/              the canon CLI (TypeScript, vitest); `@freetesh/canon/api` for tools built on it
 ```
 
-## Develop zeno
+## Develop
 
-Link the repo as a skills-dir plugin so edits apply on the next session:
-`ln -s "$PWD" ~/.claude/skills/zeno`.
-Run the CLI from source (Node 23.6+ runs the TypeScript directly):
-`pnpm install && ln -s "$PWD/cli/src/index.ts" ~/.local/bin/zeno`.
-`pnpm test`, `pnpm typecheck` and `pnpm build` run from the repo root.
+`pnpm check` runs `canon check` on this repo, the typecheck and every test.
+The version lives in `package.json` and `.claude-plugin/plugin.json`; bump both
+with a CHANGELOG entry. A push to main with a new version publishes to npm.
 
-**Releasing.** Bump `version` in `package.json` and `.claude-plugin/plugin.json`,
-then push or merge to `main`. The `release` workflow runs the tests, publishes
-`@freetesh/zeno` to npm, tags `vX.Y.Z` and creates the GitHub release. A push
-without a bump releases nothing. It needs the `NPM_TOKEN` Actions secret.
+MIT licence.

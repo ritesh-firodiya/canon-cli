@@ -5,12 +5,12 @@ description: Load the standards that cover the work before doing it — the repo
 
 # Load the standards that apply
 
-1. List them: run `zeno standards` in the repo. It prints every standard that
-   applies — zeno's defaults, then the team's and the repo's own (a team file
-   with the same name replaces zeno's). If the `zeno` CLI is not installed, use
+1. List them: run `canon standards` in the repo. It prints every standard that
+   applies — canon's defaults, then the team's and the repo's own (a team file
+   with the same name replaces canon's). If the `canon` CLI is not installed, use
    the files in `../../standards/` (relative to this skill).
 2. Read only the ones that cover this work: designs, code, `.context/`, wiki,
    listing, secrets — judge from the file names, then their first lines.
 3. Follow them. Where two disagree, the more specific one (the repo's, then the
-   team's, then zeno's) wins; say which one you followed.
-4. Before calling the work done, run `zeno check` and report its result.
+   team's, then canon's) wins; say which one you followed.
+4. Before calling the work done, run `canon check` and report its result.

@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 
 /** Creates a throwaway directory holding `files` (path → content). A path ending in "/" is an empty folder. */
 export function makeTree(files: Record<string, string>): string {
-  const root = mkdtempSync(join(tmpdir(), "zeno-test-"));
+  const root = mkdtempSync(join(tmpdir(), "canon-test-"));
   for (const [path, content] of Object.entries(files)) {
     const full = join(root, path);
     if (path.endsWith("/")) {

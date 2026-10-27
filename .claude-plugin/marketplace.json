@@ -1,14 +1,15 @@
 {
-  "name": "zeno",
+  "name": "canon",
   "owner": {
     "name": "Ritesh Firodiya"
   },
   "plugins": [
     {
-      "name": "zeno",
+      "name": "canon",
       "source": "./",
-      "description": "Keeps your domain knowledge and AI rules local and enforces them, so Claude hallucinates less."
+      "version": "0.15.0",
+      "description": "Keeps your domain knowledge and AI rules in your repos and enforces them, so Claude hallucinates less."
     }
   ],
-  "description": "zeno: Keep your domain knowledge and AI rules in your repo, and enforce them. Less AI guessing, faster delivery."
+  "description": "canon: domain knowledge and AI rules kept in your repos, enforced, searchable."
 }

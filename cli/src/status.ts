@@ -3,8 +3,8 @@ import { join } from "node:path";
 import { loadConfig } from "./config/load.ts";
 import { runChecks, type RunOptions } from "./run.ts";
 
-export function zenoVersion(zenoRoot: string): string {
-  const manifest = join(zenoRoot, ".claude-plugin", "plugin.json");
+export function canonVersion(canonRoot: string): string {
+  const manifest = join(canonRoot, ".claude-plugin", "plugin.json");
   if (!existsSync(manifest)) return "unknown";
   return JSON.parse(readFileSync(manifest, "utf8")).version ?? "unknown";
 }
@@ -16,10 +16,10 @@ export function buildStatus(repo: string, options: RunOptions): string {
   const warnings = report.findings.length - errors;
   const configLine =
     sources.length === 0
-      ? "none — inferred; run `zeno init`"
+      ? "none — inferred; run `canon init`"
       : sources.map((source) => `${source.layer} ${source.path}`).join("\n         ");
   return [
-    `zeno ${zenoVersion(options.zenoRoot)}  ·  ${report.name}`,
+    `canon ${canonVersion(options.canonRoot)}  ·  ${report.name}`,
     `kind     ${config.kind}`,
     `modules  ${config.modules.join(", ")}`,
     `config   ${configLine}`,

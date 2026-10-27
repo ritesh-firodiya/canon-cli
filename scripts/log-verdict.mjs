@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Appends one verdict, and what happened next, to .context/raw/zeno/verdicts.jsonl
-// in the current repo. Append-only: raw/ is immutable, and `zeno learn` reads
+// Appends one verdict, and what happened next, to .context/raw/canon/verdicts.jsonl
+// in the current repo. Append-only: raw/ is immutable, and `canon learn` reads
 // the history to show how often the gate stops work and to propose rule
 // changes from overrides, so earlier lines must never be rewritten.
 import { appendFileSync, mkdirSync } from "node:fs";
@@ -50,7 +50,7 @@ const entry = {
   ...(terms.length > 0 && { terms }),
 };
 
-const dir = join(values.repo, ".context", "raw", "zeno");
+const dir = join(values.repo, ".context", "raw", "canon");
 mkdirSync(dir, { recursive: true });
 appendFileSync(join(dir, "verdicts.jsonl"), `${JSON.stringify(entry)}\n`);
 console.log(`logged to ${join(dir, "verdicts.jsonl")}`);

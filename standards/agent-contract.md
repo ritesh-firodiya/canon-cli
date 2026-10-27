@@ -1,6 +1,6 @@
 # Agent contract
 
-What every coding agent working in a zeno repo does. A team can replace this
+What every coding agent working in a canon repo does. A team can replace this
 file with its own `agent-contract.md` in a configured standards folder.
 
 ## Before starting
@@ -9,7 +9,7 @@ file with its own `agent-contract.md` in a configured standards folder.
   the repo's own.
 - Read `.context/tasks.md`. It is the ordered queue — the top item of `## Now`
   is the next action. After finishing, delete the task.
-- For a non-trivial request, run the weigh gate first (`/zeno:weigh`).
+- For a non-trivial request, run the weigh gate first (`/canon:weigh`).
 
 ## Repository rules
 
@@ -43,5 +43,5 @@ function's own name.
 1. Update any `.context/` page the change made wrong. Add a page only if an
    agent would get something wrong without it.
 2. Run the repo's own lint, typecheck and tests.
-3. Run `zeno check`. Every checker the repo declares under `commands:` runs
+3. Run `canon check`. Every checker the repo declares under `commands:` runs
    with it.

@@ -1,16 +1,19 @@
 {
-  "name": "@freetesh/zeno",
-  "version": "0.13.0",
-  "description": "zeno CLI: keep your domain knowledge and AI rules in your repo, and enforce them.",
+  "name": "@freetesh/canon",
+  "version": "0.15.0",
+  "description": "canon CLI: keep your domain knowledge and AI rules in your repo, and enforce them.",
   "license": "MIT",
   "author": "Ritesh Firodiya",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ritesh-firodiya/zeno.git"
+    "url": "git+https://github.com/ritesh-firodiya/canon-cli.git"
   },
   "type": "module",
+  "exports": {
+    "./api": "./cli/dist/api.js"
+  },
   "bin": {
-    "zeno": "cli/dist/index.js"
+    "canon": "cli/dist/index.js"
   },
   "files": [
     "cli/dist",
@@ -18,6 +21,7 @@
     "skills",
     "packs",
     "templates",
+    "scripts/log-verdict.mjs",
     ".claude-plugin"
   ],
   "engines": {
@@ -25,7 +29,8 @@
   },
   "packageManager": "pnpm@12.3.4",
   "scripts": {
-    "zeno": "node cli/src/index.ts",
+    "canon": "node cli/src/index.ts",
+    "check": "node cli/src/index.ts check . && pnpm typecheck && pnpm test",
     "build": "rm -rf cli/dist && tsc -p cli/tsconfig.build.json",
     "test": "vitest run --root cli",
     "coverage": "vitest run --root cli --coverage",

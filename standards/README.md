@@ -1,8 +1,8 @@
 # standards/
 
-zeno's default standards. `zeno standards` lists the ones that apply to a repo:
+canon's default standards. `canon standards` lists the ones that apply to a repo:
 these first, then each folder named under `standards:` in the estate's and the
-repo's `.claude/zeno.yaml`. A configured file with the same name as one of these
+repo's `.claude/canon.yaml`. A configured file with the same name as one of these
 replaces it; a configured `constitution.md` adds principles instead.
 
 | File | What it holds |

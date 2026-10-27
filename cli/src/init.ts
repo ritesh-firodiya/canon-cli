@@ -9,7 +9,7 @@ import { MODULES_BY_KIND, type Kind, type Module } from "./config/schema.ts";
 export type Runner = (command: string, args: string[]) => void;
 
 export interface InitAnswers {
-  zenoVersion: string;
+  canonVersion: string;
   kind?: Kind;
   modules?: Module[];
   packs?: string[];
@@ -17,7 +17,7 @@ export interface InitAnswers {
 }
 
 export interface InitPlan {
-  config: { zeno: string; kind: Kind; modules: Module[]; expo?: { sdk: number }; packs?: string[] };
+  config: { canon: string; kind: Kind; modules: Module[]; expo?: { sdk: number }; packs?: string[] };
   /** Files under the repo that will be created; existing files are never touched. */
   create: string[];
 }
@@ -32,7 +32,7 @@ export interface Starter {
 }
 
 /**
- * The rules files the architecture module needs: zeno's managed base, then a starter
+ * The rules files the architecture module needs: canon's managed base, then a starter
  * per workspace (a folder under apps/ or packages/ with a package.json), or one at the
  * root when the repo has no workspaces.
  */
@@ -52,11 +52,11 @@ export function architectureStarters(repo: string): Starter[] {
   return [{ file: ARCHITECTURE_BASE, template: "base.cjs" }, ...starters];
 }
 
-/** Rewrites a repo's managed architecture base from zeno's template; true when it changed. */
-export function refreshArchitectureBase(repo: string, zenoRoot: string): boolean {
+/** Rewrites a repo's managed architecture base from canon's template; true when it changed. */
+export function refreshArchitectureBase(repo: string, canonRoot: string): boolean {
   const file = join(repo, ARCHITECTURE_BASE);
   if (!existsSync(file)) return false;
-  const current = readFileSync(join(zenoRoot, ARCHITECTURE_TEMPLATES, "base.cjs"), "utf8");
+  const current = readFileSync(join(canonRoot, ARCHITECTURE_TEMPLATES, "base.cjs"), "utf8");
   if (readFileSync(file, "utf8") === current) return false;
   writeFileSync(file, current);
   return true;
@@ -96,11 +96,11 @@ const FIRST_FILE: Record<string, string> = {
 function template(file: string): string {
   switch (file) {
     case ".context/README.md":
-      return "# .context\n\nProduct material, in the zeno context layout. Start at [`tasks.md`](tasks.md).\n";
+      return "# .context\n\nProduct material, in the canon context layout. Start at [`tasks.md`](tasks.md).\n";
     case ".context/tasks.md":
       return "# Tasks\n\n## Now\n\n## Blocked\n\n## Waiting\n";
     case ".context/wiki/index.md":
-      return "# Wiki index\n\nPages by type. Schema: the zeno plugin's wiki-schema standard.\n";
+      return "# Wiki index\n\nPages by type. Schema: the canon plugin's wiki-schema standard.\n";
     case ".context/features/index.md":
       return "# Features\n\n| ID | Title | Status | Release |\n|---|---|---|---|\n";
     default:
@@ -109,14 +109,14 @@ function template(file: string): string {
 }
 
 export function planInit(repo: string, answers: InitAnswers): InitPlan {
-  if (existsSync(join(repo, ".claude", "zeno.yaml")) && !answers.force) {
-    throw new Error(`${repo} is already set up (.claude/zeno.yaml exists) — use --force to redo it`);
+  if (existsSync(join(repo, ".claude", "canon.yaml")) && !answers.force) {
+    throw new Error(`${repo} is already set up (.claude/canon.yaml exists) — use --force to redo it`);
   }
   const kind = answers.kind ?? inferKind(repo);
   const modules = answers.modules ?? (answers.kind ? MODULES_BY_KIND[kind] : inferModules(repo, kind));
   const sdk = kind === "expo-app" ? detectExpoSdk(repo) : undefined;
   const packs = answers.packs?.length ? { packs: answers.packs } : {};
-  const config: InitPlan["config"] = { zeno: answers.zenoVersion, kind, modules, ...(sdk ? { expo: { sdk } } : {}), ...packs };
+  const config: InitPlan["config"] = { canon: answers.canonVersion, kind, modules, ...(sdk ? { expo: { sdk } } : {}), ...packs };
 
   const create = requiredContext(modules).filter((name) => !existsSync(join(repo, ".context", name))).map((name) => FIRST_FILE[name]);
   if (modules.includes("architecture")) {
@@ -128,16 +128,16 @@ export function planInit(repo: string, answers: InitAnswers): InitPlan {
   return { config, create };
 }
 
-export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; name: string; zenoRoot: string }): void {
+export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; name: string; canonRoot: string }): void {
   const write = (file: string, content: string) => {
     mkdirSync(dirname(join(repo, file)), { recursive: true });
     writeFileSync(join(repo, file), content);
   };
-  write(".claude/zeno.yaml", stringify(plan.config));
+  write(".claude/canon.yaml", stringify(plan.config));
   const starters = new Map(architectureStarters(repo).map((s) => [s.file, s.template]));
   for (const file of plan.create) {
     const starter = starters.get(file);
-    write(file, starter ? readFileSync(join(options.zenoRoot, ARCHITECTURE_TEMPLATES, starter), "utf8") : template(file));
+    write(file, starter ? readFileSync(join(options.canonRoot, ARCHITECTURE_TEMPLATES, starter), "utf8") : template(file));
   }
 
   if (plan.config.modules.includes("knowledge")) indexKnowledge(repo, options.name, options.run);

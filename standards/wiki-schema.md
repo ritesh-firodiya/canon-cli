@@ -23,7 +23,7 @@ There is no page per screen: the HTML design is the screen spec. A screen gets a
 `surfaces/<slug>.md` only when it has a constraint or decision invisible in its pixels;
 the design set's notes button shows it, and `routes.js` sets `notes: null` for every
 other screen. A user journey worth keeping is a concept.
-A product may add a folder in `.claude/zeno.yaml` under `wiki.types`, with a reason.
+A product may add a folder in `.claude/canon.yaml` under `wiki.types`, with a reason.
 
 ## Pages
 
@@ -64,7 +64,7 @@ put a key or token on the page.
 Code docs (they go next to the code) · tasks (`tasks.md`) · plans (`features/`) ·
 chat logs · session notes · changelogs.
 
-## Checked by `zeno check`
+## Checked by `canon check`
 
 `wiki-frontmatter` (last-verified, placeholders, stale > 90 days) · `context-size`
 (caps, dated decision names, no `flows/`) · `canonical-values` (a

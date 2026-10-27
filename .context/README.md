@@ -1,8 +1,4 @@
 # .context
 
-zeno's own product material, in the zeno context layout.
-
-## marketing/
-
-- `pitch/index.html` — internal deck: how zeno works and why. Open the file in a browser; `←`/`→` to move.
-- `pitch/decisions/`, `pitch/pdlc/`, `pitch/stack/` — the earlier angle decks the main one was built from.
+canon-cli's own context. The CLI and plugin rules it ships are in `standards/`.
+The knowledge site and the paid UI live in a separate private repo.

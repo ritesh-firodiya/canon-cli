@@ -6,18 +6,20 @@ import { architectureStarters } from "../../src/init.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 
-const ZENO = resolve(import.meta.dirname, "..", "..", "..");
-const ON = { ".claude/zeno.yaml": "modules: [architecture]\n" };
+const ROOT = resolve(import.meta.dirname, "..", "..", "..");
+// dependency-cruiser is canon's own devDependency.
+const PACKAGE = ROOT;
+const ON = { ".claude/canon.yaml": "modules: [architecture]\n" };
 
-/** A repo laid out with the starters `zeno init` writes, with zeno's own dependency-cruiser linked in as if it were a devDependency. */
+/** A repo laid out with the starters `canon init` writes, with canon's own dependency-cruiser linked in as if it were a devDependency. */
 function repoWith(files: Record<string, string>): string {
   const repo = makeTree({ ...ON, ...files });
   for (const { file, template } of architectureStarters(repo)) {
-    copyFileSync(join(ZENO, "templates", "dependency-cruiser", template), join(repo, file));
+    copyFileSync(join(ROOT, "templates", "dependency-cruiser", template), join(repo, file));
   }
   mkdirSync(join(repo, "node_modules", ".bin"), { recursive: true });
-  symlinkSync(join(ZENO, "node_modules", "dependency-cruiser"), join(repo, "node_modules", "dependency-cruiser"));
-  symlinkSync(join(ZENO, "node_modules", ".bin", "depcruise"), join(repo, "node_modules", ".bin", "depcruise"));
+  symlinkSync(join(PACKAGE, "node_modules", "dependency-cruiser"), join(repo, "node_modules", "dependency-cruiser"));
+  symlinkSync(join(PACKAGE, "node_modules", ".bin", "depcruise"), join(repo, "node_modules", ".bin", "depcruise"));
   return repo;
 }
 
@@ -74,7 +76,7 @@ describe("architecture check", () => {
     );
   });
 
-  // zeno's own devDependency is TypeScript 7, which dependency-cruiser cannot use yet,
+  // canon's own devDependency is TypeScript 7, which dependency-cruiser cannot use yet,
   // so this fixture reproduces a repo whose TypeScript would silently go unchecked.
   test("a TypeScript workspace whose .ts files could not be read is a warning, not a pass", () => {
     const repo = repoWith({ "tsconfig.json": "{}", "src/a.ts": 'import { b } from "./b";\nexport const a = b;\n', "src/b.ts": "export const b = 1;\n" });
@@ -85,7 +87,7 @@ describe("architecture check", () => {
 
   test("with the module on but no rules file, the repo is told how to start", () => {
     expect(architecture.run(contextFor(makeTree({ ...ON, "src/a.js": "" })))).toEqual([
-      expect.objectContaining({ level: "error", file: ".dependency-cruiser.cjs", message: expect.stringMatching(/zeno init --force --modules/) }),
+      expect.objectContaining({ level: "error", file: ".dependency-cruiser.cjs", message: expect.stringMatching(/canon init --force --modules/) }),
     ]);
   });
 
@@ -108,7 +110,8 @@ describe("workspaces", () => {
         'module.exports = { forbidden: [{ name: "no-app-to-app", severity: "error", from: {}, to: { path: "^\\\\.\\\\./[^./]" } }] };',
     });
     mkdirSync(join(repo, "node_modules", ".bin"), { recursive: true });
-    symlinkSync(join(ZENO, "node_modules", ".bin", "depcruise"), join(repo, "node_modules", ".bin", "depcruise"));
+    symlinkSync(join(PACKAGE, "node_modules", "dependency-cruiser"), join(repo, "node_modules", "dependency-cruiser"));
+    symlinkSync(join(PACKAGE, "node_modules", ".bin", "depcruise"), join(repo, "node_modules", ".bin", "depcruise"));
     expect(architecture.run(contextFor(repo))).toEqual([
       expect.objectContaining({ level: "error", file: "apps/admin/src/main.js", message: "no-app-to-app (1): apps/admin/src/main.js → apps/web/src/main.js" }),
     ]);

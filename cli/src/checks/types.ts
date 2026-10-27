@@ -13,8 +13,8 @@ export interface CheckContext {
   repo: string;
   name: string;
   config: Config;
-  /** Root of the zeno repo, where standards/ and skills/ live. */
-  zenoRoot: string;
+  /** Root of the canon repo, where standards/ and skills/ live. */
+  canonRoot: string;
   today: Date;
 }
 

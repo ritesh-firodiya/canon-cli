@@ -1,6 +1,6 @@
 /* global module */
-// This package's architecture rules, enforced by `zeno check` (architecture module).
-// zeno wrote this starter once; it is yours now.
+// This package's architecture rules, enforced by `canon check` (architecture module).
+// canon wrote this starter once; it is yours now.
 
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {

@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest";
 import { addPack, fetchPackDocs, listPacks } from "../src/packs.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
-const zeno = () =>
+const canon = () =>
   makeTree({
     "packs/expo/pack.yaml": "name: expo\ndescription: Expo\nkinds: [expo-app]\nskill: expo-app\ndocs:\n  - https://docs.expo.dev/llms.txt\n",
     "packs/react/pack.yaml": "name: react\ndescription: React\nkinds: [web]\ndocs: [https://react.dev/llms.txt]\n",
@@ -12,7 +12,7 @@ const zeno = () =>
 
 describe("listPacks", () => {
   test("reads every pack.yaml, sorted by name", () => {
-    expect(listPacks(zeno()).map((pack) => pack.name)).toEqual(["expo", "react"]);
+    expect(listPacks(canon()).map((pack) => pack.name)).toEqual(["expo", "react"]);
   });
 
   test("a pack.yaml whose name differs from its folder is an error", () => {
@@ -22,32 +22,32 @@ describe("listPacks", () => {
 });
 
 describe("addPack", () => {
-  test("adds the pack to the product zeno.yaml, keeping its other keys and comments", () => {
-    const repo = makeTree({ ".claude/zeno.yaml": "# mine\nkind: expo-app\n" });
-    const result = addPack(repo, "expo", { zenoRoot: zeno() });
-    expect(result).toEqual({ file: join(repo, ".claude/zeno.yaml"), added: true });
-    const text = readFileSync(join(repo, ".claude/zeno.yaml"), "utf8");
+  test("adds the pack to the product canon.yaml, keeping its other keys and comments", () => {
+    const repo = makeTree({ ".claude/canon.yaml": "# mine\nkind: expo-app\n" });
+    const result = addPack(repo, "expo", { canonRoot: canon() });
+    expect(result).toEqual({ file: join(repo, ".claude/canon.yaml"), added: true });
+    const text = readFileSync(join(repo, ".claude/canon.yaml"), "utf8");
     expect(text).toContain("# mine");
     expect(text).toMatch(/packs:\n\s+- expo/);
   });
 
   test("adding a pack twice changes nothing", () => {
-    const repo = makeTree({ ".claude/zeno.yaml": "packs: [expo]\n" });
-    expect(addPack(repo, "expo", { zenoRoot: zeno() }).added).toBe(false);
+    const repo = makeTree({ ".claude/canon.yaml": "packs: [expo]\n" });
+    expect(addPack(repo, "expo", { canonRoot: canon() }).added).toBe(false);
   });
 
   test("an unknown pack names the ones that exist", () => {
-    expect(() => addPack(makeTree({}), "vue", { zenoRoot: zeno() })).toThrow(/vue.*expo, react/);
+    expect(() => addPack(makeTree({}), "vue", { canonRoot: canon() })).toThrow(/vue.*expo, react/);
   });
 
-  test("a product with no zeno.yaml is told to run init", () => {
-    expect(() => addPack(makeTree({}), "expo", { zenoRoot: zeno() })).toThrow(/zeno init/);
+  test("a product with no canon.yaml is told to run init", () => {
+    expect(() => addPack(makeTree({}), "expo", { canonRoot: canon() })).toThrow(/canon init/);
   });
 
-  test("--global writes the estate zeno.yaml, creating it if needed", () => {
+  test("--global writes the estate canon.yaml, creating it if needed", () => {
     const estate = makeTree({});
-    const result = addPack("/unused", "react", { zenoRoot: zeno(), global: true, estateRoot: estate });
-    expect(result.file).toBe(join(estate, ".claude/zeno.yaml"));
+    const result = addPack("/unused", "react", { canonRoot: canon(), global: true, estateRoot: estate });
+    expect(result.file).toBe(join(estate, ".claude/canon.yaml"));
     expect(readFileSync(result.file, "utf8")).toMatch(/packs:\n\s+- react/);
   });
 });
@@ -56,7 +56,7 @@ describe("fetchPackDocs", () => {
   test("saves each doc as markdown under the cache and indexes the folder once", async () => {
     const cache = makeTree({});
     const calls: string[][] = [];
-    const [pack] = listPacks(zeno());
+    const [pack] = listPacks(canon());
     await fetchPackDocs(pack, {
       cacheDir: cache,
       fetchText: async (url) => `# docs from ${url}`,
@@ -73,7 +73,7 @@ describe("fetchPackDocs", () => {
   });
 
   test("a failed download is an error naming the url", async () => {
-    const [pack] = listPacks(zeno());
+    const [pack] = listPacks(canon());
     await expect(
       fetchPackDocs(pack, {
         cacheDir: makeTree({}),
@@ -87,7 +87,7 @@ describe("fetchPackDocs", () => {
 
   test("an already-indexed collection is refreshed, not an error", async () => {
     const calls: string[][] = [];
-    const [pack] = listPacks(zeno());
+    const [pack] = listPacks(canon());
     await fetchPackDocs(pack, {
       cacheDir: makeTree({}),
       fetchText: async () => "x",

@@ -15,6 +15,8 @@ const FROM_HISTORY = /git (show|checkout|log|diff|restore)\b/;
 const DATED = /(^|\/)CHANGELOG\.md$|^\.context\/ops\/incidents\//;
 const BINARY = /\.(png|jpe?g|gif|webp|ico|icns|mp4|mov|pdf|zip|aab|apk|jks|keystore|p8|p12|ttf|otf|woff2?|lock|snap|sqlite|db|bin)$|(^|\/)pnpm-lock\.yaml$/i;
 const FEATURE_FILE = /^\.context\/features\/(\d{4})-[^/]+\.md$/;
+// A pipeline stage's `done:` paths name what will exist once that stage starts.
+const STAGE_DONE = /^\s*-\s*\{[^}]*\bdone:\s*\[/;
 
 function git(repo: string, args: string[]): { status: number; stdout: string } {
   const result = spawnSync("git", ["-C", repo, ...args], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
@@ -34,7 +36,7 @@ function literalPart(token: string, restOfLine: string): string | null {
 
 export const refs: Check = {
   id: "refs",
-  // A module, not always on: a tool whose docs describe other repos' .context/ (zeno, canon) does not use it.
+  // A module, not always on: a repo whose docs describe other repos' .context/ (a tool, a portfolio) does not use it.
   module: "refs",
   description: "every .context/ path a tracked file names exists; a [[link]] names a page (a link to a page not yet written is a note)",
   run({ repo, config }) {
@@ -67,7 +69,8 @@ export const refs: Check = {
       const links = file.startsWith(".context/") && file.endsWith(".md");
       text.split("\n").forEach((line, index) => {
         const at = `${file}:${index + 1}`;
-        if (!dated && line.includes(".context/") && !FROM_HISTORY.test(line)) {
+        const future = file === ".claude/canon.yaml" && STAGE_DONE.test(line);
+        if (!dated && !future && line.includes(".context/") && !FROM_HISTORY.test(line)) {
           for (const match of line.matchAll(PATH)) {
             let path = literalPart(match[2], line.slice(match.index! + match[0].length));
             if (path === null) continue;

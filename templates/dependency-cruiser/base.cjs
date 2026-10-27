@@ -1,5 +1,5 @@
 /* global module, require */
-// Managed by zeno — `zeno sync` rewrites this file from zeno's template, so edits here are lost.
+// Managed by canon — `canon sync` rewrites this file from canon's template, so edits here are lost.
 // Put this repo's own rules in the .dependency-cruiser.cjs files that extend it.
 // Each workspace runs on its own because apps map `@/` to their own src, and
 // dependency-cruiser reads one tsconfig per run.

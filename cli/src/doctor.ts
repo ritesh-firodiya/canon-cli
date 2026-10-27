@@ -16,11 +16,11 @@ interface Tool extends ToolSpec {
   minimum?: [number, number];
 }
 
-// What zeno itself needs. A repo or estate adds its own under `doctor.tools`.
+// What canon itself needs. A repo or estate adds its own under `doctor.tools`.
 const CORE_TOOLS: Tool[] = [
-  { tool: "node", why: "runs the zeno CLI and hooks", hint: "install Node 22+", minimum: [22, 0] },
-  { tool: "git", why: "zeno works on git repos", hint: "install git" },
-  { tool: "qmd", why: "knowledge search for Claude", hint: "npm i -g @tobilu/qmd (see the zeno README)" },
+  { tool: "node", why: "runs the canon CLI and hooks", hint: "install Node 22+", minimum: [22, 0] },
+  { tool: "git", why: "canon works on git repos", hint: "install git" },
+  { tool: "qmd", why: "knowledge search for Claude", hint: "npm i -g @tobilu/qmd (see the canon README)" },
 ];
 
 const VERSION = /(\d+)\.(\d+)(?:\.(\d+))?/;

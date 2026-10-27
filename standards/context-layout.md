@@ -26,11 +26,11 @@ folder.
 1. **Ten folders, one job each.** There is no `documents/`, `research/`,
    `architecture/` or `decisions/` folder: a research brief is a wiki synthesis
    page, an architecture note is a wiki concept, an ADR is `wiki/decisions/`.
-   A product that truly needs another folder adds it in `.claude/zeno.yaml`,
+   A product that truly needs another folder adds it in `.claude/canon.yaml`,
    with the reason: `context: { folders: [{ folder: research, reason: … }] }`.
    The ten cannot be removed.
 2. **`README.md` and `tasks.md` are the only files at `.context/` root.**
-   A repo names only what it uses. Its README, its `zeno.yaml` and its docs never
+   A repo names only what it uses. Its README, its `canon.yaml` and its docs never
    list a folder, file or tool it does without; absence is shown by absence.
 3. **Nothing is created empty.** A folder appears with its first file — git does
    not track empty folders, so a placeholder disappears on clone. `raw/` is the
@@ -76,7 +76,7 @@ separate folder per name.
 | Data source | `wiki/entities/` — see the wiki schema, "Data sources" |
 
 If a document fits none of these for a real product, add a wiki type or a
-folder in `.claude/zeno.yaml` with its reason — not a new convention by hand.
+folder in `.claude/canon.yaml` with its reason — not a new convention by hand.
 
 ## `features/` — what is next
 

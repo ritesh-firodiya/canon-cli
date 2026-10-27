@@ -3,7 +3,7 @@ name: wiki-lint
 description: Audit .context/wiki/ for drift — broken [[links]], orphan pages, contradictions between entities, stale last-verified dates, unprocessed raw files. Optionally auto-fix safe issues and regenerate .context/wiki/index.md. Usage `/wiki-lint` (audit) or `/wiki-lint --fix` (audit + auto-fix).
 ---
 
-You are linting the wiki at `.context/wiki/` against the wiki schema (the `wiki-schema.md` that `zeno standards` lists — a team's own replaces zeno's; without the CLI, `../../standards/wiki-schema.md` relative to this skill).
+You are linting the wiki at `.context/wiki/` against the wiki schema (the `wiki-schema.md` that `canon standards` lists — a team's own replaces canon's; without the CLI, `../../standards/wiki-schema.md` relative to this skill).
 
 Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 
@@ -11,7 +11,7 @@ Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 
 1. **Read the wiki schema** to refresh the folders, the one test and the caps.
 
-2. **Run `zeno check` first** if the CLI is installed. It checks frontmatter,
+2. **Run `canon check` first** if the CLI is installed. It checks frontmatter,
    placeholders, caps, dated decision names, duplicate IDs, staleness and
    prices held by no entity in under a second,
    plus any checker the repo declares. Start from its output rather than

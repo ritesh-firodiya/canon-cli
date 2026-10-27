@@ -3,14 +3,14 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import type { RunResult } from "../packs.ts";
 
-export const CACHE_DIR = process.env.ZENO_CACHE ?? join(homedir(), ".cache", "zeno");
+export const CACHE_DIR = process.env.CANON_CACHE ?? join(homedir(), ".cache", "canon");
 const FETCH_TIMEOUT_MS = 30_000;
 
 export function runCommand(command: string, args: string[]): RunResult {
   const result = spawnSync(command, args, { encoding: "utf8" });
   if (result.error) {
     const missing = (result.error as NodeJS.ErrnoException).code === "ENOENT";
-    return { status: 1, output: missing ? `${command} is not installed — run \`zeno doctor\`` : result.error.message };
+    return { status: 1, output: missing ? `${command} is not installed — run \`canon doctor\`` : result.error.message };
   }
   return { status: result.status ?? 1, output: `${result.stdout}${result.stderr}` };
 }

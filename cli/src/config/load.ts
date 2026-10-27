@@ -17,7 +17,7 @@ const EXPO_MARKERS = ["app.config.ts", "app.config.js", "app.json"];
 const WEB_MARKERS = ["next.config.ts", "next.config.js", "next.config.mjs", "vite.config.ts"];
 
 function configPath(folder: string): string {
-  return join(folder, ".claude", "zeno.yaml");
+  return join(folder, ".claude", "canon.yaml");
 }
 
 function readLayer(path: string): Layer {
@@ -29,7 +29,7 @@ function readLayer(path: string): Layer {
   return parsed.data;
 }
 
-/** The nearest folder at or above `start` whose zeno.yaml says `estate: true`, or null. */
+/** The nearest folder at or above `start` whose canon.yaml says `estate: true`, or null. */
 export function findEstate(start: string): string | null {
   let folder = resolve(start);
   while (true) {
@@ -74,7 +74,7 @@ function mergeBy<T>(lists: T[][], key: (item: T) => string): T[] {
 }
 
 /**
- * Reads the estate, product and local zeno.yaml layers over defaults inferred
+ * Reads the estate, product and local canon.yaml layers over defaults inferred
  * from the repo. Scalars: the most specific layer wins. Lists of names add up
  * (packs, standards); lists of records merge by their key (commands, tools,
  * wiki types, context folders).
@@ -84,7 +84,7 @@ export function loadConfig(repo: string, options: LoadOptions = {}): { config: C
   const candidates: ConfigSource[] = [
     ...(estateRoot && resolve(estateRoot) !== resolve(repo) ? [{ layer: "estate" as const, path: configPath(estateRoot) }] : []),
     { layer: "product", path: configPath(repo) },
-    { layer: "local", path: join(repo, ".claude", "zeno.local.yaml") },
+    { layer: "local", path: join(repo, ".claude", "canon.local.yaml") },
   ];
   const sources = candidates.filter((source) => existsSync(source.path));
   const layers = sources.map((source) => ({ data: readLayer(source.path), base: dirname(dirname(source.path)) }));
@@ -92,7 +92,7 @@ export function loadConfig(repo: string, options: LoadOptions = {}): { config: C
 
   const kind = lastDefined(pick("kind")) ?? inferKind(repo);
   const config: Config = {
-    zeno: lastDefined(pick("zeno")),
+    canon: lastDefined(pick("canon")),
     kind,
     modules: lastDefined(pick("modules")) ?? inferModules(repo, kind),
     expo: Object.assign({}, ...pick("expo")),

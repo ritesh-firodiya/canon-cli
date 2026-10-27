@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.15.0 — 2026-10-27
+
+The CLI and plugin move to their own public repo, `ritesh-firodiya/canon-cli`,
+and ship on npm as `@freetesh/canon` (was `@freetesh/zeno`). The knowledge site
+stays private and depends on this package.
+
+### Added
+
+- `canon pipeline [repo] [--json]`: the repo's stages in order — the estate's
+  `pipeline:` unless the product declares its own — with the first `done` path
+  that exists for each and whether its gate is approved. `--json` is for
+  scripts that measure flow against a product's own stages.
+- `@freetesh/canon/api`: `findEstate`, `findProducts`, `qmdQuery` and
+  `qmdRefresh`, for tools built on canon.
+- Constitution C-12: a change to visibility, licence, package name or repo
+  layout is weighed first, with what each option loses.
+
+### Removed
+
+- `canon site sync` and `canon site serve` — they belong to the knowledge site.
+
+## 0.14.0 — 2026-10-27
+
+### Changed
+
+- zeno is now canon: the CLI, the plugin, `.claude/canon.yaml`, `.canon/`,
+  `CANON_ESTATE` and the `canon:` version pin. One wiki shape (concepts,
+  entities, decisions overwritten in place, surfaces only where real,
+  synthesis), and one check, one search server and one hook.
+
 ## 0.13.0 — 2026-10-27
 
 ### Changed

@@ -22,8 +22,8 @@ export interface RunResult {
 }
 export type CommandRunner = (command: string, args: string[]) => RunResult;
 
-export function listPacks(zenoRoot: string): Pack[] {
-  const root = join(zenoRoot, "packs");
+export function listPacks(canonRoot: string): Pack[] {
+  const root = join(canonRoot, "packs");
   if (!existsSync(root)) return [];
   return readdirSync(root, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && existsSync(join(root, entry.name, "pack.yaml")))
@@ -35,26 +35,26 @@ export function listPacks(zenoRoot: string): Pack[] {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export function findPack(zenoRoot: string, name: string): Pack {
-  const packs = listPacks(zenoRoot);
+export function findPack(canonRoot: string, name: string): Pack {
+  const packs = listPacks(canonRoot);
   const pack = packs.find((candidate) => candidate.name === name);
   if (!pack) throw new Error(`no pack "${name}" — available: ${packs.map((p) => p.name).join(", ")}`);
   return pack;
 }
 
 interface AddOptions {
-  zenoRoot: string;
+  canonRoot: string;
   global?: boolean;
   estateRoot?: string;
 }
 
-/** Records a pack in zeno.yaml (product, or estate with --global), keeping the file's comments and other keys. */
+/** Records a pack in canon.yaml (product, or estate with --global), keeping the file's comments and other keys. */
 export function addPack(repo: string, name: string, options: AddOptions): { file: string; added: boolean } {
-  findPack(options.zenoRoot, name);
-  if (options.global && !options.estateRoot) throw new Error("--global needs an estate (a folder whose zeno.yaml says estate: true)");
+  findPack(options.canonRoot, name);
+  if (options.global && !options.estateRoot) throw new Error("--global needs an estate (a folder whose canon.yaml says estate: true)");
   const base = options.global ? (options.estateRoot as string) : repo;
-  const file = join(base, ".claude", "zeno.yaml");
-  if (!existsSync(file) && !options.global) throw new Error(`${repo} has no .claude/zeno.yaml — run \`zeno init\` first`);
+  const file = join(base, ".claude", "canon.yaml");
+  if (!existsSync(file) && !options.global) throw new Error(`${repo} has no .claude/canon.yaml — run \`canon init\` first`);
 
   const document = parseDocument(existsSync(file) ? readFileSync(file, "utf8") : "");
   const current = (document.get("packs") as { toJSON(): string[] } | undefined)?.toJSON() ?? [];

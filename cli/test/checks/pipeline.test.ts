@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { pipeline } from "../../src/checks/pipeline.ts";
-import { GATES_LOG, readApprovals, recordApproval } from "../../src/pipeline.ts";
+import { GATES_LOG, readApprovals, recordApproval, stagesOf } from "../../src/pipeline.ts";
+import { loadConfig } from "../../src/config/load.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 
@@ -17,7 +18,7 @@ const PIPELINE = [
 const DESIGNS = { ".context/designs/mobile/index.html": "" };
 
 function run(files: Record<string, string>) {
-  return pipeline.run(contextFor(makeTree({ ".claude/zeno.yaml": PIPELINE, ...files })));
+  return pipeline.run(contextFor(makeTree({ ".claude/canon.yaml": PIPELINE, ...files })));
 }
 
 describe("pipeline", () => {
@@ -31,7 +32,7 @@ describe("pipeline", () => {
 
   test("a later stage started before an earlier gate is approved is an error", () => {
     expect(run({ ...DESIGNS, "app.config.ts": "" })).toEqual([
-      expect.objectContaining({ level: "error", file: "app.config.ts", message: expect.stringContaining("zeno approve designs") }),
+      expect.objectContaining({ level: "error", file: "app.config.ts", message: expect.stringContaining("canon approve designs") }),
     ]);
   });
 
@@ -49,7 +50,7 @@ describe("pipeline", () => {
   });
 
   test("an approved gate lets later stages start", () => {
-    const repo = makeTree({ ".claude/zeno.yaml": PIPELINE, ...DESIGNS, "app.config.ts": "" });
+    const repo = makeTree({ ".claude/canon.yaml": PIPELINE, ...DESIGNS, "app.config.ts": "" });
     recordApproval(repo, "designs", "reviewed all screens");
     expect(pipeline.run(contextFor(repo))).toEqual([]);
   });
@@ -65,5 +66,16 @@ describe("approvals", () => {
       expect.objectContaining({ stage: "schema" }),
     ]);
     expect(readFileSync(join(repo, GATES_LOG), "utf8").trim().split("\n")).toHaveLength(2);
+  });
+  test("stagesOf lists every stage in order with where it started and its gate", () => {
+    const repo = makeTree({ ".claude/canon.yaml": PIPELINE, ...DESIGNS, src: "" });
+    recordApproval(repo, "designs", "");
+    const stages = stagesOf(repo, loadConfig(repo, { estateRoot: null }).config.pipeline);
+    expect(stages.map((s) => [s.id, s.startedAt, s.approved])).toEqual([
+      ["designs", ".context/designs/mobile/index.html", true],
+      ["scaffold", null, null],
+      ["schema", null, false],
+      ["build", "src", null],
+    ]);
   });
 });

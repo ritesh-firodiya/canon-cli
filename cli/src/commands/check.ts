@@ -14,7 +14,7 @@ export function registerCheck(program: Command, env: Env): void {
     .option("-q, --quiet", "hide products with no findings")
     .action((repo: string, options: { all?: boolean; json?: boolean; quiet?: boolean }) => {
       const repos = options.all ? findProducts(requireEstate(env)) : [resolve(repo)];
-      const reports = repos.map((path) => runChecks(path, { zenoRoot: env.zenoRoot, estateRoot: options.all ? env.estateRoot : undefined }));
+      const reports = repos.map((path) => runChecks(path, { canonRoot: env.canonRoot, estateRoot: options.all ? env.estateRoot : undefined }));
       console.log(options.json ? JSON.stringify(reports, null, 2) : formatReports(reports, { quiet: options.quiet }));
       process.exitCode = exitCode(reports);
     });
