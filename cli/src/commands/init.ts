@@ -1,7 +1,7 @@
 import { basename, resolve } from "node:path";
 import * as prompts from "@clack/prompts";
 import { Option, type Command } from "commander";
-import { KINDS, MODULES, type Kind } from "../config/schema.ts";
+import { KINDS, kindCovers, MODULES, type Kind } from "../config/schema.ts";
 import { RULES_FILES } from "../checks/architecture.ts";
 import { applyInit, parseChoices, planInit, type InitAnswers, type InitPlan } from "../init.ts";
 import { listPacks, type Pack } from "../packs.ts";
@@ -31,7 +31,7 @@ async function askAnswers(inferred: InitPlan, packs: Pack[]): Promise<Choices | 
     required: false,
   });
   if (cancelled(modules)) return null;
-  const forKind = packs.filter((pack) => pack.kinds.includes(kind));
+  const forKind = packs.filter((pack) => pack.kinds.some((wanted) => kindCovers(kind, wanted)));
   if (forKind.length === 0) return { kind, modules, packs: [] };
   const chosen = await prompts.multiselect({
     message: "Which vendor doc packs? (indexed for search on `canon sync`)",

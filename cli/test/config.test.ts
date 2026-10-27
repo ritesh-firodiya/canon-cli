@@ -1,12 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { findEstate, loadConfig } from "../src/config/load.ts";
+import { kindCovers } from "../src/config/schema.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 describe("loadConfig", () => {
-  test("infers kind expo-app from app.config.ts when there is no canon.yaml", () => {
+  test("infers kind mobile from app.config.ts when there is no canon.yaml", () => {
     const repo = makeTree({ "app.config.ts": "export default {}" });
     const { config } = loadConfig(repo);
-    expect(config.kind).toBe("expo-app");
+    expect(config.kind).toBe("mobile");
     expect(config.modules).toContain("code");
     expect(config.modules).not.toContain("design");
     expect(config.modules).not.toContain("metrics");
@@ -17,9 +18,20 @@ describe("loadConfig", () => {
     expect(loadConfig(makeTree({ "README.md": "" })).config.kind).toBe("content");
   });
 
+  test("infers kind package from a public package.json that ships a CLI or library", () => {
+    expect(loadConfig(makeTree({ "package.json": JSON.stringify({ name: "x", bin: { x: "cli.js" } }) })).config.kind).toBe("package");
+    expect(loadConfig(makeTree({ "package.json": JSON.stringify({ name: "x", private: true, bin: { x: "cli.js" } }) })).config.kind).toBe("content");
+  });
+
+  test("a repo that ships mobile and web counts as both", () => {
+    expect(kindCovers("mobile-and-web", "mobile")).toBe(true);
+    expect(kindCovers("mobile-and-web", "web")).toBe(true);
+    expect(kindCovers("web", "mobile")).toBe(false);
+  });
+
   test("finds the app inside a monorepo's apps/ folder", () => {
     expect(loadConfig(makeTree({ "apps/web/next.config.ts": "" })).config.kind).toBe("web");
-    expect(loadConfig(makeTree({ "apps/mobile/app.config.ts": "", "apps/web/next.config.ts": "" })).config.kind).toBe("expo-app");
+    expect(loadConfig(makeTree({ "apps/mobile/app.config.ts": "", "apps/web/next.config.ts": "" })).config.kind).toBe("mobile-and-web");
   });
 
   test("a repo with .context/designs gets the design module even when inferred as content", () => {

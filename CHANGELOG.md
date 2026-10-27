@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.16.0 — 2026-10-27
+
+### Changed
+
+- Kinds say what a repo ships: `mobile` (was `expo-app`), `web`,
+  `mobile-and-web`, `package` and `content`. `mobile-and-web` gets the packs and
+  the Expo SDK pin of both. A public `package.json` with `bin`, `exports` or
+  `main` is inferred as `package`. Rename `kind: expo-app` to `kind: mobile`.
+- Packs list the new kinds.
+
+### Added
+
+- `kinds:` on a command in `commands:` — it runs only in repos of those kinds.
+
+### Changed (layout)
+
+- One file per check, named by its id; command wiring in `cli/src/commands/`,
+  helpers in `cli/src/lib/`. `scripts/publish.sh` is gone: releases only go
+  through the release workflow.
+
 ## 0.15.0 — 2026-10-27
 
 The CLI and plugin move to their own public repo, `ritesh-firodiya/canon-cli`,

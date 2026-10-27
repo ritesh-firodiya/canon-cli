@@ -1,3 +1,2 @@
-canon: 0.15.0
-kind: content
-modules: [docs, knowledge]
+canon: 0.16.0
+kind: package

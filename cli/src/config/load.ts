@@ -49,12 +49,23 @@ function appRoots(repo: string): string[] {
   return [repo, ...children.map((entry) => join(apps, entry.name))];
 }
 
+/** A root package.json that ships a CLI or exports a library. */
+function isPackage(repo: string): boolean {
+  const file = join(repo, "package.json");
+  if (!existsSync(file)) return false;
+  const pkg = JSON.parse(readFileSync(file, "utf8"));
+  return Boolean(pkg.bin || pkg.exports || pkg.main) && !pkg.private;
+}
+
 export function inferKind(repo: string): Kind {
   const roots = appRoots(repo);
   const anyHas = (markers: string[]) => roots.some((root) => markers.some((file) => existsSync(join(root, file))));
-  if (anyHas(EXPO_MARKERS)) return "expo-app";
-  if (anyHas(WEB_MARKERS)) return "web";
-  return "content";
+  const mobile = anyHas(EXPO_MARKERS);
+  const web = anyHas(WEB_MARKERS);
+  if (mobile && web) return "mobile-and-web";
+  if (mobile) return "mobile";
+  if (web) return "web";
+  return isPackage(repo) ? "package" : "content";
 }
 
 export function inferModules(repo: string, kind: Kind): Module[] {

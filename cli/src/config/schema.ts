@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-export const KINDS = ["expo-app", "web", "content"] as const;
+/** What a repo ships: an app to the stores, a site to the web, both, a package to a registry, or no code at all. */
+export const KINDS = ["mobile", "web", "mobile-and-web", "package", "content"] as const;
 export const MODULES = ["docs", "design", "knowledge", "metrics", "code", "architecture", "listing", "refs"] as const;
 
 /**
@@ -35,6 +36,8 @@ const command = z
     if: z.string().optional(),
     /** Only run in a repo that uses this module. */
     module: z.enum(MODULES).optional(),
+    /** Only run in a repo of one of these kinds. */
+    kinds: z.array(z.enum(KINDS)).optional(),
   })
   .strict();
 
@@ -146,7 +149,15 @@ export interface Config {
 }
 
 export const MODULES_BY_KIND: Record<Kind, Module[]> = {
-  "expo-app": ["docs", "knowledge", "code", "listing", "refs"],
+  mobile: ["docs", "knowledge", "code", "listing", "refs"],
   web: ["docs", "knowledge", "code", "refs"],
+  "mobile-and-web": ["docs", "knowledge", "code", "listing", "refs"],
+  // A package's docs describe other repos' .context/ paths, so refs would flag them.
+  package: ["docs", "knowledge", "code"],
   content: ["docs", "knowledge", "refs"],
 };
+
+/** A repo that ships both counts as mobile and as web: it gets both kinds' packs. */
+export function kindCovers(kind: Kind, wanted: Kind): boolean {
+  return kind === wanted || (kind === "mobile-and-web" && (wanted === "mobile" || wanted === "web"));
+}

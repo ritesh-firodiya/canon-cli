@@ -4,7 +4,7 @@ import { stringify } from "yaml";
 import { RULES_FILES } from "./checks/architecture.ts";
 import { requiredContext } from "./checks/context-layout.ts";
 import { inferKind, inferModules } from "./config/load.ts";
-import { MODULES_BY_KIND, type Kind, type Module } from "./config/schema.ts";
+import { kindCovers, MODULES_BY_KIND, type Kind, type Module } from "./config/schema.ts";
 
 export type Runner = (command: string, args: string[]) => void;
 
@@ -114,7 +114,7 @@ export function planInit(repo: string, answers: InitAnswers): InitPlan {
   }
   const kind = answers.kind ?? inferKind(repo);
   const modules = answers.modules ?? (answers.kind ? MODULES_BY_KIND[kind] : inferModules(repo, kind));
-  const sdk = kind === "expo-app" ? detectExpoSdk(repo) : undefined;
+  const sdk = kindCovers(kind, "mobile") ? detectExpoSdk(repo) : undefined;
   const packs = answers.packs?.length ? { packs: answers.packs } : {};
   const config: InitPlan["config"] = { canon: answers.canonVersion, kind, modules, ...(sdk ? { expo: { sdk } } : {}), ...packs };
 

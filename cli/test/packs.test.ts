@@ -6,7 +6,7 @@ import { makeTree } from "./helpers/fixture.ts";
 
 const canon = () =>
   makeTree({
-    "packs/expo/pack.yaml": "name: expo\ndescription: Expo\nkinds: [expo-app]\nskill: expo-app\ndocs:\n  - https://docs.expo.dev/llms.txt\n",
+    "packs/expo/pack.yaml": "name: expo\ndescription: Expo\nkinds: [mobile]\nskill: expo-app\ndocs:\n  - https://docs.expo.dev/llms.txt\n",
     "packs/react/pack.yaml": "name: react\ndescription: React\nkinds: [web]\ndocs: [https://react.dev/llms.txt]\n",
   });
 
@@ -23,7 +23,7 @@ describe("listPacks", () => {
 
 describe("addPack", () => {
   test("adds the pack to the product canon.yaml, keeping its other keys and comments", () => {
-    const repo = makeTree({ ".claude/canon.yaml": "# mine\nkind: expo-app\n" });
+    const repo = makeTree({ ".claude/canon.yaml": "# mine\nkind: mobile\n" });
     const result = addPack(repo, "expo", { canonRoot: canon() });
     expect(result).toEqual({ file: join(repo, ".claude/canon.yaml"), added: true });
     const text = readFileSync(join(repo, ".claude/canon.yaml"), "utf8");

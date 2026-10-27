@@ -100,6 +100,7 @@ estate: true
 standards: [.canon/standards]       # estate rules; same name replaces a canon default
 commands:                           # your own checkers, run by `canon check`
   - { id: designs, run: ./scripts/check-designs.sh, if: .context/designs, module: design }
+  - { id: designs-first, run: test -d .context/designs, kinds: [mobile, web] }   # only repos that ship screens
 copies:                             # files products copy from one source repo, in named sets
   source: design-system
   sets:
@@ -110,8 +111,8 @@ copies:                             # files products copy from one source repo, 
 
 ```yaml
 # <repo>/.claude/canon.yaml — written by `canon init`
-canon: 0.14.0
-kind: expo-app                      # expo-app | web | content
+canon: 0.16.0
+kind: mobile                        # mobile | web | mobile-and-web | package | content
 modules: [docs, knowledge, code, listing, refs]
 packs: [expo]
 name: Acme                          # how the product is written; `named` copies swap it in

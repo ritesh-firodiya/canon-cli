@@ -1,5 +1,5 @@
 name: firebase
 description: Firebase — auth, Firestore, rules, functions
-kinds: [expo-app, web]
+kinds: [mobile, web]
 docs:
   - https://firebase.google.com/docs/llms.txt

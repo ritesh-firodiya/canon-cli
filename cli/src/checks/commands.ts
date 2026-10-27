@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { kindCovers } from "../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 
 const MAX_OUTPUT_LINES = 15;
@@ -22,6 +23,7 @@ export const commandChecks: Check = {
     return config.commands
       .filter((command) => !command.if || existsSync(join(repo, command.if)))
       .filter((command) => !command.module || config.modules.includes(command.module))
+      .filter((command) => !command.kinds || command.kinds.some((kind) => kindCovers(config.kind, kind)))
       .flatMap((command): Finding[] => {
         const result = spawnSync("sh", ["-c", command.run], { cwd: repo, encoding: "utf8" });
         if (result.error) {

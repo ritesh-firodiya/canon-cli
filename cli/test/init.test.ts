@@ -35,7 +35,7 @@ describe("planInit", () => {
     const plan = planInit(repo, { canonVersion: "0.4.0" });
     expect(plan.config).toEqual({
       canon: "0.4.0",
-      kind: "expo-app",
+      kind: "mobile",
       modules: ["docs", "knowledge", "code", "listing", "refs"],
       expo: { sdk: 57 },
     });

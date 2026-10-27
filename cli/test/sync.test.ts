@@ -7,7 +7,7 @@ import { makeTree } from "./helpers/fixture.ts";
 const canonWith = (version: string) =>
   makeTree({
     ".claude-plugin/plugin.json": JSON.stringify({ version }),
-    "packs/expo/pack.yaml": "name: expo\ndescription: Expo\nkinds: [expo-app]\ndocs: [https://docs.expo.dev/llms.txt]\n",
+    "packs/expo/pack.yaml": "name: expo\ndescription: Expo\nkinds: [mobile]\ndocs: [https://docs.expo.dev/llms.txt]\n",
     "packs/react/pack.yaml": "name: react\ndescription: React\nkinds: [web]\ndocs: [https://react.dev/llms.txt]\n",
   });
 

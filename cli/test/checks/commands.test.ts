@@ -29,6 +29,13 @@ describe("commands (the repo's own checkers, declared in canon.yaml)", () => {
     expect(run({ ".claude/canon.yaml": yaml("docs, code") })).toEqual([expect.objectContaining({ check: "designs-first" })]);
   });
 
+  test("a command with `kinds` runs only in a repo of those kinds; mobile-and-web counts as both", () => {
+    const yaml = (kind: string) => `kind: ${kind}\ncommands:\n  - { id: designs-first, run: 'exit 1', kinds: [mobile, web] }\n`;
+    expect(run({ ".claude/canon.yaml": yaml("package") })).toEqual([]);
+    expect(run({ ".claude/canon.yaml": yaml("web") })).toEqual([expect.objectContaining({ check: "designs-first" })]);
+    expect(run({ ".claude/canon.yaml": yaml("mobile-and-web") })).toEqual([expect.objectContaining({ check: "designs-first" })]);
+  });
+
   test("a command with `if` runs only when that path exists, from the repo root", () => {
     const findings = run({
       ".claude/canon.yaml": "commands:\n  - { id: web, run: 'ls site; exit 1', if: site }\n  - { id: mobile, run: 'exit 1', if: app }\n",
