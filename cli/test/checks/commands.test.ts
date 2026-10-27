@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { commandChecks } from "../../src/checks/external.ts";
+import { commandChecks } from "../../src/checks/commands.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 

@@ -2,8 +2,8 @@ import { spawnSync } from "node:child_process";
 import { chmodSync, existsSync, lstatSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { Command } from "commander";
-import { findProducts } from "../run.ts";
-import { requireEstate, type Env } from "./env.ts";
+import { findProducts } from "../check.ts";
+import { requireEstate, type Env } from "../lib/env.ts";
 
 const MARK = "installed by `canon hooks install`";
 // Hooks written by the tools this command replaced (the estate script, then zeno); they are ours to overwrite.

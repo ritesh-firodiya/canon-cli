@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { metricsDefinitions } from "../../src/checks/metrics.ts";
+import { metricsDefinitions } from "../../src/checks/metrics-definitions.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 

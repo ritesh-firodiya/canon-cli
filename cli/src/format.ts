@@ -1,4 +1,4 @@
-import type { Report } from "./run.ts";
+import type { Report } from "./check.ts";
 
 const MARK = { error: "✗", warn: "!" } as const;
 

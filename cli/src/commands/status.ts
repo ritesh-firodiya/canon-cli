@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import type { Command } from "commander";
 import { buildStatus } from "../status.ts";
-import type { Env } from "./env.ts";
+import type { Env } from "../lib/env.ts";
 
 export function registerStatus(program: Command, env: Env): void {
   program

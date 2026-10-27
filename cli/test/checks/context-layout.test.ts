@@ -3,6 +3,8 @@ import { contextLayout } from "../../src/checks/context-layout.ts";
 import { makeTree, VALID_CONTEXT } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 
+const at = (files: Record<string, string>) => contextFor(makeTree(files), { today: new Date("2026-10-23") });
+
 describe("context-layout", () => {
   test("a complete .context passes", () => {
     expect(contextLayout.run(contextFor(makeTree(VALID_CONTEXT)))).toEqual([]);
@@ -51,5 +53,36 @@ describe("context-layout", () => {
     const { ".context/raw/.gitkeep": _, ...rest } = VALID_CONTEXT;
     const findings = contextLayout.run(contextFor(makeTree({ ...rest, ".context/raw/": "" })));
     expect(findings).toEqual([expect.objectContaining({ level: "warn", file: ".context/raw/.gitkeep" })]);
+  });
+});
+
+describe("context-layout additions", () => {
+  test("empty folders, root strays, docs/, a live product's owed folders and a pointerless AGENTS.md are errors", () => {
+    const messages = contextLayout
+      .run(
+        at({
+          ...VALID_CONTEXT,
+          ".context/designs/old/": "",
+          ".context/ops/release.yml": "web:\n  live:\n    url: x\n",
+          "TODO.md": "",
+          "docs/a.md": "",
+          "AGENTS.md": "# Agents\n",
+        }),
+      )
+      .map((f) => `${f.file}: ${f.message}`);
+    expect(messages).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/designs\/old: empty folder/),
+        ".context/marketing: live (ops/release.yml) but no marketing/",
+        expect.stringMatching(/^TODO.md:/),
+        expect.stringMatching(/^docs\/:/),
+        "AGENTS.md: does not point at .context/tasks.md",
+      ]),
+    );
+  });
+
+  test("live: null owes nothing", () => {
+    const findings = contextLayout.run(at({ ...VALID_CONTEXT, ".context/ops/release.yml": "web:\n  live: null\n" }));
+    expect(findings.filter((f) => /live/.test(f.message))).toEqual([]);
   });
 });

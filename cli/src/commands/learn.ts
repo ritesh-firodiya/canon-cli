@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import { proposals, readDecisions, readVerdicts, recordDecision, summarise } from "../learn.ts";
-import { findProducts } from "../run.ts";
-import { requireEstate, type Env } from "./env.ts";
+import { findProducts } from "../check.ts";
+import { requireEstate, type Env } from "../lib/env.ts";
 
 const DEFAULT_THRESHOLD = 3;
 

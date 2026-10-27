@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import type { Command } from "commander";
 import { compareCopies, syncCopies } from "../checks/shared-files.ts";
 import { loadConfig } from "../config/load.ts";
-import type { Env } from "./env.ts";
+import type { Env } from "../lib/env.ts";
 
 export function registerCopies(program: Command, env: Env): void {
   program

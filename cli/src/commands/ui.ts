@@ -5,9 +5,9 @@ import type { Command } from "commander";
 import { architectureGraph } from "../checks/architecture.ts";
 import { formatReports } from "../format.ts";
 import { CACHE_DIR } from "../lib/system.ts";
-import { findProducts, runChecks } from "../run.ts";
+import { findProducts, runChecks } from "../check.ts";
 import { buildSite, quartzConfig } from "../ui.ts";
-import { requireEstate, type Env } from "./env.ts";
+import { requireEstate, type Env } from "../lib/env.ts";
 
 // Quartz v5 has no tagged release yet, so pin the exact commit: an unpinned
 // clone could change the site under us on the next fresh install.

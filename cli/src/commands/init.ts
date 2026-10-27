@@ -7,7 +7,7 @@ import { applyInit, parseChoices, planInit, type InitAnswers, type InitPlan } fr
 import { listPacks, type Pack } from "../packs.ts";
 import { runCommand } from "../lib/system.ts";
 import { canonVersion } from "../status.ts";
-import type { Env } from "./env.ts";
+import type { Env } from "../lib/env.ts";
 
 function cancelled<T>(value: T | symbol): value is symbol {
   if (!prompts.isCancel(value)) return false;

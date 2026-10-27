@@ -138,6 +138,20 @@ evals/            plugin evals and the fixture product
 cli/              the canon CLI (TypeScript, vitest); `@freetesh/canon/api` for tools built on it
 ```
 
+Inside `cli/src/`:
+
+```
+index.ts          the program: registers every command
+api.ts            what other tools import (`@freetesh/canon/api`)
+commands/         one file per command — options and output only
+checks/           one file per check, named by its id; index.ts lists them
+config/           .claude/canon.yaml: schema, layered loading, estate discovery
+lib/              shared helpers: files, frontmatter, env, qmd, system calls
+<name>.ts         the logic the commands call: check (+ format for its output), init, packs (add), sync, …
+```
+
+Tests mirror it in `cli/test/`.
+
 ## Develop
 
 `pnpm check` runs `canon check` on this repo, the typecheck and every test.

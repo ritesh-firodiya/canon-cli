@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import type { Command } from "commander";
 import { CACHE_DIR, fetchText, runCommand } from "../lib/system.ts";
 import { addPack, fetchPackDocs, findPack, listPacks } from "../packs.ts";
-import { requireEstate, type Env } from "./env.ts";
+import { requireEstate, type Env } from "../lib/env.ts";
 
 export function registerAdd(program: Command, env: Env): void {
   program

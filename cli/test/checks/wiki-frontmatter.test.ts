@@ -89,4 +89,9 @@ describe("wiki-frontmatter", () => {
   test("a product with no wiki has nothing to check", () => {
     expect(run({ "README.md": "" })).toEqual([]);
   });
+
+  test("a last-verified date in the future is an error", () => {
+    const findings = run({ ".context/wiki/concepts/a.md": wikiPage({ "last-verified": "2027-01-01" }) });
+    expect(findings).toEqual([expect.objectContaining({ level: "error", message: expect.stringMatching(/in the future/) })]);
+  });
 });

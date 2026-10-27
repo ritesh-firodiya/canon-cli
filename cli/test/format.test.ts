@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { exitCode, formatReports } from "../src/format.ts";
-import type { Report } from "../src/run.ts";
+import type { Report } from "../src/check.ts";
 
 const report = (name: string, levels: Array<"error" | "warn">): Report => ({
   repo: `/x/${name}`,

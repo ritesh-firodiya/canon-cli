@@ -7,7 +7,7 @@ import { registerCheck } from "./commands/check.ts";
 import { registerCopies } from "./commands/copies.ts";
 import { registerDoctor } from "./commands/doctor.ts";
 import { registerHooks } from "./commands/hooks.ts";
-import type { Env } from "./commands/env.ts";
+import type { Env } from "./lib/env.ts";
 import { registerInit } from "./commands/init.ts";
 import { registerLearn } from "./commands/learn.ts";
 import { registerPipeline } from "./commands/pipeline.ts";
@@ -17,8 +17,8 @@ import { registerSync } from "./commands/sync.ts";
 import { registerUi } from "./commands/ui.ts";
 import { registerWeigh } from "./commands/weigh.ts";
 import { findEstate } from "./config/load.ts";
-import { registerMcp } from "./search/mcp.ts";
-import { registerSearch } from "./search/search.ts";
+import { registerMcp } from "./commands/mcp.ts";
+import { registerSearch } from "./commands/search.ts";
 import { canonVersion } from "./status.ts";
 
 const env: Env = {

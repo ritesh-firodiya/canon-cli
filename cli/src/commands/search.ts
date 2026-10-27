@@ -1,6 +1,6 @@
 // canon search — full-text + semantic search over all knowledge via qmd.
 import type { Command } from 'commander';
-import { qmdQuery } from './qmd.ts';
+import { qmdQuery } from '../lib/qmd.ts';
 
 export function registerSearch(program: Command): void {
   program
