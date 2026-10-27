@@ -54,8 +54,11 @@ It has two halves that read the same config:
   `.context` layout, agent contract). A team adds or replaces them from its own
   folder; a repo can override again. `zeno standards` shows what applies.
 - **Hard rules are checks.** `zeno check` validates layout, wiki frontmatter,
-  stale pages, prices with no canonical home, copied standards, and runs every
-  checker your config declares.
+  stale pages, placeholder text, page and `tasks.md` size caps, prices with no
+  canonical home, copied standards, and runs every checker your config declares.
+- **Context stays small.** A line belongs in `.context/` only if an agent would
+  get something wrong without it. Decisions are one file per topic, overwritten
+  when the choice changes; `tasks.md` holds open work only; history is git's.
 - **Stages stop at their gates.** A `pipeline:` in `zeno.yaml` lists your
   stages in order, with the paths that show each has started. A gated stage
   needs a person to run `zeno approve <stage>` before any later stage starts;
@@ -147,7 +150,7 @@ doctor:
   tools:
     - { tool: pnpm, why: product scripts, hint: npm i -g pnpm }
 wiki:
-  types:                            # added to the six built-in page types
+  types:                            # added to the built-in folders (concepts, entities, decisions, surfaces, synthesis)
     - type: postmortem
       folder: postmortems
       reason: incidents need a timeline and a fix
@@ -159,7 +162,7 @@ context:
 
 ```yaml
 # <repo>/.claude/zeno.yaml — written by `zeno init`
-zeno: 0.9.0
+zeno: 0.11.0
 kind: expo-app                      # expo-app | web | content
 modules: [docs, knowledge, code, listing]   # all optional; design is added when .context/designs exists, metrics only when asked
 packs: [expo]
@@ -179,8 +182,8 @@ carry a `reason:`, and `zeno check` lists every override.
 | zeno default | What it holds |
 |---|---|
 | `constitution.md` | Principles C-01–C-15 a request is weighed against. A team adds C-20+ in its own `constitution.md`. |
-| `wiki-schema.md` | Wiki page types, frontmatter, required sections, lint rules |
-| `context-layout.md` | The `.context/` ten-folder layout, `features/` and `tasks.md` |
+| `wiki-schema.md` | What belongs in the wiki, its folders, decisions, frontmatter and size caps |
+| `context-layout.md` | The `.context/` ten-folder layout, `features/` and `tasks.md` (open work only) |
 | `agent-contract.md` | What every agent does before, during and after work |
 
 ## Packs
