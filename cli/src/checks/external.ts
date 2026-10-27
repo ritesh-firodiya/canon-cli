@@ -21,6 +21,7 @@ export const commandChecks: Check = {
   run({ repo, config }) {
     return config.commands
       .filter((command) => !command.if || existsSync(join(repo, command.if)))
+      .filter((command) => !command.module || config.modules.includes(command.module))
       .flatMap((command): Finding[] => {
         const result = spawnSync("sh", ["-c", command.run], { cwd: repo, encoding: "utf8" });
         if (result.error) {

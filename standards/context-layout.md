@@ -7,7 +7,7 @@ folder.
 
 ```
 <repo>/.context/
-├── README.md        what this is, and which folders are absent and why
+├── README.md        what this is, and where to start
 ├── tasks.md         the ordered queue. The top item is the next action.
 ├── raw/             sources you didn't write. Immutable.
 ├── wiki/            everything you concluded. Schema: wiki-schema.md
@@ -30,7 +30,8 @@ folder.
    with the reason: `context: { folders: [{ folder: research, reason: … }] }`.
    The ten cannot be removed.
 2. **`README.md` and `tasks.md` are the only files at `.context/` root.**
-   `README.md` lists every absent folder as `n/a — <why>`.
+   A repo names only what it uses. Its README, its `zeno.yaml` and its docs never
+   list a folder, file or tool it does without; absence is shown by absence.
 3. **Nothing is created empty.** A folder appears with its first file — git does
    not track empty folders, so a placeholder disappears on clone. `raw/` is the
    one exception and carries a `.gitkeep`.

@@ -96,7 +96,7 @@ const FIRST_FILE: Record<string, string> = {
 function template(file: string): string {
   switch (file) {
     case ".context/README.md":
-      return "# .context\n\nProduct material, in the ten folders of the zeno context layout.\n\n## Absent folders\n\n- listing/ — n/a — no store presence yet\n- marketing/, metrics/, support/, legal/ — n/a — not live yet\n- ops/ — n/a — nothing to run yet\n";
+      return "# .context\n\nProduct material, in the zeno context layout. Start at [`tasks.md`](tasks.md).\n";
     case ".context/tasks.md":
       return "# Tasks\n\n## Now\n\n## Blocked\n\n## Waiting\n";
     case ".context/wiki/index.md":

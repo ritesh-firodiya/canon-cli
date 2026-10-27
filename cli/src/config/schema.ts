@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const KINDS = ["expo-app", "web", "content"] as const;
-export const MODULES = ["docs", "design", "knowledge", "metrics", "code", "architecture", "listing"] as const;
+export const MODULES = ["docs", "design", "knowledge", "metrics", "code", "architecture", "listing", "refs"] as const;
 
 /**
  * The wiki page types every repo has, and the folder each lives in. A repo adds more under `wiki.types`.
@@ -24,12 +24,6 @@ export const CONTEXT_FOLDERS = ["raw", "wiki", "features", "designs", "listing",
 export type Kind = (typeof KINDS)[number];
 export type Module = (typeof MODULES)[number];
 
-const checkOverride = z
-  .object({ enabled: z.boolean().default(true), reason: z.string().min(1).optional() })
-  .refine((check) => check.enabled || check.reason !== undefined, {
-    message: "a check turned off needs a `reason:` — an override nobody can explain is drift",
-  });
-
 const principleId = z.string().regex(/^C-\d{2}$/, "principle IDs look like C-07");
 
 const command = z
@@ -39,6 +33,8 @@ const command = z
     run: z.string().min(1),
     /** Only run when this path exists in the repo. */
     if: z.string().optional(),
+    /** Only run in a repo that uses this module. */
+    module: z.enum(MODULES).optional(),
   })
   .strict();
 
@@ -61,17 +57,13 @@ const wikiType = z
 
 const contextFolder = z.object({ folder: kebab, reason }).strict();
 
-/**
- * A file every product carries a copy of. A plain path is the same path on both sides and every
- * product must carry it or skip it with a reason; an object maps one source file onto product
- * paths that exist only where the product has that part (a design surface, say).
- */
+/** A file copied from the source repo: the same path on both sides, or `from` one path `to` another. */
 const copyFile = z.union([
   z.string().min(1),
   z
     .object({
       from: z.string().min(1),
-      to: z.array(z.string().min(1)).min(1).optional(),
+      to: z.string().min(1).optional(),
       /** Identical except that the source product's name reads as this product's. */
       named: z.boolean().optional(),
       /** Compared only above the first line containing this text; below it is the product's own. */
@@ -79,7 +71,6 @@ const copyFile = z.union([
     })
     .strict(),
 ]);
-const copySkip = z.object({ file: z.string().min(1), reason }).strict();
 
 const stage = z
   .object({
@@ -107,7 +98,6 @@ export const layerSchema = z
     standards: z.array(z.string()),
     commands: z.array(command),
     doctor: z.object({ tools: z.array(tool) }).partial(),
-    checks: z.record(z.string(), checkOverride),
     weigh: z.object({ weights: z.record(principleId, z.number().nonnegative()) }).partial(),
     wiki: z.object({ types: z.array(wikiType) }).partial(),
     context: z.object({ folders: z.array(contextFolder) }).partial(),
@@ -115,8 +105,11 @@ export const layerSchema = z
     pipeline: z.array(stage),
     /** How the product is written in prose, for files shared with only the name changed. */
     name: z.string().min(1),
-    /** Files copied from one source repo into every product, and the ones a product does without. */
-    copies: z.object({ source: z.string().min(1), files: z.array(copyFile), skip: z.array(copySkip) }).partial().strict(),
+    /**
+     * Files copied from one source repo. The estate names sets of them; a product lists the sets it
+     * uses, and only those are held equal to the source.
+     */
+    copies: z.object({ source: z.string().min(1), sets: z.record(kebab, z.array(copyFile).min(1)), use: z.array(kebab) }).partial().strict(),
   })
   .partial()
   .strict();
@@ -128,7 +121,6 @@ export type WikiTypeSpec = z.infer<typeof wikiType>;
 export type ContextFolderSpec = z.infer<typeof contextFolder>;
 export type StageSpec = z.infer<typeof stage>;
 export type CopyFileSpec = z.infer<typeof copyFile>;
-export type CopySkipSpec = z.infer<typeof copySkip>;
 
 export interface Config {
   /** The zeno version this repo was last synced to. */
@@ -141,7 +133,6 @@ export interface Config {
   standards: string[];
   commands: CommandSpec[];
   doctor: { tools: ToolSpec[] };
-  checks: Record<string, { enabled: boolean; reason?: string }>;
   weigh: { weights: Record<string, number> };
   /** Wiki page types added to the built-in six. */
   wiki: { types: WikiTypeSpec[] };
@@ -150,12 +141,12 @@ export interface Config {
   /** Ordered stages; empty when no layer declares one. */
   pipeline: StageSpec[];
   name?: string;
-  /** `source` is absolute, resolved from the layer that set it. */
-  copies: { source?: string; files: CopyFileSpec[]; skip: CopySkipSpec[] };
+  /** `source` is absolute, resolved from the layer that set it. `use` adds up across layers. */
+  copies: { source?: string; sets: Record<string, CopyFileSpec[]>; use: string[] };
 }
 
 export const MODULES_BY_KIND: Record<Kind, Module[]> = {
-  "expo-app": ["docs", "knowledge", "code", "listing"],
-  web: ["docs", "knowledge", "code"],
-  content: ["docs", "knowledge"],
+  "expo-app": ["docs", "knowledge", "code", "listing", "refs"],
+  web: ["docs", "knowledge", "code", "refs"],
+  content: ["docs", "knowledge", "refs"],
 };

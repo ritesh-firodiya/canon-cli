@@ -32,12 +32,6 @@ describe("runChecks", () => {
     expect(report.skipped).toEqual([{ check: "design-only", why: "module design is off" }]);
   });
 
-  test("a check turned off in zeno.yaml is skipped and listed as an override with its reason", () => {
-    const repo = makeTree({ ".claude/zeno.yaml": "checks:\n  always:\n    enabled: false\n    reason: legacy\n" });
-    const report = runChecks(repo, { checks: [always], zenoRoot: repo, estateRoot: repo });
-    expect(report.findings).toEqual([]);
-    expect(report.overrides).toEqual([{ check: "always", reason: "legacy" }]);
-  });
 
   test("a check that throws becomes an error finding instead of crashing the run", () => {
     const repo = makeTree({ "README.md": "" });

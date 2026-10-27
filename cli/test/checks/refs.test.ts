@@ -50,7 +50,7 @@ describe("refs", () => {
         "notes.md": "git show abc:.context/old/a.md\nbuilt to .context/listing/out/\n",
         ".gitignore": ".context/listing/out/\n",
         "scripts/shared.py": "default .context/designs/mobile\n",
-        ".claude/zeno.yaml": "copies:\n  source: ../src\n  files: [scripts/shared.py]\n",
+        ".claude/zeno.yaml": "copies:\n  source: ../src\n  sets:\n    designs: [scripts/shared.py]\n  use: [designs]\n",
       }),
     ).toEqual([]);
   });

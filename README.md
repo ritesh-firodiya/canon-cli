@@ -162,34 +162,33 @@ wiki:
 context:
   folders:                          # added to the ten .context folders
     - { folder: research, reason: interview notes, kept apart from raw/ }
-copies:                             # files every product copies from one source repo
+copies:                             # files products copy from one source repo, in named sets
   source: charades                  # a folder beside the estate config
-  files:
-    - scripts/play-upload.mjs       # same path; a product carries it or skips it
-    - { from: .context/designs/mobile/index.html, to: [.context/designs/mobile/index.html, .context/designs/web/index.html], named: true }
-    - { from: .context/designs/mobile/shared.css, to: [.context/designs/mobile/shared.css], until: "PALETTE — " }
+  sets:
+    play-upload: [scripts/play-upload.mjs]            # the same path on both sides
+    design-shell-web:
+      - { from: .context/designs/mobile/index.html, to: .context/designs/web/index.html, named: true }
+      - { from: .context/designs/mobile/shared.css, to: .context/designs/web/shared.css, until: "PALETTE — " }
 ```
 
 ```yaml
 # <repo>/.claude/zeno.yaml — written by `zeno init`
-zeno: 0.11.0
+zeno: 0.13.0
 kind: expo-app                      # expo-app | web | content
 modules: [docs, knowledge, code, listing]   # all optional; design is added when .context/designs exists, metrics only when asked
 packs: [expo]
-checks:
-  stale-copies: { enabled: false, reason: "Cursor is still used here" }
 weigh:
   weights: { C-05: 2 }
 name: Chitragupt                    # how the product is written; `named` copies swap it in
 copies:
-  skip:                             # shared files this product does without, or keeps its own of
-    - { file: scripts/release-android.mjs, reason: built on EAS from a tag }
+  use: [play-upload, design-shell-web]   # the sets this product uses; only these are held to the source
 ```
 
 Scalars: the most specific layer wins. `packs` and `standards` add up across
 layers; `commands`, `doctor.tools`, `wiki.types` and `context.folders` merge
-by name. Built-in types and folders cannot be removed or redefined. A check turned off must
-carry a `reason:`, and `zeno check` lists every override.
+by name; `copies.use` adds up. Built-in types and folders cannot be removed or
+redefined. A repo names only what it uses: a check applies through the modules
+it turns on, and there is no setting to skip one.
 
 ## Standards
 

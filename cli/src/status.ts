@@ -23,7 +23,6 @@ export function buildStatus(repo: string, options: RunOptions): string {
     `kind     ${config.kind}`,
     `modules  ${config.modules.join(", ")}`,
     `config   ${configLine}`,
-    `checks   ${errors} error${errors === 1 ? "" : "s"}, ${warnings} warning${warnings === 1 ? "" : "s"}` +
-      (report.overrides.length > 0 ? `, ${report.overrides.length} override(s)` : ""),
+    `checks   ${errors} error${errors === 1 ? "" : "s"}, ${warnings} warning${warnings === 1 ? "" : "s"}`,
   ].join("\n");
 }

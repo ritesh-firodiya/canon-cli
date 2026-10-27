@@ -23,6 +23,12 @@ describe("commands (the repo's own checkers, declared in zeno.yaml)", () => {
     ]);
   });
 
+  test("a command with `module` runs only in a repo that uses that module", () => {
+    const yaml = (modules: string) => `modules: [${modules}]\ncommands:\n  - { id: designs-first, run: 'exit 1', module: code }\n`;
+    expect(run({ ".claude/zeno.yaml": yaml("docs") })).toEqual([]);
+    expect(run({ ".claude/zeno.yaml": yaml("docs, code") })).toEqual([expect.objectContaining({ check: "designs-first" })]);
+  });
+
   test("a command with `if` runs only when that path exists, from the repo root", () => {
     const findings = run({
       ".claude/zeno.yaml": "commands:\n  - { id: web, run: 'ls site; exit 1', if: site }\n  - { id: mobile, run: 'exit 1', if: app }\n",

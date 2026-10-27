@@ -23,14 +23,13 @@ export function formatReports(reports: Report[], options: { quiet?: boolean } = 
     errors += count.errors;
     warnings += count.warnings;
     const clean = report.findings.length === 0;
-    if (clean && options.quiet && report.overrides.length === 0) continue;
+    if (clean && options.quiet) continue;
     const summary = clean ? "ok" : `${plural(count.errors, "error")}, ${plural(count.warnings, "warning")}`;
     lines.push(`${report.name}  ${summary}`);
     for (const finding of report.findings) {
       const message = finding.message.replace(/\n/g, "\n      ");
       lines.push(`  ${MARK[finding.level]} ${finding.check}  ${finding.file ?? ""}  ${message}`.replace(/  +$/, ""));
     }
-    for (const override of report.overrides) lines.push(`  override ${override.check}: ${override.reason}`);
   }
   lines.push(`${plural(reports.length, "product")} · ${plural(errors, "error")} · ${plural(warnings, "warning")}`);
   return lines.join("\n");

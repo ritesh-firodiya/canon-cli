@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.13.0 — 2026-10-27
+
+### Changed
+
+- A repo names only what it uses. `copies` is opt-in: the estate defines named
+  `sets`, a product lists the ones it uses under `copies.use`; there is no
+  skip list. The `.context/README.md` no longer lists absent folders, and
+  `zeno init` writes no such section.
+
+### Removed
+
+- `checks: { <id>: { enabled: false, reason } }`. Whether a check applies is
+  decided by the modules a repo turns on; nothing turns one off.
+
 ## 0.12.0 — 2026-10-27
 
 ### Added

@@ -10,7 +10,6 @@ export interface Report {
   name: string;
   findings: Finding[];
   skipped: Array<{ check: string; why: string }>;
-  overrides: Array<{ check: string; reason: string }>;
 }
 
 export interface RunOptions {
@@ -21,7 +20,7 @@ export interface RunOptions {
 }
 
 export function runChecks(repo: string, options: RunOptions): Report {
-  const report: Report = { repo, name: basename(repo), findings: [], skipped: [], overrides: [] };
+  const report: Report = { repo, name: basename(repo), findings: [], skipped: [] };
   if (!isDirectory(repo)) {
     report.findings.push({ check: "repo", level: "error", message: `no folder at ${repo}` });
     return report;
@@ -35,11 +34,6 @@ export function runChecks(repo: string, options: RunOptions): Report {
   }
 
   for (const check of options.checks ?? ALL_CHECKS) {
-    const override = config.checks[check.id];
-    if (override && !override.enabled) {
-      report.overrides.push({ check: check.id, reason: override.reason ?? "" });
-      continue;
-    }
     if (check.module && !config.modules.includes(check.module)) {
       report.skipped.push({ check: check.id, why: `module ${check.module} is off` });
       continue;

@@ -18,13 +18,13 @@ function accessValue(body: string, id: string): string | null {
 export const sources: Check = {
   id: "sources",
   module: "docs",
-  description: "each SOURCE.* page says how to read it (mcp, skill, manual, or a cli in doctor.tools) and has a How to query section",
+  description: "each SOURCE.* entity page says how to read it (mcp, skill, manual, or a cli in doctor.tools) and has a How to query section",
   run({ repo, config }) {
     const tools = new Set(config.doctor.tools.map((tool) => tool.tool));
     return wikiPages(repo).flatMap((file): Finding[] => {
       const { data, body } = parseFrontmatter(readFileSync(join(repo, file), "utf8"));
       const id = String(data?.id ?? "");
-      if (data?.type !== "entity" || !id.startsWith("SOURCE.")) return [];
+      if (!file.startsWith(".context/wiki/entities/") || !id.startsWith("SOURCE.")) return [];
 
       const findings: Finding[] = [];
       const add = (message: string) => findings.push({ check: "sources", level: "error", file, message });

@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, dirname, join, normalize } from "node:path";
+import { usedCopies } from "./shared-files.ts";
 import type { Check, Finding } from "./types.ts";
 
 // A `.context/` path not preceded by something that makes it part of a longer one (another
@@ -33,14 +34,15 @@ function literalPart(token: string, restOfLine: string): string | null {
 
 export const refs: Check = {
   id: "refs",
-  module: null,
+  // A module, not always on: a tool whose docs describe other repos' .context/ (zeno, canon) does not use it.
+  module: "refs",
   description: "every .context/ path a tracked file names exists; a [[link]] names a page (a link to a page not yet written is a note)",
   run({ repo, config }) {
     const listed = git(repo, ["ls-files", "-z"]);
     if (listed.status !== 0) return [];
     const files = listed.stdout.split("\0").filter((file) => file && !BINARY.test(file));
     // A copy of the source repo's file carries the source's paths; the product cannot edit it.
-    const copied = new Set(config.copies.files.flatMap((file) => (typeof file === "string" ? [file] : (file.to ?? [file.from]))));
+    const copied = new Set(usedCopies(config).map((pair) => pair.to));
     const pages = new Set(files.filter((f) => f.startsWith(".context/wiki/") && f.endsWith(".md")).map((f) => basename(f, ".md")));
     const features = new Set(files.flatMap((f) => (FEATURE_FILE.exec(f) ? [`FEAT-${FEATURE_FILE.exec(f)![1]}`] : [])));
     const resolves = (target: string) => pages.has(target) || features.has(target) || existsSync(join(repo, ".context", `${target}.md`));

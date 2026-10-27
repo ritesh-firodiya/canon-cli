@@ -7,7 +7,6 @@ const report = (name: string, levels: Array<"error" | "warn">): Report => ({
   name,
   findings: levels.map((level, i) => ({ check: "c", level, message: `m${i}`, file: `f${i}` })),
   skipped: [],
-  overrides: name === "b" ? [{ check: "c", reason: "why" }] : [],
 });
 
 describe("formatReports", () => {
@@ -17,7 +16,6 @@ describe("formatReports", () => {
     expect(text).toContain("  ✗ c  f0  m0");
     expect(text).toContain("  ! c  f1  m1");
     expect(text).toContain("b  ok");
-    expect(text).toContain("  override c: why");
   });
 
   test("ends with a total line", () => {

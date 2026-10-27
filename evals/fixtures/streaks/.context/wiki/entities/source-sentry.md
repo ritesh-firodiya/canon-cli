@@ -1,7 +1,5 @@
 ---
 id: SOURCE.SENTRY
-type: entity
-status: canonical
 last-verified: 2026-10-20
 ---
 
@@ -20,4 +18,4 @@ Crashes and screen load times from the Streaks app, sent by the Sentry SDK.
 - "Does X crash?" — unresolved issues tagged with the screen, last 30 days.
 
 ## Sources
-- [[2026-10-20-sentry-stats-screen]]
+- `raw/2026-10-20-sentry-stats-screen.md`

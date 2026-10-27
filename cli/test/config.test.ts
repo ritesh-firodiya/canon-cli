@@ -65,21 +65,6 @@ describe("loadConfig", () => {
     expect(loadConfig(`${estate}/app`, { estateRoot: estate }).config.packs).toEqual(["expo", "react"]);
   });
 
-  test("turning a check off without a reason is rejected", () => {
-    const repo = makeTree({ ".claude/zeno.yaml": "checks:\n  stale-copies:\n    enabled: false\n" });
-    expect(() => loadConfig(repo)).toThrow(/reason/);
-  });
-
-  test("turning a check off with a reason is kept as an override", () => {
-    const repo = makeTree({
-      ".claude/zeno.yaml": "checks:\n  stale-copies:\n    enabled: false\n    reason: cursor still used here\n",
-    });
-    expect(loadConfig(repo).config.checks["stale-copies"]).toEqual({
-      enabled: false,
-      reason: "cursor still used here",
-    });
-  });
-
   test("an unknown kind is a clear error naming the file", () => {
     const repo = makeTree({ ".claude/zeno.yaml": "kind: desktop\n" });
     expect(() => loadConfig(repo)).toThrow(/zeno\.yaml.*kind/s);

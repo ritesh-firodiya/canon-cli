@@ -100,7 +100,6 @@ export function loadConfig(repo: string, options: LoadOptions = {}): { config: C
     standards: [...new Set(layers.flatMap((layer) => (layer.data.standards ?? []).map((dir) => resolve(layer.base, dir))))],
     commands: mergeBy(pick("commands").map((list) => list ?? []), (command) => command.id),
     doctor: { tools: mergeBy(pick("doctor").map((doctor) => doctor?.tools ?? []), (tool) => tool.tool) },
-    checks: Object.assign({}, ...pick("checks")),
     weigh: { weights: Object.assign({}, ...pick("weigh").map((weigh) => weigh?.weights)) },
     wiki: { types: mergeBy(pick("wiki").map((wiki) => wiki?.types ?? []), (entry) => entry.type) },
     context: { folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder) },
@@ -108,8 +107,8 @@ export function loadConfig(repo: string, options: LoadOptions = {}): { config: C
     name: lastDefined(pick("name")),
     copies: {
       source: lastDefined(layers.map((layer) => (layer.data.copies?.source ? resolve(layer.base, layer.data.copies.source) : undefined))),
-      files: lastDefined(pick("copies").map((copies) => copies?.files)) ?? [],
-      skip: mergeBy(pick("copies").map((copies) => copies?.skip ?? []), (entry) => entry.file),
+      sets: Object.assign({}, ...pick("copies").map((copies) => copies?.sets)),
+      use: [...new Set(pick("copies").flatMap((copies) => copies?.use ?? []))],
     },
   };
   if (config.name === undefined) delete config.name;
