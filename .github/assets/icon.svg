@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="canon">
-  <rect width="512" height="512" rx="112" fill="#0f6b6b"/>
-  <path d="M152 156H360L152 356H360" fill="none" stroke="#ffffff" stroke-width="60" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M360 156L152 356" fill="none" stroke="#5cc3bd" stroke-width="60" stroke-linecap="round"/>
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Canon">
+  <rect width="24" height="24" rx="6" fill="#10b981"/>
+  <path d="M16.5 8.2a5.2 5.2 0 1 0 0 7.6" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="16.6" cy="12" r="1.5" fill="#ffffff"/>
 </svg>

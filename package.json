@@ -4,6 +4,7 @@
   "description": "canon CLI: keep your domain knowledge and AI rules in your repo, and enforce them.",
   "license": "MIT",
   "author": "Ritesh Firodiya",
+  "homepage": "https://ritesh-firodiya.github.io/products/canon/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ritesh-firodiya/canon-cli.git"

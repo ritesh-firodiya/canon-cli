@@ -1,7 +1,7 @@
 <svg xml:space="preserve" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 640" width="920" height="640" role="img" aria-label="canon weighs a request: two of three claims have no facts, so it pushes back and stops">
   <style>
     text { font-family: Menlo, "SF Mono", Consolas, monospace; font-size: 15px; fill: #e4e8ef; }
-    .dim { fill: #98a2b3; } .you { fill: #f0b75c; } .z { fill: #5cc3bd; font-weight: 700; }
+    .dim { fill: #98a2b3; } .you { fill: #f0b75c; } .canon { fill: #10b981; font-weight: 700; }
     .ok { fill: #6fd08f; } .bad { fill: #f28b82; } .b { font-weight: 700; }
   </style>
   <rect width="920" height="640" rx="14" fill="#11151b"/>
@@ -11,7 +11,7 @@
   <text x="28" y="72"><tspan class="you">&gt; </tspan>Add an "Add expense" button so users can type in cash spends.</text>
   <text x="28" y="94">  Users keep asking for it, and it will improve retention.</text>
 
-  <text x="28" y="134"><tspan class="z">canon </tspan><tspan class="dim">I have not started. First I checked what you said against the repo.</tspan></text>
+  <text x="28" y="134"><tspan class="canon">canon </tspan><tspan class="dim">I have not started. First I checked what you said against the repo.</tspan></text>
 
   <text x="28" y="172" class="b">Verdict: <tspan class="bad">PUSH BACK</tspan></text>
   <text x="28" y="194">Goal: let users track cash spends</text>
@@ -27,9 +27,9 @@
   <text x="28" y="438">Assumed: users ask for it; it helps retention</text>
 
   <text x="28" y="482" class="bad b">● Stopped. Pick one to go on:</text>
-  <text x="28" y="508">  <tspan class="z">A</tspan>  Bring the facts. Add the feedback to .context/raw/, name a metric.</text>
-  <text x="28" y="530">  <tspan class="z">B</tspan>  Change the rule. I list the terms; nothing starts until you agree.</text>
-  <text x="28" y="552">  <tspan class="z">C</tspan>  Drop it.</text>
+  <text x="28" y="508">  <tspan class="canon">A</tspan>  Bring the facts. Add the feedback to .context/raw/, name a metric.</text>
+  <text x="28" y="530">  <tspan class="canon">B</tspan>  Change the rule. I list the terms; nothing starts until you agree.</text>
+  <text x="28" y="552">  <tspan class="canon">C</tspan>  Drop it.</text>
 
   <text x="28" y="606" class="dim">Real repo facts from products/chitragupt, 2026-10-25.</text>
 </svg>
