@@ -84,12 +84,13 @@ describe("loadConfig", () => {
 
   test("standards add up across layers, resolved from the folder that holds .claude/", () => {
     const estate = makeTree({
-      ".claude/canon.yaml": "estate: true\nstandards: [rules]\n",
-      "app/.claude/canon.yaml": "standards: [docs/rules]\n",
+      ".claude/canon.yaml": "estate: true\nstandards: [./rules]\n",
+      "app/.claude/canon.yaml": "standards: [docs/rules, design-sets]\n",
     });
     expect(loadConfig(`${estate}/app`, { estateRoot: estate }).config.standards).toEqual([
       `${estate}/rules`,
       `${estate}/app/docs/rules`,
+      "design-sets",
     ]);
   });
 

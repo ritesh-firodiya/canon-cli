@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.17.0 — 2026-10-27
+
+### Added
+
+- A standards library a repo imports by name: `standards: [design-sets,
+  pipeline, expo, frontend, performance, secrets, store-listing]`. A library
+  standard may add principles (`pipeline` adds C-16 and C-17). A folder of a
+  repo's own rules is a path (`./rules`); a bare name is always a library name.
+- The `designs` check (module `design`): canon runs its design-set checker
+  (`scripts/check-designs.py`, needs python3) on every surface under
+  `.context/designs/` that has a `routes.js`. Repos no longer carry a copy.
+
 ## 0.16.0 — 2026-10-27
 
 ### Changed

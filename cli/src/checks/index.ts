@@ -5,6 +5,7 @@ import { contextSize } from "./context-size.ts";
 import { staleCopies } from "./stale-copies.ts";
 import { standardsCopies } from "./standards-copies.ts";
 import { commandChecks } from "./commands.ts";
+import { designs } from "./designs.ts";
 import { features } from "./features.ts";
 import { listing } from "./listing.ts";
 import { metricsDefinitions } from "./metrics-definitions.ts";
@@ -32,5 +33,6 @@ export const ALL_CHECKS: Check[] = [
   metricsDefinitions,
   sources,
   pipeline,
+  designs,
   commandChecks,
 ];

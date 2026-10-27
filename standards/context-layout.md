@@ -24,8 +24,9 @@ folder.
 ## Rules
 
 1. **Ten folders, one job each.** There is no `documents/`, `research/`,
-   `architecture/` or `decisions/` folder: a research brief is a wiki synthesis
-   page, an architecture note is a wiki concept, an ADR is `wiki/decisions/`.
+   `architecture/`, `decisions/` or `email-templates/` folder: a research brief
+   is a wiki synthesis page, an architecture note is a wiki concept, an ADR is
+   `wiki/decisions/`, a transactional email is HTML in `designs/`.
    A product that truly needs another folder adds it in `.claude/canon.yaml`,
    with the reason: `context: { folders: [{ folder: research, reason: … }] }`.
    The ten cannot be removed.
@@ -38,7 +39,8 @@ folder.
 4. **One home per artifact; everything else is an export.** Source art lives in
    `designs/`; store images and press kits are generated from it.
 5. **Authored vs generated is visible.** A generated file is committed but never
-   hand-edited.
+   hand-edited. Its source is a hand-written file such as `marketing/context.md`,
+   `metrics/definitions.yml` or `metrics/events.yml`.
 
 ## What a repo is expected to have
 
@@ -53,7 +55,8 @@ folder.
 
 ## Naming and frontmatter
 
-- Dated sources (`raw/`) → ISO date: `YYYY-MM-DD-slug.md`.
+- Dated sources (`raw/`) → ISO date: `YYYY-MM-DD-slug.md`. Month-grain data
+  keeps `YYYY-MM.csv`.
 - Features → zero-padded number: `NNNN-slug.md`.
 - Everything else is named by topic and edited in place.
 - Frontmatter: `last-verified`, kebab-case keys. See the wiki schema.
@@ -74,9 +77,39 @@ separate folder per name.
 | Know-how | `wiki/concepts/`; `ops/` when it is a runbook |
 | Bug | the issue tracker; a wiki concept only when it teaches a rule |
 | Data source | `wiki/entities/` — see the wiki schema, "Data sources" |
+| Setup notes (account IDs, console links, where credentials live) | `ops/setup.md` |
+| What is live right now, per surface | `ops/release.yml` |
+| Runbook | `ops/runbooks/<slug>.md` |
+| Incident | `ops/incidents/YYYY-MM-DD-<slug>.md` |
+| Dated engineering narrative | `CHANGELOG.md` at the repo root |
 
 If a document fits none of these for a real product, add a wiki type or a
 folder in `.claude/canon.yaml` with its reason — not a new convention by hand.
+
+## Inside the folders
+
+A folder holds only what it uses; these are the usual names.
+
+```
+marketing/   context.md (identity, goals, markets) · brand/ (WORDS only — art is in designs/brand/)
+             posts/ · video/ · launch/ · press/ (press/media/ is an export of designs/brand/)
+metrics/     definitions.yml (the KPI dictionary) · events.yml (what each event means)
+             history/YYYY-MM.csv (metric,period,value)
+support/     SUPPORT.md · faq/ · replies/ · reviews/
+legal/       privacy policy · terms · data deletion
+ops/         release.yml · setup.md · runbooks/ · incidents/
+```
+
+## Repo root
+
+These stay at the root, because a host renders them or a tool reads them by
+exact path: `README.md` · `LICENSE` · `CHANGELOG.md` · `CONTRIBUTING.md` ·
+`SECURITY.md` · `CLAUDE.md` · `AGENTS.md` · `.github/`.
+
+`TODO.md`, `STATUS.md` and `SETUP.md` do not. `SETUP.md` becomes `ops/setup.md`.
+The other two are not single documents, so split them: the backlog goes to
+`tasks.md`, what is live to `ops/release.yml`, the dated narrative to
+`CHANGELOG.md`, canonical values to `wiki/entities/`, a how-to to `ops/runbooks/`.
 
 ## `features/` — what is next
 
@@ -88,7 +121,9 @@ id: FEAT-0031
 type: feature             # feature | experiment | chore | platform
 status: building          # planned | building | shipped | shelved | superseded
 last-verified: 2026-04-02
-release: 3.4.0
+release: 3.4.0            # ties to CHANGELOG.md and the release notes
+superseded-by: null
+surfaces: ["[[settings-screen]]"]
 ---
 ## Summary · ## Motivation · ## Acceptance scenarios (Given/When/Then)
 ## Out of scope · ## Open questions
@@ -100,7 +135,7 @@ An experiment adds `## Hypothesis`, `## Metric` (a name from
 `metrics/definitions.yml`) and `## Result` once it has run.
 
 The wiki describes what *is*; `features/` describes what is *next*. A shipped
-feature goes `status: shipped`.
+feature goes `status: shipped` and is never deleted, so the reasoning survives.
 
 ## `tasks.md` — open work only
 

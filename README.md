@@ -47,9 +47,11 @@ is a separate paid product built on this CLI.
   listing tree, dead `.context/` paths, prices with no canonical home, shared
   files, the import architecture, pipeline gates, and every checker your config
   declares. `canon hooks install` makes every push run it.
-- **Standards with one home.** canon ships defaults; an estate adds or replaces
-  them from its own folder; a repo can override again. `canon standards` shows
-  what applies.
+- **Standards with one home.** canon ships defaults every repo follows, and a
+  library a repo imports by name (`standards: [design-sets, pipeline]`): design
+  sets, the build pipeline, Expo, frontend, performance, secrets, store listings.
+  A repo's own rules can sit in a folder it adds. `canon standards` shows what
+  applies.
 - **A repo names only what it uses.** Modules, packs and shared-file sets are
   opt-in; there is no skip list and no setting that turns a check off.
 
@@ -97,9 +99,8 @@ repo whose `canon.yaml` says `estate: true`, or `CANON_ESTATE`.
 ```yaml
 # <estate>/.claude/canon.yaml — shared by every repo below it
 estate: true
-standards: [.canon/standards]       # estate rules; same name replaces a canon default
 commands:                           # your own checkers, run by `canon check`
-  - { id: designs, run: ./scripts/check-designs.sh, if: .context/designs, module: design }
+  - { id: lint-copy, run: ./scripts/lint-copy.sh, if: .context/designs, module: design }
   - { id: designs-first, run: test -d .context/designs, kinds: [mobile, web] }   # only repos that ship screens
 copies:                             # files products copy from one source repo, in named sets
   source: design-system
@@ -111,8 +112,9 @@ copies:                             # files products copy from one source repo, 
 
 ```yaml
 # <repo>/.claude/canon.yaml — written by `canon init`
-canon: 0.16.0
+canon: 0.17.0
 kind: mobile                        # mobile | web | mobile-and-web | package | content
+standards: [design-sets, pipeline, expo]   # canon's library standards this repo follows; ./rules adds a folder of its own
 modules: [docs, knowledge, code, listing, refs]
 packs: [expo]
 name: Acme                          # how the product is written; `named` copies swap it in

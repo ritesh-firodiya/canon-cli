@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { parse } from "yaml";
-import { MODULES_BY_KIND, layerSchema, type Config, type Kind, type Layer, type Module } from "./schema.ts";
+import { isStandardName, MODULES_BY_KIND, layerSchema, type Config, type Kind, type Layer, type Module } from "./schema.ts";
 
 export interface ConfigSource {
   layer: "estate" | "product" | "local";
@@ -108,7 +108,7 @@ export function loadConfig(repo: string, options: LoadOptions = {}): { config: C
     modules: lastDefined(pick("modules")) ?? inferModules(repo, kind),
     expo: Object.assign({}, ...pick("expo")),
     packs: [...new Set(pick("packs").flatMap((packs) => packs ?? []))].sort(),
-    standards: [...new Set(layers.flatMap((layer) => (layer.data.standards ?? []).map((dir) => resolve(layer.base, dir))))],
+    standards: [...new Set(layers.flatMap((layer) => (layer.data.standards ?? []).map((entry) => (isStandardName(entry) ? entry : resolve(layer.base, entry)))))],
     commands: mergeBy(pick("commands").map((list) => list ?? []), (command) => command.id),
     doctor: { tools: mergeBy(pick("doctor").map((doctor) => doctor?.tools ?? []), (tool) => tool.tool) },
     weigh: { weights: Object.assign({}, ...pick("weigh").map((weigh) => weigh?.weights)) },

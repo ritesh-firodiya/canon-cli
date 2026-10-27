@@ -22,6 +22,11 @@ export const REMOVED_WIKI_FOLDERS: Record<string, string> = {
 /** The `.context/` folders every repo may have. A repo adds more under `context.folders`. */
 export const CONTEXT_FOLDERS = ["raw", "wiki", "features", "designs", "listing", "marketing", "metrics", "support", "legal", "ops"];
 
+/** A `standards:` entry naming a library standard rather than a folder path. */
+export function isStandardName(entry: string): boolean {
+  return /^[a-z0-9-]+$/.test(entry);
+}
+
 export type Kind = (typeof KINDS)[number];
 export type Module = (typeof MODULES)[number];
 
@@ -97,7 +102,7 @@ export const layerSchema = z
     modules: z.array(z.enum(MODULES)),
     expo: z.object({ sdk: z.number().int().positive() }).partial(),
     packs: z.array(z.string().regex(/^[a-z0-9-]+$/, "pack names are lowercase-kebab")),
-    /** Folders of extra standards, relative to the folder that holds `.claude/`. */
+    /** Standards to add: a bare name imports canon's library standard (`design-sets`); a path (`./rules`) is a folder of the repo's own. */
     standards: z.array(z.string()),
     commands: z.array(command),
     doctor: z.object({ tools: z.array(tool) }).partial(),
@@ -132,7 +137,7 @@ export interface Config {
   modules: Module[];
   expo?: { sdk?: number };
   packs: string[];
-  /** Absolute standards folders, estate first; a later file of the same name wins. */
+  /** Library standard names and absolute folders, estate first; a later file of the same name wins. */
   standards: string[];
   commands: CommandSpec[];
   doctor: { tools: ToolSpec[] };
