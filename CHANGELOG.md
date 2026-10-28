@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- `designs-first` only applies to a repo that imports the `design-sets`
+  standard. A repo that designs outside the repo (Figma, a design team) no
+  longer fails for having no `.context/designs/`.
+- `context-layout` no longer asks `AGENTS.md` to point at `.context/tasks.md`
+  when `.context/` is gitignored.
+- `stale-copies` no longer warns about a Copilot, Cursor or Windsurf file that is
+  a short pointer: at most 15 lines and mentions `AGENTS.md`.
+
 ## 0.18.1 — 2026-10-28
 
 ### Fixed

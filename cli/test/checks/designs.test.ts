@@ -30,14 +30,21 @@ describe("designs-first", () => {
     return designsFirst.run(contextFor(repo, { config: loadConfig(repo).config }));
   };
 
-  test("a mobile or web repo with no .context/designs is an error", () => {
-    expect(run({ "app.config.ts": "" })).toEqual([expect.objectContaining({ check: "designs-first", level: "error" })]);
-    expect(run({ ".claude/canon.yaml": "kind: mobile-and-web\n" })).toHaveLength(1);
+  const onDesignSets = (yaml = "") => ({ ".claude/canon.yaml": `${yaml}standards: [design-sets]\n` });
+
+  test("a mobile or web repo on design-sets with no .context/designs is an error", () => {
+    expect(run({ ...onDesignSets(), "app.config.ts": "" })).toEqual([expect.objectContaining({ check: "designs-first", level: "error" })]);
+    expect(run(onDesignSets("kind: mobile-and-web\n"))).toHaveLength(1);
   });
 
   test("passes once the designs exist, and never applies to a package or content repo", () => {
-    expect(run({ "next.config.ts": "", ".context/designs/web/routes.js": "" })).toEqual([]);
-    expect(run({ ".claude/canon.yaml": "kind: package\n" })).toEqual([]);
-    expect(run({ "README.md": "" })).toEqual([]);
+    expect(run({ ...onDesignSets(), "next.config.ts": "", ".context/designs/web/routes.js": "" })).toEqual([]);
+    expect(run(onDesignSets("kind: package\n"))).toEqual([]);
+    expect(run({ ...onDesignSets(), "README.md": "" })).toEqual([]);
+  });
+
+  test("a repo that does not import design-sets designs elsewhere and is not asked for .context/designs", () => {
+    expect(run({ "app.config.ts": "" })).toEqual([]);
+    expect(run({ ".claude/canon.yaml": "kind: mobile-and-web\nstandards: [pipeline]\n" })).toEqual([]);
   });
 });

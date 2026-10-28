@@ -77,8 +77,9 @@ export const contextLayout: Check = {
       findings.push(finding("error", "store.config.json", "two Apple listings — .context/listing/ios/ is the one source"));
     }
     // Without the pointer the whole .context/ tree is invisible to an agent.
+    // An untracked .context/ cannot be pointed at from a committed AGENTS.md without leaking it.
     const agents = join(repo, "AGENTS.md");
-    if (existsSync(agents) && !readFileSync(agents, "utf8").includes("tasks.md")) {
+    if (existsSync(agents) && !ignored(repo, context) && !readFileSync(agents, "utf8").includes("tasks.md")) {
       findings.push(finding("error", "AGENTS.md", "does not point at .context/tasks.md"));
     }
     return findings;

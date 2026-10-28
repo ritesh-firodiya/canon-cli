@@ -9,4 +9,12 @@ describe("stale-copies", () => {
     const files = staleCopies.run(contextFor(repo)).map((f) => f.file);
     expect(files).toEqual([".github/copilot-instructions.md", ".cursorrules"]);
   });
+
+  test("a short pointer to AGENTS.md is not a copy; a long one still is", () => {
+    const pointer = "Read AGENTS.md at the repo root.\n";
+    const long = `See AGENTS.md.\n${"rule\n".repeat(15)}`;
+    const repo = makeTree({ ".github/copilot-instructions.md": pointer, ".cursorrules": long, ".windsurfrules": "short, no pointer\n" });
+    const files = staleCopies.run(contextFor(repo)).map((f) => f.file);
+    expect(files).toEqual([".cursorrules", ".windsurfrules"]);
+  });
 });

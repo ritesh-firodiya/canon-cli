@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { describe, expect, test } from "vitest";
 import { contextLayout } from "../../src/checks/context-layout.ts";
 import { makeTree, VALID_CONTEXT } from "../helpers/fixture.ts";
@@ -79,6 +80,12 @@ describe("context-layout additions", () => {
         "AGENTS.md: does not point at .context/tasks.md",
       ]),
     );
+  });
+
+  test("AGENTS.md need not point at .context/tasks.md when .context/ is gitignored", () => {
+    const ctx = at({ ...VALID_CONTEXT, "AGENTS.md": "# Agents\n", ".gitignore": ".context/\n" });
+    execFileSync("git", ["init", "-q"], { cwd: ctx.repo });
+    expect(contextLayout.run(ctx).filter((f) => f.file === "AGENTS.md")).toEqual([]);
   });
 
   test("live: null owes nothing", () => {

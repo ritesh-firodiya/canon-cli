@@ -34,12 +34,14 @@ export const designs: Check = {
   },
 };
 
-/** A repo with screens draws them first (pipeline stage 1): a mobile or web repo keeps .context/designs/. */
+/** A repo that follows design-sets draws its screens first (pipeline stage 1): a mobile or web repo keeps .context/designs/. */
 export const designsFirst: Check = {
   id: "designs-first",
   module: null,
-  description: "a mobile or web repo draws its screens in .context/designs/ before any code",
+  description: "a mobile or web repo on the design-sets standard draws its screens in .context/designs/ before any code",
   run({ repo, config }) {
+    // A repo that designs outside the repo (Figma, a design team) keeps no HTML sets.
+    if (!config.standards.includes("design-sets")) return [];
     const hasScreens = kindCovers(config.kind, "mobile") || kindCovers(config.kind, "web");
     if (!hasScreens || existsSync(join(repo, DESIGNS))) return [];
     return [{ check: "designs-first", level: "error", file: DESIGNS, message: "no .context/designs yet — stage 1 (HTML designs) comes before any code" }];
