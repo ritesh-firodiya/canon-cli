@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.18.1 — 2026-10-28
+
+### Fixed
+
+- `canon check` in a clone of one repo (CI) no longer fails every copy set when
+  `copies.source` is not checked out beside it. It gives one warning instead;
+  where the source exists, a wrong set name is still an error.
+
 ## 0.18.0 — 2026-10-27
 
 ### Removed

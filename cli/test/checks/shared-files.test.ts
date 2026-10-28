@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { sharedFiles, syncCopies } from "../../src/checks/shared-files.ts";
@@ -68,6 +68,13 @@ describe("shared-files", () => {
   test("a shared block whose marker is gone is drift that --sync leaves alone", () => {
     const repo = workspace(["shell-web"], { ...SHELL, "designs/web/shared.css": "everything mixed\n" });
     expect(run(repo)).toHaveLength(1);
+    expect(syncCopies(repo, loadConfig(repo).config)).toEqual([]);
+  });
+
+  test("a source that is not checked out (a CI clone of one repo) is a warning, not a wall of errors", () => {
+    const repo = workspace(["upload", "shell-web"], {});
+    rmSync(join(repo, "..", "source"), { recursive: true });
+    expect(run(repo)).toEqual([expect.objectContaining({ level: "warn", message: expect.stringMatching(/^source is not checked out/) })]);
     expect(syncCopies(repo, loadConfig(repo).config)).toEqual([]);
   });
 

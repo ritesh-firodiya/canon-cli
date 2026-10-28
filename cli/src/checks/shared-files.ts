@@ -37,7 +37,7 @@ function split(text: string, marker: string): { shared: string; own: string } | 
 
 export interface CopyState {
   pair: Pair;
-  state: "same" | "drift" | "missing" | "unknown-set" | "no-source" | "unnamed";
+  state: "same" | "drift" | "missing" | "unknown-set" | "no-source" | "unnamed" | "no-checkout";
   /** What the product file should hold; set for a drift --sync can repair. */
   want?: string;
 }
@@ -46,6 +46,8 @@ export interface CopyState {
 export function compareCopies(repo: string, config: Config): CopyState[] {
   const { source, sets, use } = config.copies;
   if (use.length === 0 || !source || resolve(source) === resolve(repo)) return [];
+  // A clone of one repo (CI) has no source beside it: nothing can be compared, so say that once.
+  if (!existsSync(source)) return [{ pair: { set: use.join(", "), from: "", to: source, named: false }, state: "no-checkout" }];
   const unknown = use.filter((set) => !sets[set]).map((set): CopyState => ({ pair: { set, from: "", to: "", named: false }, state: "unknown-set" }));
   const productName = nameOf(repo, config);
   const sourceName = nameOf(source, loadConfig(source).config);
@@ -87,6 +89,7 @@ export const sharedFiles: Check = {
     const source = config.copies.source ? basename(config.copies.source) : "copies.source";
     return compareCopies(repo, config).flatMap(({ pair, state }): Finding[] => {
       const finding = (file: string, message: string): Finding[] => [{ check: "shared-files", level: "error", file, message }];
+      if (state === "no-checkout") return [{ check: "shared-files", level: "warn", file: ".claude/canon.yaml", message: `${source} is not checked out at ${pair.to}; sets ${pair.set} were not compared` }];
       if (state === "unknown-set") return finding(".claude/canon.yaml", `copies.use names ${pair.set}, which no copies.sets defines`);
       if (state === "no-source") return finding(pair.to, `${source} has no ${pair.from} (set ${pair.set})`);
       if (state === "missing") return finding(pair.to, `missing — set ${pair.set} is in use; copy it from ${source}`);
