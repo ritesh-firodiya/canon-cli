@@ -1,9 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.18.2 — 2026-10-28
 
 ### Changed
 
+- The `frontend` standard and the `weigh` skill defer to the `frontend-design`
+  plugin when it is installed, the same way `weigh` defers to `ponytail`. The
+  repo's own design-system rules still win on a conflict.
 - `designs-first` only applies to a repo that imports the `design-sets`
   standard. A repo that designs outside the repo (Figma, a design team) no
   longer fails for having no `.context/designs/`.
