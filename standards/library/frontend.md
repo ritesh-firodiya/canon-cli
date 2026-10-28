@@ -3,6 +3,10 @@
 Rules for every `.tsx` file in a React Native or React app, new or touched.
 Opt in with `standards: [frontend]`.
 
+If the `frontend-design` plugin is installed, follow it for new UI and UX
+writing — but this repo's design-system rules (tokens, components,
+conventions) win on any conflict.
+
 These are not style preferences and there is no "I'll split it later". **Plan
 the files before writing the screen**: list the components, hooks and helpers a
 screen needs, then write each in its own file. A screen written as one file and

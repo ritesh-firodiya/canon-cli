@@ -78,7 +78,8 @@ product's `.claude/canon.yaml` may tighten this under `weigh.trivial`.
    delete it → reuse something in this repo → reuse from a sibling product or
    shared script → platform or standard library → an existing well-used package
    → fewer lines → new code. If the `ponytail` plugin is installed, follow its
-   ladder for this step.
+   ladder for this step. If the `frontend-design` plugin is installed, follow its
+   design guidance when the work includes building or reshaping UI.
 
 8. **Too-large, or the user asked for a second opinion?** Then, and only then,
    ask the `challenger` agent for an independent read. It costs tens of
