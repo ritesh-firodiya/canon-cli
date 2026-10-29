@@ -12,9 +12,14 @@ CANON_FLOW_FORMERLY (each product's older folder names, from `formerly:` in its 
 The transcripts live in ~/.claude/projects and CI cannot see them, so this
 runs here and the product repo carries the result.
 
-A conversation is a transcript with at least one typed request. Its commits
-are the repo commits made within MATCH_SECONDS of a `git commit` it ran (rtk
-prints "ok", not the hash, so time is the link). What each stage needs:
+A conversation is a transcript with at least one typed request. It is about a
+product when it worked in that product's folder; one that named no product
+folder at all may still be, through its commits. Its commits are the repo
+commits made within MATCH_SECONDS of a `git commit` it ran (rtk prints "ok",
+not the hash, so time is the link). Time alone never ties a conversation that
+worked in other products to this one: estate-wide chores commit to every repo
+at once, and would credit each product with the others' conversations.
+What each stage needs:
 
   idea          the conversation exists
   research      it searched or fetched the web, or a commit touched
@@ -48,7 +53,8 @@ RELEASE_TAG = re.compile(r"^(?:[a-z]+-)?v(\d+\.\d+(?:\.\d+)?)")
 WEB_TOOLS = {"WebSearch", "WebFetch"}
 # A renamed product's conversations under its old folder name are still about it.
 ALIASES = json.loads(os.environ.get("CANON_FLOW_FORMERLY") or "{}")
-PRODUCT_PATH = re.compile(re.escape(PRODUCTS) + r"/([A-Za-z0-9._-]+)")
+# A product folder named in full or from ~ ("~/git/products/chess").
+PRODUCT_PATH = re.compile(r"(?:" + re.escape(PRODUCTS) + "|" + re.escape(PRODUCTS.replace(os.path.expanduser("~"), "~", 1)) + r")/([A-Za-z0-9._-]+)")
 KNOWN = ["idea", "research", "plan", "design", "code", "review", "release", "store-review", "deployed", "live"]
 TOUCH = {
     "research": (".context/raw/", ".context/wiki/synthesis/"),
@@ -105,6 +111,14 @@ def read_session(path):
     if not times or asks == 0:
         return None
     return {"start": min(times), "calls": commits, "web": web, "where": where}
+
+
+def belongs(where, names, known):
+    """Whether a conversation can be about a product: it worked in the product's folder, or in no
+    product folder (then only its commits can tie it). `where` also catches files like CLAUDE.md,
+    so only names that are product repos count."""
+    products = where & known
+    return bool(products & names) or not products
 
 
 def all_sessions():
@@ -258,9 +272,12 @@ def flow(product, sessions):
     commits = [(h, ts(d)) for h, d in log]
     facts = repo_facts(repo)
     names = {product, *ALIASES.get(product, [])}
+    known = {d for d in os.listdir(PRODUCTS) if os.path.isdir(os.path.join(PRODUCTS, d, ".git"))} | names
 
     furthest, waits, first = [], {f"{a}→{b}": [] for a, b in zip(stages, stages[1:])}, None
     for path, s in sessions.items():
+        if not belongs(s["where"], names, known):
+            continue
         mine = [c for c in commits if any(abs((c[1] - t).total_seconds()) <= MATCH_SECONDS for t in s["calls"])]
         if not (s["where"] & names) and not mine:
             continue  # never worked in this product's folder, under any of its names, nor committed to it
@@ -287,6 +304,9 @@ def self_check():
     assert COMMIT_CALL.search('git -C askcal commit -m "x"') and COMMIT_CALL.search("git commit -q -F -")
     assert not COMMIT_CALL.search("git status; echo commit")
     assert day("2026-10-27").hour == 0 and day("2026-09-30T17:43:43+00:00").hour == 17
+    assert belongs({"chess", "CLAUDE.md"}, {"chess"}, {"chess", "babul"}) and belongs({"CLAUDE.md"}, {"chess"}, {"chess", "babul"})
+    assert not belongs({"babul", "bin"}, {"chess"}, {"chess", "babul"})
+    assert PRODUCT_PATH.findall(f"cd {PRODUCTS}/chess && git -C ~/git/products/babul status".replace("~/git/products", PRODUCTS.replace(os.path.expanduser("~"), "~", 1))) == ["chess", "babul"]
     assert version_of("2.0.1 (15)") == "2.0.1" and version_of({"version": "1.4.3"}) == "1.4.3" and version_of(None) is None
 
 
