@@ -21,6 +21,7 @@ Decision: `$ARGUMENTS`
    **Choice:** <one or two lines; link values to their entity page>
    **Why:** <the trigger: data, incident, user feedback, cost>
    **Rejected:** <option (why)> · <option (why)>
+   **Revisit:** <only for a deferred option: the fact that would reopen it>
    ```
 
    When changing an existing decision, replace the choice and why, and move the

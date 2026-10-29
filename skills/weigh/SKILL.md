@@ -1,6 +1,6 @@
 ---
 name: weigh
-description: Decision gate run BEFORE acting on a non-trivial request in a product repo — a new feature, screen or product, a new dependency or library, a migration or rewrite, a schema, money, pricing or store change, a release or deploy, deleting something, or a change that spans more than one product. Weighs the request against the canon constitution, the product's wiki and ADRs, existing features and tasks, cost vs value, and writing less code, then returns do it / do it differently / push back with citations. Also use when the user types /weigh or asks "should we…", "is it worth…", "does this make sense".
+description: Decision gate run BEFORE acting on a non-trivial request in a product repo — a new feature, screen or product, a new dependency or library, a migration or rewrite, a schema, money, pricing or store change, a release or deploy, deleting something, a change to how work flows (branching, review, release process), or a change that spans more than one product. Weighs the request against the canon constitution, the product's wiki and ADRs, existing features and tasks, cost vs value, and writing less code, then returns do it / do it differently / push back with citations. Also use when the user types /weigh or asks "should we…", "is it worth…", "does this make sense".
 ---
 
 # Weigh before acting
@@ -36,7 +36,12 @@ product's `.claude/canon.yaml` may tighten this under `weigh.trivial`.
    this product's `<repo>-wiki` and `<repo>-features` (the names `canon init`
    gives them; add `pack-<name>` when the question is about a vendor's API). Other products' hits are noise here; step 5 is where
    siblings are searched. Read the top hits with `mcp__plugin_canon_qmd__get`. Look for: an ADR that already
-   decided this, a canonical value it would change, a concept it would break.
+   decided this, a canonical value it would change, a concept it would break,
+   and a rule stated on a surface or concept page ("shows merged main only").
+   **Rejected before?** Search the `Rejected:` lines of `decisions/` for the
+   request's mechanism, in this product and in canon's own wiki for a change to
+   how canon works. A match is PUSH BACK citing that decision, unless its
+   `Revisit:` condition is now met and backed by a fact (step 4).
    If qmd is unavailable, read `.context/wiki/index.md` and `decisions/`.
    **Architecture:** if `.claude/canon.yaml` lists the `architecture` module, read
    the repo's `.dependency-cruiser.cjs` and its wiki architecture concept page.

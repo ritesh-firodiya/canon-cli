@@ -47,7 +47,8 @@ last-verified: 2026-10-27
 ```
 
 When the choice changes, overwrite the file. `Rejected:` is what stops the same idea
-being proposed again; keep it. Fix lists and audit results go in commit messages or
+being proposed again; keep it. A deferred option adds one `**Revisit:**` line: the
+fact that would reopen it. `weigh` pushes back on a rejected option until that fact holds. Fix lists and audit results go in commit messages or
 `CHANGELOG.md`, not here.
 
 ## Data sources
