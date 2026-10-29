@@ -19,7 +19,7 @@ A repo lists the ones it wants in `.claude/canon.yaml`:
 
 | Name | What it holds |
 |---|---|
-| `design-sets` | HTML design sets: layout, `routes.js`, the navbar, the flow chart, tokens, checks |
+| `design-sets` | HTML design sets as Babul products: pages, components, tokens, the shell, the journey, checks |
 | `pipeline` | The five stages and their hard gates; principles C-16 and C-17 |
 | `expo` | Scaffolding an Expo app, its layout, the versioned-docs rule, release checks |
 | `frontend` | `.tsx` code rules: one component per file, thin routes, helpers in `lib/` and `hooks/`, UniWind |

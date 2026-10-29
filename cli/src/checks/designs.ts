@@ -7,12 +7,16 @@ import type { Check, Finding } from "./types.ts";
 const DESIGNS = ".context/designs";
 const MAX_OUTPUT_LINES = 15;
 
-/** Every drawn surface: a folder under .context/designs/ with a routes.js manifest. */
+/**
+ * Every drawn surface: a folder under .context/designs/ with a routes.js manifest, or, in a Babul
+ * set (babul.js beside the sizes), each size folder with its journey (index.html).
+ */
 export function designSurfaces(repo: string): string[] {
   const root = join(repo, DESIGNS);
   if (!existsSync(root)) return [];
+  const babul = existsSync(join(root, "babul.js"));
   return readdirSync(root, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && existsSync(join(root, entry.name, "routes.js")))
+    .filter((entry) => entry.isDirectory() && existsSync(join(root, entry.name, babul ? "index.html" : "routes.js")))
     .map((entry) => `${DESIGNS}/${entry.name}`)
     .sort();
 }

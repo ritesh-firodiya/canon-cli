@@ -13,6 +13,16 @@ describe("designs", () => {
     expect(designSurfaces(repo)).toEqual([".context/designs/mobile", ".context/designs/web"]);
   });
 
+  test("in a Babul set a surface is each size folder with a journey", () => {
+    const repo = makeTree({
+      ".context/designs/babul.js": "",
+      ".context/designs/mobile/index.html": "",
+      ".context/designs/_shell/boot.js": "",
+      ".context/designs/assets/icon.svg": "",
+    });
+    expect(designSurfaces(repo)).toEqual([".context/designs/mobile"]);
+  });
+
   test("runs canon's checker once per surface; a failing surface is one error carrying its output", () => {
     const repo = makeTree({ ".context/designs/mobile/routes.js": "", ".context/designs/web/routes.js": "" });
     const findings = designs.run({ ...contextFor(repo), canonRoot: makeTree(CANON) });

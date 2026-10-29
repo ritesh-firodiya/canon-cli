@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.19.0 — 2026-10-29
+
+### Changed
+
+- The `design-sets` standard is the Babul design set: pages built from
+  components, one file per page with its states as blocks, a two-tier W3C
+  palette, and a shell that reads pages, links, journeys and components from the
+  HTML at runtime — it opens from disk, and no data file lists them. Still
+  opt-in: a repo without the standard is never asked for designs.
+- The design check reads a Babul set through the set's own `_shell/scan.mjs`,
+  per size folder beside `babul.js`, and fails on any page, board or
+  definition the crawl from the start page cannot reach.
+- `wiki-schema`: a surface page no longer refers to `routes.js`.
+
 ## 0.18.2 — 2026-10-28
 
 ### Changed

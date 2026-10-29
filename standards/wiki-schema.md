@@ -20,9 +20,8 @@ history is git's job.
 | `synthesis/` | research and cross-cutting analysis | `tax-table-verification-ay-2026-27` |
 
 There is no page per screen: the HTML design is the screen spec. A screen gets a
-`surfaces/<slug>.md` only when it has a constraint or decision invisible in its pixels;
-the design set's notes button shows it, and `routes.js` sets `notes: null` for every
-other screen. A user journey worth keeping is a concept.
+`surfaces/<slug>.md` only when it has a constraint or decision invisible in its pixels.
+A user journey worth keeping is a concept.
 A product may add a folder in `.claude/canon.yaml` under `wiki.types`, with a reason.
 
 ## Pages

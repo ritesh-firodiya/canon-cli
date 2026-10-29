@@ -46,10 +46,88 @@ def head(t): print('\n== ' + t)
 def bad(m):
     global fail; fail += 1; print('   FAIL ' + m)
 
-# ---- the manifest, read through node so routes.js stays the only parser -----
-R = json.loads(subprocess.run(
-    ['node','-e','global.window={};require("./routes.js");console.log(JSON.stringify(window.ROUTES))'],
-    capture_output=True, text=True, check=True).stdout)
+# ---- the manifest ------------------------------------------------------------
+# Two formats. A Babul set is described from its HTML (_shell/scan.mjs, the
+# same code its shell runs) beside two hand files, babul.js and tokens.js. It
+# is mapped here onto the routes.js shape the checks below were written
+# against, so every check runs on both. The older
+# format is routes.js, read through node so it stays the only parser.
+BABUL = os.path.exists('../babul.js')
+DATA_FILE = re.compile(r'^\(window\.BABUL \|\|= \{\}\)\.(\w+) = ([\s\S]*);\s*$')
+DATA_KEY = {'babul': 'product'}
+
+def babul(name):
+    """One data file, as Babul reads it: the fixed prefix, then strict JSON."""
+    path = os.path.join('..', name + '.js')
+    if not os.path.exists(path):
+        return None
+    key = DATA_KEY.get(name, name)
+    m = DATA_FILE.match(open(path).read())
+    if not m or m.group(1) != key:
+        bad('%s.js is not `(window.BABUL ||= {}).%s = <JSON>;`' % (name, key))
+        return None
+    try:
+        return json.loads(m.group(2))
+    except ValueError as e:
+        bad('%s.js does not parse as strict JSON: %s' % (name, e))
+        return None
+
+def scanned():
+    """The set as its shell reads it: described from the HTML by _shell/scan.mjs."""
+    out = subprocess.run(['node', os.path.join('..', '_shell', 'scan.mjs'), os.path.basename(os.getcwd()), '--json'],
+                         capture_output=True, text=True)
+    if out.returncode:
+        bad('_shell/scan.mjs failed: %s' % out.stderr.strip()[:300])
+        return {}
+    return json.loads(out.stdout)
+
+def from_babul():
+    S = scanned()
+    product, pages, links = babul('babul') or {}, S.get('pages', []), S.get('links', [])
+    journeys, components = S.get('journeys', {}), S.get('components', {}).get('components', [])
+    # One file holds every state of a page, so a frame's file is its page's.
+    html = lambda frame: frame.split('.')[0] + '.html'
+    flows, by_group = [], {}
+    for p in pages:
+        group = p['id'].split('/')[0]
+        if group not in by_group:
+            by_group[group] = {'flow': group, 'screens': []}
+            flows.append(by_group[group])
+        by_group[group]['screens'].append({
+            'file': html(p['id']), 'route': p.get('route'), 'screen': p['name'], 'states': {},
+            'status': p.get('status'),
+        })
+    if components:
+        flows.append({'flow': 'components', 'screens': [
+            {'file': 'components/%s.html' % c['id'], 'route': None, 'screen': c['name'], 'states': {}}
+            for c in components]})
+    # Between files only: a link to another state of the same page is checked
+    # frame by frame in the babul section, where the states are visible.
+    edges = []
+    for l in links:
+        e = {'from': html(l['from']), 'to': html(l['to'])}
+        if e['from'] == e['to']:
+            continue
+        for k in ('label', 'back', 'side'):
+            if k in l:
+                e[k] = l[k]
+        if l.get('tap') is False:
+            e['state'] = True
+        edges.append(e)
+    return {
+        'product': product.get('name'), 'flows': flows, 'missing': product.get('missing', []),
+        'flow': {'start': html(journeys.get('start', '')), 'end': [html(f) for f in journeys.get('end', [])], 'edges': edges},
+        '_babul': {'product': product, 'pages': pages, 'links': links, 'journeys': journeys,
+                   'components': components, 'tokens': babul('tokens') or {}, 'assets': S.get('assets', {}),
+                   'errors': S.get('errors', [])},
+    }
+
+if BABUL:
+    R = from_babul()
+else:
+    R = json.loads(subprocess.run(
+        ['node','-e','global.window={};require("./routes.js");console.log(JSON.stringify(window.ROUTES))'],
+        capture_output=True, text=True, check=True).stdout)
 
 # `order` is declaration order; `declared_files` is a set and must never be
 # iterated where the ORDER reaches output. See owners below.
@@ -62,17 +140,33 @@ for fl in R['flows']:
             states[sf] = s['file']; order.append(sf)
 declared_files = set(screens) | set(states)
 on_disk = {f for f in glob.glob('*/**/*.html', recursive=True)}
+# The shell's own pages: drawn from the data, never declared in it.
+SHELL_PAGES = ('index.html', 'styles.html', 'screenshots.html')
+if BABUL:
+    on_disk = {f for f in on_disk if not f.startswith('styles/')}
 
 def hrefs(f):
     s = open(f).read()
     out = []
-    for m in re.finditer(r'href="([^"]+)"', s):
+    for m in re.finditer(r'\b(?:%s)="([^"]+)"' % '|'.join(LINK_ATTRS), s):
         h = m.group(1)
         # tel: and sms: leave the set the same way mailto: does — a wireframe that
         # draws a helpline number as a real link is correct, not a dead path.
         if h.startswith(('http','#','mailto:','tel:','sms:')): continue
         out.append((h, os.path.normpath(os.path.join(os.path.dirname(f), h.split('?')[0].split('#')[0]))))
     return out
+
+# A Babul set defines each component once, in components/<id>.js, and pages
+# use it as <c-id>. Those definitions are drawn markup too: every token,
+# class, icon and word in them is checked with the pages'.
+DEFS = sorted(glob.glob('components/*.js')) if BABUL else []
+# A property a definition puts in an href — top-bar's `back` — is a link where
+# an instance sets it, exactly as an href is.
+LINK_ATTRS = ['href'] + sorted({n for d in DEFS for n in re.findall(r'href="\{([a-z][a-z0-9-]*)\}"', open(d).read())})
+def unbrace(text):
+    """A definition with its {prop} holes out and both arms of every {test?a:b} in."""
+    return re.sub(r'\{!?[a-z][a-z0-9-]*(?:=[^?}]*)?(?:\?([^:}]*)(?::([^}]*))?)?\}',
+                  lambda m: ' '.join(x for x in m.groups() if x), text)
 
 # ---- 1. inventory ----------------------------------------------------------
 head('inventory — every file declared, every declaration on disk')
@@ -116,22 +210,43 @@ print('   %d local hrefs resolved' % n)
 
 # ---- 4. tokens -------------------------------------------------------------
 head('tokens — every var(--x) and every component class resolves')
-css = open('shared.css').read()
-declared_vars = set(re.findall(r"(--[a-z0-9-]+)\s*:", css))
-declared_vars |= {'--chrome-h','--stage-pad'}          # published at runtime by _chrome.js
-declared_vars |= {'--tile-w','--tile-h','--tile-scale'}  # published at runtime by screenshots.html, from the frame
-declared_cls  = set(re.findall(r'\.([a-zA-Z][a-zA-Z0-9_-]*)', css))
-tw = subprocess.run(['node','-e','''
+def token_paths(node, path=()):
+    """Every W3C token under node, as its path; DEFAULT is its group's own name."""
+    if isinstance(node, dict) and '$value' in node:
+        yield path
+    elif isinstance(node, dict):
+        for k, v in node.items():
+            if not k.startswith('$'):
+                yield from token_paths(v, path if k == 'DEFAULT' else path + (k,))
+
+if BABUL:
+    # theme.js writes one variable per token, under exactly these names.
+    css = open('../_shell/shell.css').read() + open('styles.css').read()
+    T = R['_babul']['tokens']
+    tw_colors = {'-'.join(p) for p in token_paths(T.get('color', {}))}
+    declared_vars = {'--' + c for c in tw_colors}
+    for p in token_paths(T.get('typography', {})):
+        declared_vars |= {'--%s-%s' % (k, '-'.join(p)) for k in ('fs', 'lh', 'ls')}
+    for group in ('radius', 'shadow'):
+        declared_vars |= {'--' + '-'.join((group,) + p) for p in token_paths(T.get(group, {}))}
+    declared_vars |= set(re.findall(r"(--[a-z0-9-]+)\s*:", css))
+else:
+    css = open('shared.css').read()
+    declared_vars = set(re.findall(r"(--[a-z0-9-]+)\s*:", css))
+    tw = subprocess.run(['node','-e','''
   const fs=require("fs"); const tailwind={}; eval(fs.readFileSync("tailwind.config.js","utf8"));
   const out=[]; (function walk(o,p){for(const k in o){const v=o[k];
     if(typeof v==="string"||Array.isArray(v)) out.push(p.concat(k==="DEFAULT"?[]:[k]).join("-"));
     else walk(v,p.concat(k==="DEFAULT"?[]:[k]));}})(tailwind.config.theme.extend.colors,[]);
   console.log(JSON.stringify(out));'''], capture_output=True, text=True, check=True)
-tw_colors = set(json.loads(tw.stdout))
+    tw_colors = set(json.loads(tw.stdout))
+declared_vars |= {'--chrome-h','--stage-pad'}          # published at runtime by the shell
+declared_vars |= {'--tile-w','--tile-h','--tile-scale'}  # published at runtime by screenshots.html, from the frame
+declared_cls  = set(re.findall(r'\.([a-zA-Z][a-zA-Z0-9_-]*)', css))
 
 missing_vars, missing_cls = set(), set()
-for f in sorted(declared_files) + ['index.html','screenshots.html']:
-    s = open(f).read()
+for f in sorted(declared_files) + [p for p in SHELL_PAGES if os.path.exists(p)] + DEFS:
+    s = unbrace(open(f).read())
     for v in re.findall(r'var\((--[a-z0-9-]+)', s):
         if v not in declared_vars: missing_vars.add((f, v))
     for attr in re.findall(r'class="([^"]*)"', s):
@@ -164,12 +279,14 @@ head2 = 'flow-complete — every link between screens is a declared edge'
 real = set()
 for f in sorted(declared_files):
     for raw, t in hrefs(f):
-        if t in ('index.html','screenshots.html') or t == f: continue
+        if t in SHELL_PAGES or t == f: continue
         # A link that leaves the surface — the mobile drawer opening the
         # website — is not a link between two screens of THIS set. Its target
         # is in another manifest, so no edge here could name it; check 3 has
         # already proved the file is there.
         if t.startswith('..'): continue
+        # A Babul page may open a component's board (the alert it raises); it is not a page.
+        if BABUL and t.startswith(('components/', 'styles/')): continue
         if t.endswith('.html'): real.add((f, t))
 decl = {(e['from'], e['to']) for e in R['flow']['edges'] if not e.get('state')}
 state_edges = {(e['from'], e['to']) for e in R['flow']['edges'] if e.get('state')}
@@ -248,13 +365,15 @@ print('   %d forward edges over %d screens, no cycles' % (
 # beside it. The links check above reads href only; a framed diagram is an
 # iframe src, so a deleted diagram would otherwise go unnoticed.
 head('architecture — the overview is declared and every framed diagram has its source')
-arch_page = R.get('architecture')
+if BABUL:
+    print('   skipped — a Babul set holds no architecture; it lives in canon')
+arch_page = R.get('architecture') if not BABUL else None
 arch_flow = next((fl for fl in R['flows'] if fl.get('flow') == 'architecture'), None)
-if not arch_page:
+if not arch_page and not BABUL:
     bad('routes.js names no `architecture` page — run `canon arch-set` with this set\'s spec')
-elif arch_page not in declared_files:
+elif arch_page and arch_page not in declared_files:
     bad('`architecture: "%s"` is not a declared screen' % arch_page)
-if arch_flow is None:
+if arch_flow is None and not BABUL:
     bad('no `architecture` flow in routes.js')
 framed = set()
 for f in sorted(x for x in declared_files if x.startswith('architecture/')):
@@ -264,7 +383,7 @@ for f in sorted(x for x in declared_files if x.startswith('architecture/')):
         if not os.path.exists(t): bad('%s frames %s, which does not exist' % (f, t))
         elif not os.path.exists(t[:-5] + '.json'): bad('%s has no %s.json source beside it' % (t, os.path.basename(t)[:-5]))
 assets = os.path.normpath('../architecture')
-for d in sorted(glob.glob(os.path.join(assets, '*.html'))):
+for d in ([] if BABUL else sorted(glob.glob(os.path.join(assets, '*.html')))):
     if os.path.normpath(d) not in framed: bad('%s is drawn and no architecture screen frames it' % d)
 print('   %d diagrams framed' % len(framed))
 
@@ -627,7 +746,7 @@ def flat(t):
         t = t.replace(a, b)
     return re.sub(r'\s+', ' ', t).strip()
 
-drawn = flat(' '.join(open(f).read() for f in sorted(on_disk)))
+drawn = flat(' '.join(open(f).read() for f in sorted(on_disk) + DEFS))
 
 # An option's `style`, and the mimeType/UTI an onPress hands to the share sheet,
 # sit inside the same parentheses without being copy. A word someone reads either
@@ -704,6 +823,32 @@ else:
                             % (rel, piece if len(piece) < 60 else piece[:57] + '...'))
     print('   %d dialog and toast strings checked%s'
           % (dialog_n, ', all drawn' if fail == before else ', %d undrawn' % (fail - before)))
+
+# ---- Babul: the data is whole, so Babul can import it as it stands -----------
+# The checks above compare the drawing with the app. These compare the data
+# with itself and with the drawing: every name a file uses resolves, so an
+# import never meets a page, state, variant or icon that is not there.
+if BABUL:
+    head('babul — the set reads whole from its HTML, and styles.css holds nothing dead')
+    B = R['_babul']
+    # Reading the HTML checks every instance, prop, variant, state block and
+    # link, and that the crawl reaches every file (_shell/scan.mjs).
+    for e in B['errors']:
+        bad(e)
+    for a in (B['assets'].get('logos') or []) + (B['assets'].get('images') or []):
+        if not os.path.exists(os.path.join('..', a['file'])):
+            bad('assets.js: %s does not exist' % a['file'])
+
+    # A class in styles.css that nothing draws is dead weight that drifts.
+    used_cls = set()
+    for f in sorted(declared_files & on_disk) + DEFS:
+        for attr in re.findall(r'class="([^"]*)"', unbrace(open(f).read())):
+            used_cls |= set(attr.split())
+    own = set(re.findall(r'\.([a-z][a-z0-9-]*)', re.sub(r'/\*.*?\*/', '', open('styles.css').read(), flags=re.S)))
+    for c in sorted(own - used_cls):
+        bad('styles.css declares .%s and nothing draws it' % c)
+    print('   %d pages, %d links, %d components, %d icons'
+          % (len(B['pages']), len(B['links']), len(B['components']), len((B['assets'].get('icons') or {}).get('names', []))))
 
 print('\n' + ('ALL CHECKS PASS' if not fail else '%d FAILURES' % fail))
 sys.exit(1 if fail else 0)
