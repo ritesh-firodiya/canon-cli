@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.19.1 — 2026-10-29
+
+### Fixed
+
+- The design check no longer reads an `email` size against the app: an email
+  renders no route, so it gets no routes, app-flow or copy check.
+
 ## 0.19.0 — 2026-10-29
 
 ### Changed

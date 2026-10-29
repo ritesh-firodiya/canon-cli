@@ -35,7 +35,10 @@ WEB = os.path.basename(os.path.normpath(SURF)) == 'web'
 CANDIDATES = ('apps/website/src', 'apps/web/src') if WEB else ('apps/mobile/src', 'src')
 SRC_DIR = next((d for d in (os.path.join(ROOT, c) for c in CANDIDATES)
                 if os.path.isdir(os.path.join(d, 'app'))), os.path.join(ROOT, CANDIDATES[-1]))
-APP_DIR = os.path.join(SRC_DIR, 'app')
+# An email renders no app route, so the routes, app-flow and copy checks have
+# nothing to read: they run against an app folder that is never there.
+EMAIL = os.path.basename(os.path.normpath(SURF)) == 'email'
+APP_DIR = os.path.join(ROOT, '.no-app') if EMAIL else os.path.join(SRC_DIR, 'app')
 # expo-router makes every .tsx under app/ a screen except a layout; the Next.js
 # app router makes a screen of `page.tsx` and of nothing else in the folder.
 def is_screen(name):
