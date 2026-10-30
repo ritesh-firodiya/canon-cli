@@ -1,7 +1,12 @@
+import { execFileSync } from "node:child_process";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
+import { dirname, join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { day, RELEASE_TAG, versionOf } from "../src/flow/facts.ts";
-import { belongs, COMMIT_CALL, productPath, readSession } from "../src/flow/sessions.ts";
+import { flow } from "../src/flow/flow.ts";
+import { allSessions, belongs, COMMIT_CALL, productPath, readSession } from "../src/flow/sessions.ts";
+import { makeTree } from "./helpers/fixture.ts";
 
 const W = `${homedir()}/work/products`;
 const line = (entry: object) => JSON.stringify({ timestamp: "2026-10-01T10:00:00Z", ...entry });
@@ -49,5 +54,50 @@ describe("canon flow", () => {
       where: new Set(["myapp"]),
     });
     expect(readSession(line({ type: "user", message: { content: "<system-reminder>" } }), productPath(W))).toBeNull();
+  });
+
+  test("counts each conversation at every stage up to the furthest its commits reached, and the hours between", () => {
+    const workspace = makeTree({});
+    const repo = join(workspace, "myapp");
+    const at = (iso: string) => ({ GIT_COMMITTER_DATE: iso, GIT_AUTHOR_DATE: iso });
+    const git = (env: object, ...args: string[]) => execFileSync("git", ["-C", repo, ...args], { env: { ...process.env, ...env } });
+    const commit = (iso: string, file: string, text = "x") => {
+      mkdirSync(dirname(join(repo, file)), { recursive: true });
+      writeFileSync(join(repo, file), text);
+      git({}, "add", "-A");
+      git(at(iso), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", file);
+    };
+    mkdirSync(repo);
+    git({}, "init", "-q");
+    git({}, "remote", "add", "origin", "git@github.com:me/myapp.git");
+    commit("2026-10-01T10:00:00Z", ".claude/canon.yaml", "pipeline:\n  - { id: idea, done: [x] }\n  - { id: plan, done: [x] }\n  - { id: code, done: [x] }\n  - { id: review, done: [x] }\n  - { id: live, done: [x] }\n");
+    commit("2026-10-01T11:00:00Z", ".context/features/stats.md");
+    commit("2026-10-01T13:00:00Z", "src/stats.ts");
+    commit("2026-10-02T09:00:00Z", ".context/ops/release.yml", "surfaces:\n  ios: { live: '1.0.0' }\n");
+    git(at("2026-10-02T09:00:00Z"), "tag", "v1.0.0");
+    const head = git({}, "rev-parse", "HEAD").toString().trim();
+    const github = (path: string) => (path.includes("/pulls?") ? [{ number: 1, merged_at: "2026-10-01T15:00:00Z", merge_commit_sha: head }] : path.includes("/commits") ? [] : []);
+
+    const projects = makeTree({
+      "p/one.jsonl": [
+        line({ timestamp: "2026-10-01T10:30:00Z", type: "user", cwd: repo, message: { content: "plan stats" } }),
+        line({ timestamp: "2026-10-01T11:00:30Z", type: "assistant", message: { content: [{ type: "tool_use", name: "Bash", input: { command: "git commit -m plan" } }] } }),
+        line({ timestamp: "2026-10-01T13:00:30Z", type: "assistant", message: { content: [{ type: "tool_use", name: "Bash", input: { command: "git commit -m code" } }] } }),
+      ].join("\n"),
+      "p/two.jsonl": line({ timestamp: "2026-10-03T08:00:00Z", type: "user", cwd: repo, message: { content: "just asking" } }),
+      "p/elsewhere.jsonl": line({ type: "user", cwd: join(workspace, "other"), message: { content: "not this one" } }),
+    });
+    mkdirSync(join(workspace, "other", ".git"), { recursive: true });
+
+    const result = flow(workspace, "myapp", allSessions(workspace, projects), [], github);
+    expect(result.since).toBe("2026-10-01");
+    expect(result.stages).toEqual([{ id: "idea", count: 2 }, { id: "plan", count: 1 }, { id: "code", count: 1 }, { id: "review", count: 1 }, { id: "live", count: 1 }]);
+    expect(result.medianHours).toEqual({ "idea→plan": 0.5, "plan→code": 2, "code→review": null, "review→live": null });
+  });
+
+  test("a stage with no evidence rule is an error naming the ones there are", () => {
+    const workspace = makeTree({ "myapp/.claude/canon.yaml": "pipeline:\n  - { id: idea, done: [x] }\n  - { id: vibes, done: [x] }\n" });
+    execFileSync("git", ["-C", join(workspace, "myapp"), "init", "-q"]);
+    expect(() => flow(workspace, "myapp", [], [], () => [])).toThrow(/no evidence rule for stage\(s\) vibes/);
   });
 });

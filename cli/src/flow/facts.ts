@@ -53,10 +53,12 @@ function releaseSurfaces(repo: string): Record<string, unknown> {
   return (parse(readFileSync(path, "utf8"))?.surfaces as Record<string, unknown>) ?? {};
 }
 
-/** Every page of a paginated GitHub list, flattened. */
-const ghList = <T>(path: string): T[] => (JSON.parse(run("gh", ["api", "--paginate", "--slurp", path])) as T[][]).flat();
+/** Reads one GitHub list, every page, flattened. */
+export type GitHub = (path: string) => unknown[];
+export const gh: GitHub = (path) => (JSON.parse(run("gh", ["api", "--paginate", "--slurp", path])) as unknown[][]).flat();
 
-export function repoFacts(repo: string): Facts {
+export function repoFacts(repo: string, github: GitHub = gh): Facts {
+  const ghList = <T>(path: string) => github(path) as T[];
   const tags = git(repo, "tag", "--format=%(refname:short) %(creatordate:iso-strict)")
     .split("\n")
     .flatMap((line) => {

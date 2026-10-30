@@ -1,7 +1,7 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { loadConfig } from "../config/load.ts";
-import { git, repoFacts, type Facts } from "./facts.ts";
+import { gh, git, repoFacts, type Facts, type GitHub } from "./facts.ts";
 import { belongs, type Session } from "./sessions.ts";
 
 // How far each Claude conversation about a product got, measured against the product's own stages, and how long
@@ -79,7 +79,7 @@ function stagesOf(repo: string): string[] {
   return ids;
 }
 
-export function flow(workspace: string, product: string, sessions: Session[], formerly: string[] = []): FlowResult {
+export function flow(workspace: string, product: string, sessions: Session[], formerly: string[] = [], github: GitHub = gh): FlowResult {
   const repo = join(workspace, product);
   const stages = stagesOf(repo);
   const commits = git(repo, "log", "--all", "--format=%H %cI")
@@ -89,7 +89,7 @@ export function flow(workspace: string, product: string, sessions: Session[], fo
       const [sha, date] = line.split(" ");
       return [sha, new Date(date)];
     });
-  const facts = repoFacts(repo);
+  const facts = repoFacts(repo, github);
   const names = new Set([product, ...formerly]);
   const known = new Set([...readdirSync(workspace).filter((d) => existsSync(join(workspace, d, ".git"))), ...names]);
   const pairs = stages.slice(1).map((b, i) => [stages[i], b] as const);

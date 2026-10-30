@@ -62,6 +62,32 @@ describe("design-set checks", () => {
     ]);
   });
 
+  test("a web surface is read against the Next.js app: a page's folder, redirects, and the site's own toasts", () => {
+    const web = (id: string, route: string, body: string) => page(id, route, body);
+    const repo = product({
+      [`${D}/babul.js`]: '(window.BABUL ||= {}).product = {"format":1,"name":"Demo","start":"home/start","sizes":["web"],"frames":{"web":{"w":1280,"h":800}},"missing":[]};\n',
+      [`${D}/web/index.html`]: '<!doctype html><html><head><script src="../shell.js" data-view="journey"></script></head><body data-shell="journey"></body></html>\n',
+      [`${D}/web/styles.css`]: ".card { color: var(--ink) }\n",
+      [`${D}/web/home/start.html`]: web("home/start", "page.tsx", '<div class="card"><a href="next.html">Next</a></div>'),
+      [`${D}/web/home/next.html`]: web("home/next", "next/page.tsx", '<div class="card">Saved for later</div>'),
+      "apps/web/src/app/page.tsx": "export default function P() { return <Form /> }\n",
+      "apps/web/src/app/form.tsx": 'export function Form() { router.push(`/next`); return null }\n',
+      "apps/web/src/app/next/page.tsx": 'export default async function N() { if (!user) redirect("/"); toast("Saved for later"); return null }\n',
+    });
+    const result = checkSurface(repo, `${D}/web`, SHELL);
+    expect(result.output.split("\n").filter((l) => l.startsWith("   FAIL"))).toEqual(["   FAIL home/next.html -> home/start.html  (next/page.tsx navigates to /)"]);
+    expect(result.output).toMatch(/1 dialog and toast strings checked, all drawn/);
+  });
+
+  test("an email surface has no app to read", () => {
+    const repo = product({
+      [`${D}/email/index.html`]: '<!doctype html><html><head><script src="../shell.js" data-view="journey"></script></head><body data-shell="journey"></body></html>\n',
+      [`${D}/email/styles.css`]: ".card { color: var(--ink) }\n",
+      [`${D}/email/home/start.html`]: page("home/start", "null", '<div class="card">Welcome</div>'),
+    });
+    expect(checkSurface(repo, `${D}/email`, SHELL).output).toMatch(/routes[^\n]*\n   skipped — no app at [\s\S]*copy[^\n]*\n   skipped/);
+  });
+
   test("a departure written down in `missing` is pending, not a failure", () => {
     const babul = '(window.BABUL ||= {}).product = {"format":1,"name":"Demo","start":"home/start","sizes":["mobile"],"frames":{"mobile":{"w":390,"h":844}},"missing":[{"what":"extra.tsx","why":"not drawn yet"}]};\n';
     expect(fails({ [`${D}/babul.js`]: babul, "src/app/extra.tsx": "export default function E() { return null }\n" })).toEqual([]);
