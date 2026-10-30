@@ -1,12 +1,10 @@
 import { existsSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { parseDocument } from "yaml";
+import { parseDocument, type YAMLMap, type YAMLSeq } from "yaml";
 
 export interface SiteOptions {
   /** Quartz content folder: one symlink per product wiki, plus the home page. */
   siteDir: string;
-  /** `canon check --all` output, shown as its own page. */
-  report: string;
   /** A product's architecture as markdown with mermaid graphs, or undefined when it has none. */
   graph?: (repo: string) => string | undefined;
 }
@@ -43,17 +41,15 @@ export function buildSite(products: string[], options: SiteOptions): void {
 
   writeFileSync(
     join(options.siteDir, "index.md"),
-    `---\ntitle: canon\n---\n\nEvery product's wiki, searchable and linked; products with architecture rules also get an import graph.\n\n${rows.join("\n")}\n\n[[canon-check|Standards check]]\n`,
+    `---\ntitle: canon\n---\n\nEvery product's wiki, searchable and linked; products with architecture rules also get an import graph.\n\n${rows.join("\n")}\n`,
   );
-  writeFileSync(
-    join(options.siteDir, "canon-check.md"),
-    `---\ntitle: Standards check\n---\n\nOutput of \`canon check --all\` when this site was built.\n\n\`\`\`\n${options.report}\n\`\`\`\n`,
-  );
+  // The site folder outlives upgrades: an older canon wrote this page, and Quartz would still render it.
+  rmSync(join(options.siteDir, "canon-check.md"), { force: true });
 }
 
 const IGNORED = ["**/CLAUDE.md"];
 
-/** Quartz's default config, adjusted for a private local site: no analytics, no schema files as pages. */
+/** Quartz's default config, adjusted for a private local site: no analytics, no schema files as pages, no social card images (most of the build time). */
 export function quartzConfig(defaultsYaml: string): string {
   const document = parseDocument(defaultsYaml);
   document.setIn(["configuration", "pageTitle"], "canon");
@@ -61,5 +57,7 @@ export function quartzConfig(defaultsYaml: string): string {
   document.setIn(["configuration", "baseUrl"], "localhost");
   const current = (document.getIn(["configuration", "ignorePatterns"]) as { toJSON(): string[] } | undefined)?.toJSON() ?? [];
   document.setIn(["configuration", "ignorePatterns"], [...current, ...IGNORED.filter((p) => !current.includes(p))]);
+  const plugins = document.get("plugins") as YAMLSeq<YAMLMap> | undefined;
+  plugins?.items.find((plugin) => plugin.get("source") === "@quartz-community/og-image")?.set("enabled", false);
   return document.toString();
 }

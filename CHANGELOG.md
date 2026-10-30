@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.23.2 — 2026-10-30
+
+### Changed
+
+- **`canon wiki` starts in about 20 seconds, not over a minute.** It no longer draws a
+  social card image for every page, which a local site never uses, and no longer
+  runs `canon check --all` for a report page. Run `canon check --all` for that report.
+
 ## 0.23.1 — 2026-10-30
 
 ### Fixed

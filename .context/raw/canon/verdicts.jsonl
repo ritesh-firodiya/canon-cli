@@ -1,2 +1,4 @@
 {"at":"2026-10-30T08:58:13.674Z","verdict":"do-it","principles":["C-02","C-05","C-14"],"request":"Enable plugins per repo; move Vercel and finance off global","reason":"","outcome":"proceeded"}
 {"at":"2026-10-30T08:58:13.708Z","verdict":"do-it-differently","principles":["C-04","C-11","C-12","C-13"],"request":"Trim CLAUDE.md across products and change canon standards","reason":"","outcome":"stopped"}
+{"at":"2026-10-30T12:17:53.561Z","verdict":"do-it-differently","principles":["C-04","C-06","C-14"],"request":"Replace Quartz canon wiki with the apps/web app and delete the Quartz code","reason":"","outcome":"stopped"}
+{"at":"2026-10-30T12:34:58.477Z","verdict":"do-it-differently","principles":["C-04","C-06","C-14"],"request":"Keep the faster Quartz canon wiki; do not replace it with the private app","reason":"","outcome":"proceeded"}

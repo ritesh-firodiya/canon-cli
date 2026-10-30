@@ -3,9 +3,8 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Command } from "commander";
 import { architectureGraph } from "../checks/architecture.ts";
-import { formatReports } from "../check/format.ts";
 import { CACHE_DIR } from "../lib/system.ts";
-import { findProducts, runChecks } from "../check/check.ts";
+import { findProducts } from "../check/check.ts";
 import { buildSite, quartzConfig } from "./wiki.ts";
 import { requireWorkspace, type Env } from "../lib/env.ts";
 
@@ -41,8 +40,7 @@ export function registerWiki(program: Command, env: Env): void {
       ensureQuartz();
       const products = findProducts(requireWorkspace(env));
       const siteDir = join(CACHE_DIR, "site");
-      const report = formatReports(products.map((repo) => runChecks(repo, { canonRoot: env.canonRoot })));
-      buildSite(products, { siteDir, report, graph: architectureGraph });
+      buildSite(products, { siteDir, graph: architectureGraph });
 
       const site = spawn("npx", ["quartz", "build", "-d", siteDir, "-o", join(CACHE_DIR, "public"), "--serve", "--port", options.port, "--wsPort", options.wsPort], {
         cwd: QUARTZ_DIR,
