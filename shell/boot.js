@@ -38,6 +38,8 @@
 
   window.BABUL_SHELL = {
     root: root, size: size, view: view, bare: flag("bare"),
+    /* Only canon ui serves the shell from here, and only it can read the repo beyond the set. */
+    served: /\/_shell\/$/.test(shell),
     lucideVersion: (/lucide@([\d.]+)/.exec(CDN.lucide) || [])[1],
   };
 

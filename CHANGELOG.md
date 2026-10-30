@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.24.0 — 2026-10-30
+
+### Added
+
+- **Architecture in the shell's top bar.** `canon ui` draws each repo's
+  `.context/architecture/*.json`, one tab per diagram. From disk the item is off,
+  because a browser refuses `fetch` on `file://`.
+- **`.context/architecture/` is an allowed folder**, the one home of a repo's
+  diagrams. A new `diagrams` check fails bad JSON and connections to parts that do
+  not exist, and warns on diagrams still in `wiki/concepts/architecture/`.
+
+### Fixed
+
+- A website design no longer loses its right side on a narrow window. A frame wider
+  than the canvas keeps its width and shrinks whole.
+
 ## 0.23.2 — 2026-10-30
 
 ### Changed

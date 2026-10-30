@@ -20,7 +20,7 @@ export const REMOVED_WIKI_FOLDERS: Record<string, string> = {
   flows: "fold a journey worth keeping into a concept page",
 };
 /** The `.context/` folders every repo may have. A repo adds more under `context.folders`. */
-export const CONTEXT_FOLDERS = ["raw", "wiki", "features", "designs", "listing", "marketing", "metrics", "support", "legal", "ops"];
+export const CONTEXT_FOLDERS = ["raw", "wiki", "features", "designs", "listing", "marketing", "metrics", "support", "legal", "ops", "architecture"];
 
 /** A `standards:` entry naming a library standard rather than a folder path. */
 export function isStandardName(entry: string): boolean {

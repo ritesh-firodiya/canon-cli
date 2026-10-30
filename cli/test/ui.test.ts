@@ -21,6 +21,13 @@ describe("canon ui", () => {
     expect(fileFor(designs, shell, "/_shell/../../secret")).toBeNull();
   });
 
+  test("serves the architecture view from the shell, for any size", () => {
+    const repo = makeTree({ "designs/mobile/index.html": "", "shell/architecture.html": "" });
+    const [designs, shell] = [join(repo, "designs"), join(repo, "shell")];
+    expect(fileFor(designs, shell, "/web/architecture.html")).toBe(join(shell, "architecture.html"));
+    expect(fileFor(designs, shell, "/web/doc/architecture.html")).toBe(join(designs, "web/doc/architecture.html"));
+  });
+
   test("the loader a page gets points at the served shell, with no version in it", () => {
     const loader = loaderAt(resolve(import.meta.dirname, "../.."), "/_shell/");
     expect(loader).toContain('var SHELL = "/_shell/";');

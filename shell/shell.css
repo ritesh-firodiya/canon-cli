@@ -147,6 +147,10 @@ body.shell {
 .shell-sep { color: var(--chrome-ink-3); }
 .shell-surface { color: var(--chrome-ink-2); }
 .shell-spacer { flex: 1; }
+.shell-nav { margin-left: 8px; padding: 4px 10px; border-radius: 6px; color: var(--chrome-ink-2); }
+.shell-nav:hover { color: var(--chrome-active); }
+.shell-nav.is-on { background: var(--chrome-soft); color: var(--chrome-active); font-weight: 600; }
+.shell-nav.is-off { color: var(--chrome-ink-3); cursor: default; }
 
 .shell-ico { display: grid; place-items: center; line-height: 0; }
 .shell svg.shell-ico, .shell .shell-ico svg { width: 16px; height: 16px; }
@@ -237,6 +241,12 @@ body.shell {
   background-size: 16px 16px;
 }
 .shell-canvas > .stage { height: 100%; }
+/* zoom, not transform: it changes layout size, so the frame still clamps to the canvas. Lengths inside are zoomed too, hence the division. */
+.shell-canvas .phone {
+  zoom: var(--frame-zoom, 1);
+  max-width: none;
+  height: min(var(--frame-h), calc((100dvh - var(--chrome-h, 0px) - var(--stage-pad, 32px)) / var(--frame-zoom, 1)));
+}
 .shell-canvas > .chart-canvas { height: 100%; background: transparent; }
 
 /* One floating island at the bottom centre of the canvas, as in Babul. */
@@ -435,3 +445,22 @@ select:focus-visible {
 
 /* A component file opened alone: its cells in a plain row, on the product's page. */
 .cells { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 24px; background: var(--page); color: var(--ink); }
+
+/* Architecture view: drawn from .context/architecture/*.json. */
+.arch-view { display: flex; flex-direction: column; gap: 12px; height: 100%; padding: 16px 24px; box-sizing: border-box; }
+.arch-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.arch-tab { padding: 6px 12px; border-radius: 6px; font-size: 13px; color: var(--chrome-ink-2); background: none; border: 0; cursor: pointer; }
+.arch-tab:hover { color: var(--chrome-active); }
+.arch-tab.is-on { background: var(--chrome-bg); color: var(--chrome-active); font-weight: 600; box-shadow: 0 0 0 1px var(--chrome-line); }
+.arch-stage { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.arch-svg { flex: 1; min-height: 0; width: 100%; background: var(--chrome-bg); border: 1px solid var(--chrome-line); border-radius: 12px; }
+.arch-source { font-size: 11px; color: var(--chrome-ink-3); }
+.arch-message { margin: 48px auto; font-size: 14px; color: var(--chrome-ink-2); }
+.arch-box { fill: var(--chrome-canvas); stroke: var(--chrome-line); stroke-width: 1.5; }
+.arch-label { text-anchor: middle; font-size: 15px; font-weight: 600; fill: var(--chrome-active); }
+.arch-sublabel { text-anchor: middle; font-size: 11px; fill: var(--chrome-ink-2); }
+.arch-line { stroke: var(--chrome-ink-3); stroke-width: 1.5; }
+.arch-line--emphasis { stroke: var(--chrome-active); stroke-width: 2; }
+.arch-line--dashed, .arch-line--security { stroke-dasharray: 6 5; }
+.arch-arrow { fill: var(--chrome-ink-2); }
+.arch-edge-label { text-anchor: middle; font-size: 11px; fill: var(--chrome-ink-2); paint-order: stroke; stroke: var(--chrome-bg); stroke-width: 4px; }

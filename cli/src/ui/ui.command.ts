@@ -2,11 +2,15 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import type { Command } from "commander";
+import { diagramsJson } from "../checks/diagrams.ts";
 import type { Env } from "../lib/env.ts";
 import { loaderAt } from "./shell.ts";
 
 const DESIGNS = ".context/designs";
 const SERVED_SHELL = "/_shell/";
+const DIAGRAMS_URL = "/_architecture.json";
+// The view belongs to no set: a set holds designs and nothing else.
+const ARCHITECTURE_PAGE = /^\/[^/]+\/architecture\.html$/;
 const TYPES: Record<string, string> = {
   ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".json": "application/json",
   ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".gif": "image/gif",
@@ -24,6 +28,7 @@ export function findDesigns(start: string): string | null {
 /** The file a request names: canon's shell under /_shell/, the set otherwise; null outside both. */
 export function fileFor(designs: string, shell: string, url: string): string | null {
   const path = decodeURIComponent(url.split(/[?#]/)[0]);
+  if (ARCHITECTURE_PAGE.test(path)) return join(shell, "architecture.html");
   const [base, rest] = path.startsWith(SERVED_SHELL) ? [shell, path.slice(SERVED_SHELL.length)] : [designs, path.slice(1)];
   const file = resolve(base, rest);
   if (file !== base && !file.startsWith(base + sep)) return null;
@@ -54,6 +59,10 @@ export function registerUi(program: Command, env: Env): void {
         }
         if (url.split(/[?#]/)[0] === "/shell.js") {
           response.writeHead(200, { "content-type": TYPES[".js"], "cache-control": "no-store" }).end(loader);
+          return;
+        }
+        if (url.split(/[?#]/)[0] === DIAGRAMS_URL) {
+          response.writeHead(200, { "content-type": TYPES[".json"], "cache-control": "no-store" }).end(diagramsJson(dirname(dirname(designs))));
           return;
         }
         const file = fileFor(designs, shell, url);

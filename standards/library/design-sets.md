@@ -36,8 +36,9 @@ shows from the HTML itself, and checked against the app it describes.
     styles.css            the classes the components are built from
 ```
 
-**`designs/` holds designs and nothing else.** Notes, decisions and
-architecture are canon's, in `.context/wiki/` (§10); the designs follow them.
+**`designs/` holds designs and nothing else.** Notes and decisions are
+canon's, in `.context/wiki/` (§10); architecture is in `.context/architecture/`.
+The designs follow them.
 `assets/` is the only home of source art; store images and the app's own
 `assets/` are exports of it.
 
@@ -125,10 +126,13 @@ not a link between pages.
 ## 4. The shell
 
 **One frame, identical in every product**, as Babul lays out View mode: a bar
-(logo · product / size, a switch when there are several · theme), a rail (Journey · Pages · Components ·
+(logo · product / size, a switch when there are several · Architecture · theme), a rail (Journey · Pages · Components ·
 Styles), a list, the canvas, and on a page an island (‹ name › · states ·
 sizes). It shows only the drawing.
 
+- **Architecture** is the one view not read from the set: it draws
+  `.context/architecture/*.json`. A browser refuses `fetch` on `file://`, so only
+  `canon ui` can show it; from disk the item is off.
 - **The shell adds the frame around a page, never anything in it.**
 - **Its colours are `--chrome-*` only.** Reading a product token made the same
   control look different per product.
@@ -240,7 +244,8 @@ shadow**, as W3C design tokens in Babul's groups:
   and full-bleed under `?bare`.
 - It **clamps to what is left under the shell**:
   `height: min(var(--frame-h), calc(100dvh - var(--chrome-h) - var(--stage-pad)))`.
-  Never `transform: scale()` — it does not change layout height.
+  Never `transform: scale()` — it does not change layout height. A frame wider
+  than the canvas keeps its width and shrinks whole with `zoom`.
 - **A page with a modal over it carries `phone--modal`**; a modal card uses
   `bg-frame`; the page underneath is drawn unchanged and inert.
 - **The status bar is not drawn; its space is**: every mobile page starts with

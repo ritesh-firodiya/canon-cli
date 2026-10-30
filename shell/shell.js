@@ -1,6 +1,6 @@
 /* The shell — Babul's frame in View mode, around every page of a set.
  * ============================================================================
- *     bar        logo · product / size                               theme
+ *     bar        logo · product / size · Architecture                theme
  *     rail       Journey · Pages · Components · Styles
  *     list       pages by group, components by group, or style groups
  *     canvas     the page itself, untouched — or a view's drawing
@@ -148,6 +148,10 @@
       });
       b.appendChild(pick);
     }
+    var onArchitecture = section === "architecture";
+    var architecture = link("shell-nav" + (onArchitecture ? " is-on" : "") + (S.served ? "" : " is-off"), S.served && !onArchitecture ? at("architecture.html") : null, "Architecture");
+    architecture.title = S.served ? "This product's architecture" : "Run canon ui to see the architecture";
+    b.appendChild(architecture);
     b.appendChild(el("span", "shell-spacer"));
 
     var themes = M.product.themes || ["light"];
@@ -286,5 +290,8 @@
     var barH = document.querySelector(".shell-bar").offsetHeight;
     document.documentElement.style.setProperty("--chrome-h", (barH + (me ? 64 : 0)) + "px");
     document.documentElement.style.setProperty("--stage-pad", "32px");
+    // A frame wider than the canvas shrinks whole: squeezed instead, a website reflows and its right side is cut off.
+    var fit = frame && S.canvas ? Math.min(1, (S.canvas.clientWidth - 32) / frame.w) : 1;
+    document.documentElement.style.setProperty("--frame-zoom", String(fit));
   }
 })();

@@ -28,7 +28,7 @@ function ignored(repo: string, path: string): boolean {
 export const contextLayout: Check = {
   id: "context-layout",
   module: null,
-  description: ".context/ has the required folders, only the allowed ones (the ten plus context.folders), and only README.md + tasks.md at its root",
+  description: ".context/ has the required folders, only the allowed ones (the eleven plus context.folders), and only README.md + tasks.md at its root",
   run({ repo, config }) {
     const context = join(repo, ".context");
     const finding = (level: Finding["level"], file: string, message: string): Finding => ({
