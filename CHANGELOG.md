@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.19.2 — 2026-10-30
+
+### Fixed
+
+- The design check reads a definition's classes the way the browser builds
+  them: each arm of `{test?a:b}` is its own class, and a class built from a
+  `{prop}` is known by its prefix. It no longer reports a token missing for
+  `bg-brand-{tone}`, or a styles.css class dead when a prop builds it.
+- A page's links include the fixed hrefs of every component it draws (a nav
+  bar), so the click-through check agrees with the shell.
+
 ## 0.19.1 — 2026-10-29
 
 ### Fixed

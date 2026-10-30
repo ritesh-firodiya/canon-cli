@@ -148,14 +148,26 @@ SHELL_PAGES = ('index.html', 'styles.html', 'screenshots.html')
 if BABUL:
     on_disk = {f for f in on_disk if not f.startswith('styles/')}
 
+def used_defs(s, seen=None):
+    """The definitions markup draws, nested ones too: their fixed hrefs are links of the page."""
+    seen = set() if seen is None else seen
+    for d in re.findall(r'<c-([a-z][a-z0-9-]*)', s):
+        f = 'components/%s.js' % d
+        if d not in seen and f in DEFS:
+            seen.add(d)
+            used_defs(open(f).read(), seen)
+    return seen
+
 def hrefs(f):
     s = open(f).read()
+    if BABUL and not f.startswith('components/'):
+        s += ''.join(open('components/%s.js' % d).read() for d in sorted(used_defs(s)))
     out = []
     for m in re.finditer(r'\b(?:%s)="([^"]+)"' % '|'.join(LINK_ATTRS), s):
         h = m.group(1)
         # tel: and sms: leave the set the same way mailto: does — a wireframe that
         # draws a helpline number as a real link is correct, not a dead path.
-        if h.startswith(('http','#','mailto:','tel:','sms:')): continue
+        if h.startswith(('http','#','mailto:','tel:','sms:')) or '{' in h: continue
         out.append((h, os.path.normpath(os.path.join(os.path.dirname(f), h.split('?')[0].split('#')[0]))))
     return out
 
@@ -166,10 +178,38 @@ DEFS = sorted(glob.glob('components/*.js')) if BABUL else []
 # A property a definition puts in an href — top-bar's `back` — is a link where
 # an instance sets it, exactly as an href is.
 LINK_ATTRS = ['href'] + sorted({n for d in DEFS for n in re.findall(r'href="\{([a-z][a-z0-9-]*)\}"', open(d).read())})
+HOLE = re.compile(r'\{!?[a-z][a-z0-9-]*(?:=[^?|}]*)?(?:\|[^}]*|\?([^:}]*)(?::([^}]*))?)?\}')
+
 def unbrace(text):
     """A definition with its {prop} holes out and both arms of every {test?a:b} in."""
-    return re.sub(r'\{!?[a-z][a-z0-9-]*(?:=[^?}]*)?(?:\?([^:}]*)(?::([^}]*))?)?\}',
-                  lambda m: ' '.join(x for x in m.groups() if x), text)
+    return HOLE.sub(lambda m: ' %s ' % ' '.join(x for x in m.groups() if x), text)
+
+def classes(text):
+    """Every class="" in text, as (classes, prefixes): each arm of a {test?a:b} is
+    a class of its own; a class built from a {prop} is known only by its prefix."""
+    fixed, prefixes = set(), set()
+    def expand(token):
+        m = HOLE.search(token)
+        if not m:
+            fixed.update(token.split()); return
+        if '?' in m.group(0):
+            for arm in (m.group(1) or '', m.group(2) or ''):
+                expand(token[:m.start()] + arm + token[m.end():])
+            return
+        head, tail = token[:m.start()], token[m.end():]
+        glued = head and not head[-1].isspace()
+        words = head.split()
+        fixed.update(words[:-1] if glued else words)
+        if glued: prefixes.add(words[-1])
+        expand(re.sub(r'^\S*', '', tail))       # the rest of a built class is unknown too
+    for attr in re.findall(r'class="([^"]*)"', text):
+        for token in re.findall(r'(?:[^\s{]|\{[^}]*\})+', attr):
+            expand(token)
+    return fixed, prefixes
+
+assert classes('class="a {x?b:c}"') == ({'a', 'b', 'c'}, set())
+assert classes('class="text-{dark?white:ink}"')[0] == {'text-white', 'text-ink'}
+assert classes('class="p-2 bg-brand-{tone}-500 m-1"') == ({'p-2', 'm-1'}, {'bg-brand-'})
 
 # ---- 1. inventory ----------------------------------------------------------
 head('inventory — every file declared, every declaration on disk')
@@ -249,27 +289,26 @@ declared_cls  = set(re.findall(r'\.([a-zA-Z][a-zA-Z0-9_-]*)', css))
 
 missing_vars, missing_cls = set(), set()
 for f in sorted(declared_files) + [p for p in SHELL_PAGES if os.path.exists(p)] + DEFS:
-    s = unbrace(open(f).read())
-    for v in re.findall(r'var\((--[a-z0-9-]+)', s):
+    s = open(f).read()
+    for v in re.findall(r'var\((--[a-z0-9-]+)', unbrace(s)):
         if v not in declared_vars: missing_vars.add((f, v))
-    for attr in re.findall(r'class="([^"]*)"', s):
-        for c in attr.split():
-            c = c.split(':')[-1]                         # strip sm:/hover: prefixes
-            if re.match(r'^(bg|text|border|ring|fill|stroke|from|to|via|decoration|shadow|outline)-', c):
-                stem = c.split('-',1)[1].split('/')[0]
-                if re.match(r'^(brand|accent|conf|macro|ink|page|frame|surface|muted|sunken|line|success|warn|danger|info|camera)\b', stem):
-                    if stem not in tw_colors: missing_cls.add((f, c))
-            # A MODIFIER MUST BE DECLARED. Only colour utilities were checked
-            # here, so `phone--camera` — used by both camera screens and
-            # declared nowhere — resolved to nothing for as long as the set has
-            # existed. Both got away with it by painting their own dark area
-            # inline; anything outside that block rendered as dark text on white.
-            #
-            # `--` is the precise test: every component modifier in this system
-            # uses it (card--muted, opt--ask, phone--page) and no Tailwind
-            # utility ever contains it, so there is nothing to allow-list.
-            elif '--' in c and c not in declared_cls:
-                missing_cls.add((f, c))
+    for c in classes(s)[0]:
+        c = c.split(':')[-1]                         # strip sm:/hover: prefixes
+        if re.match(r'^(bg|text|border|ring|fill|stroke|from|to|via|decoration|shadow|outline)-', c):
+            stem = c.split('-',1)[1].split('/')[0]
+            if re.match(r'^(brand|accent|conf|macro|ink|page|frame|surface|muted|sunken|line|success|warn|danger|info|camera)\b', stem):
+                if stem not in tw_colors: missing_cls.add((f, c))
+        # A MODIFIER MUST BE DECLARED. Only colour utilities were checked
+        # here, so `phone--camera` — used by both camera screens and
+        # declared nowhere — resolved to nothing for as long as the set has
+        # existed. Both got away with it by painting their own dark area
+        # inline; anything outside that block rendered as dark text on white.
+        #
+        # `--` is the precise test: every component modifier in this system
+        # uses it (card--muted, opt--ask, phone--page) and no Tailwind
+        # utility ever contains it, so there is nothing to allow-list.
+        elif '--' in c and c not in declared_cls:
+            missing_cls.add((f, c))
 for f,v in sorted(missing_vars): bad('%s uses %s — declared nowhere in shared.css' % (f, v))
 for f,c in sorted(missing_cls):
     bad('%s uses %s — declared nowhere in shared.css' % (f, c) if '--' in c
@@ -843,12 +882,13 @@ if BABUL:
             bad('assets.js: %s does not exist' % a['file'])
 
     # A class in styles.css that nothing draws is dead weight that drifts.
-    used_cls = set()
+    used_cls, built = set(), set()
     for f in sorted(declared_files & on_disk) + DEFS:
-        for attr in re.findall(r'class="([^"]*)"', unbrace(open(f).read())):
-            used_cls |= set(attr.split())
+        fixed, prefixes = classes(open(f).read())
+        used_cls |= fixed; built |= prefixes
     own = set(re.findall(r'\.([a-z][a-z0-9-]*)', re.sub(r'/\*.*?\*/', '', open('styles.css').read(), flags=re.S)))
     for c in sorted(own - used_cls):
+        if any(c.startswith(p) for p in built): continue
         bad('styles.css declares .%s and nothing draws it' % c)
     print('   %d pages, %d links, %d components, %d icons'
           % (len(B['pages']), len(B['links']), len(B['components']), len((B['assets'].get('icons') or {}).get('names', []))))
