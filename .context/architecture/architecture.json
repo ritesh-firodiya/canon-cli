@@ -1,0 +1,99 @@
+{
+  "schema_version": 2,
+  "verified": "2026-10-30",
+  "summary": "A command-line tool and a Claude Code plugin that run on your machine and read your repos. There is no server and no user data held anywhere. npm hosts the package, and GitHub Actions publishes it.",
+  "headlines": [
+    { "label": "Known cost a month", "value": "Not read", "note": "No npm, GitHub or Claude bill is recorded. The package is free and MIT." },
+    { "label": "Servers we run", "value": "None", "note": "Everything is local except a version lookup on npm and a one-time Quartz clone." },
+    { "label": "Biggest risk", "value": "Config runs shell", "note": "canon check runs any commands: a repo's canon.yaml declares, through sh -c. Run it only on repos you trust." },
+    { "label": "Release trigger", "value": "A version bump", "note": "Pushing a new version to main publishes to npm. No other step is needed." }
+  ],
+  "areas": [
+    { "id": "machine", "label": "Your machine" },
+    { "id": "github", "label": "GitHub" },
+    { "id": "npm", "label": "npm" },
+    { "id": "claude", "label": "Claude" }
+  ],
+  "parts": [
+    { "id": "cli", "area": "machine", "label": "canon CLI", "does": "check, sync, search, ui, update · Node 22 or newer · 4 runtime packages", "price": "$0 · MIT",
+      "cost": { "today": "$0", "grows": "Nothing", "basis": "code", "source": "package.json: license MIT, 4 dependencies" },
+      "ifDown": { "user": "Not applicable: it is a program, not a service. A bad release is fixed by installing an older version.", "data": "Safe, it only reads your repos", "basis": "assumed", "source": "No test or incident names this" } },
+    { "id": "plugin", "area": "machine", "label": "Claude Code plugin", "does": "Skills, the weigh gate, and a session-start hook",
+      "cost": { "today": "$0", "grows": "Nothing", "basis": "code", "source": "hooks/hooks.json; .claude-plugin/plugin.json" },
+      "ifDown": { "user": "If the canon CLI or qmd is missing, the session still starts, with the constitution read from a file.", "data": "Safe", "basis": "code", "source": "hooks/session-start.mjs" } },
+    { "id": "qmd", "area": "machine", "label": "qmd search", "does": "Local search over every repo's wiki; started with qmd update and qmd embed",
+      "cost": { "today": "Not read", "grows": "Pages indexed", "basis": "unknown" },
+      "ifDown": { "user": "Search returns nothing. The session hook ignores a missing qmd.", "data": "Safe, the index is rebuilt from the wiki", "basis": "code", "source": "hooks/session-start.mjs, refreshSearchIndex()" } },
+    { "id": "claude", "area": "claude", "label": "Claude Code", "does": "canon weigh runs claude -p; the plugin runs inside it",
+      "cost": { "today": "Not read", "grows": "Each weigh and each session; paid on your own Claude plan", "basis": "unknown" },
+      "ifDown": { "user": "canon weigh stops with could not run claude.", "data": "Safe", "basis": "code", "source": "cli/src/weigh/weigh.command.ts" } },
+    { "id": "npm", "area": "npm", "label": "npm registry", "does": "Hosts @freetesh/canon; canon update asks it for the latest version",
+      "cost": { "today": "Not read", "grows": "Nothing known", "basis": "unknown" },
+      "ifDown": { "user": "canon update fails with the HTTP status after 30 s at most. Nothing is changed.", "data": "Safe", "basis": "code", "source": "cli/src/lib/system.ts; cli/src/update/update.ts" } },
+    { "id": "actions", "area": "github", "label": "GitHub Actions", "does": "ci on Node 22 and 24; release publishes to npm",
+      "cost": { "today": "Not read", "grows": "Pushes and pull requests", "basis": "unknown" },
+      "ifDown": { "user": "No new release goes out. Installed copies keep working.", "data": "Safe", "basis": "code", "source": ".github/workflows/release.yml" } },
+    { "id": "quartz", "area": "github", "label": "Quartz (wiki site)", "does": "canon wiki clones it once to ~/.cache/canon, pinned to one commit, and serves on localhost",
+      "cost": { "today": "$0", "grows": "Nothing", "basis": "code", "source": "cli/src/wiki/wiki.command.ts, QUARTZ_COMMIT" },
+      "ifDown": { "user": "canon wiki fails on first run. Every other command works.", "data": "Safe", "basis": "code", "source": "cli/src/wiki/wiki.command.ts, must()" } }
+  ],
+  "flows": [
+    { "name": "Release a version", "cost": "Not read", "note": "a push to main with a new version",
+      "path": ["actions", "npm", "actions"],
+      "steps": [
+        "A push to main, a v* tag or a manual run starts the job. One release runs at a time.",
+        "It installs, runs typecheck and tests, and fails if package.json and plugin.json have different versions.",
+        "It asks npm whether that version exists. If it does, it stops there.",
+        "Otherwise it runs npm publish with provenance, using the NPM_TOKEN secret.",
+        "Then it tags the commit and makes the GitHub release."
+      ] },
+    { "name": "Run canon check", "cost": "$0", "note": "also runs in a repo's pre-push hook",
+      "path": ["cli"],
+      "steps": [
+        "The CLI reads .claude/canon.yaml and the repo's .context.",
+        "It runs each built-in check, then each command the config declares, through sh -c in the repo.",
+        "Any error exits with code 1."
+      ] },
+    { "name": "Update canon", "cost": "Not read", "note": "canon update",
+      "path": ["cli", "npm", "cli", "plugin"],
+      "steps": [
+        "It fetches the latest version from the npm registry.",
+        "From a git checkout it only tells you to pull. Otherwise it runs npm or pnpm install -g.",
+        "It then updates the Claude Code plugin and asks you to restart Claude Code."
+      ] },
+    { "name": "Weigh a request", "cost": "Not read", "note": "canon weigh, or the skill inside a session",
+      "path": ["cli", "claude", "cli"],
+      "steps": [
+        "canon weigh runs claude -p with your request.",
+        "Claude reads the repo's wiki and rules and answers do it, do it differently or push back.",
+        "The verdict is appended to .context/raw/canon/verdicts.jsonl in the repo."
+      ] },
+    { "name": "Start a session", "cost": "$0", "note": "every Claude Code session in a repo with the plugin",
+      "path": ["plugin", "qmd"],
+      "steps": [
+        "The hook starts qmd update in the background and does not wait.",
+        "It puts the constitution's principle titles in front of the session."
+      ] },
+    { "name": "Serve the wiki", "cost": "$0", "note": "canon wiki",
+      "path": ["cli", "quartz", "cli"],
+      "steps": [
+        "First run: git clone Quartz, check out the pinned commit, npm ci.",
+        "It builds every product's wiki and serves it on localhost, port 4610 by default."
+      ] }
+  ],
+  "data": [
+    { "what": "Your repos, wiki and rules", "where": "Stay on your machine. check, search and ui send nothing out." },
+    { "what": "Version lookup", "where": "One GET to registry.npmjs.org; no repo data in it" },
+    { "what": "A request given to canon weigh", "where": "Sent to Claude, as any Claude Code prompt is" },
+    { "what": "Verdict log", "where": "Written to .context/raw/canon/verdicts.jsonl in the repo" },
+    { "what": "Quartz copy", "where": "Cloned to ~/.cache/canon on your machine" }
+  ],
+  "unknowns": [
+    "The real monthly bill: nothing records GitHub Actions, npm or Claude usage cost.",
+    "RISK: the commands: list in canon.yaml runs through sh -c on every canon check, including the pre-push hook and --all. A repo you did not write can run code on your machine.",
+    "RISK: the release only tags and makes the GitHub release when it publishes. If npm publish works and the tag step fails, a rerun sees the version on npm, skips both, and the tag is never made.",
+    "RISK: the session hook starts a detached qmd update at every session start, with no check for one already running. The load from many sessions is not measured.",
+    "How the release signs in to npm: it passes the NPM_TOKEN secret and also asks for provenance. Whether a long-lived token is still needed is not read.",
+    "What qmd downloads or sends on its first embed is not read here; it is a separate tool."
+  ]
+}

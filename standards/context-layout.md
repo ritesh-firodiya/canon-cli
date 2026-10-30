@@ -13,7 +13,7 @@ folder.
 ├── wiki/            everything you concluded. Schema: wiki-schema.md
 ├── features/        what's next.
 ├── designs/         what it looks like.
-├── architecture/    how it is built, as diagrams: one JSON per question.
+├── architecture/    how it is built and what it costs: architecture.json.
 ├── listing/         what the stores show.
 ├── marketing/       how it's sold.
 ├── metrics/         the numbers.
@@ -76,7 +76,7 @@ separate folder per name.
 | Initiative | `wiki/synthesis/`, linking its features and decisions |
 | Finding | the dated data in `raw/`; what it means in `wiki/synthesis/` or a concept |
 | Know-how | `wiki/concepts/`; `ops/` when it is a runbook |
-| Architecture diagram | `architecture/<question>.json`: parts and connections, the only source. `canon ui` draws it, agents read it, `canon check` verifies it. No generated HTML beside it |
+| Architecture and cost | `architecture/architecture.json`, the only source: `canon ui` draws it, agents read it, `canon check` verifies it. Format and rules: `architecture-page` |
 | Bug | the issue tracker; a wiki concept only when it teaches a rule |
 | Data source | `wiki/entities/` — see the wiki schema, "Data sources" |
 | Setup notes (account IDs, console links, where credentials live) | `ops/setup.md` |

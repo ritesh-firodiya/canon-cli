@@ -131,7 +131,7 @@ Styles), a list, the canvas, and on a page an island (‹ name › · states ·
 sizes). It shows only the drawing.
 
 - **Architecture** is the one view not read from the set: it draws
-  `.context/architecture/*.json`. A browser refuses `fetch` on `file://`, so only
+  `.context/architecture/architecture.json`. A browser refuses `fetch` on `file://`, so only
   `canon ui` can show it; from disk the item is off.
 - **The shell adds the frame around a page, never anything in it.**
 - **Its colours are `--chrome-*` only.** Reading a product token made the same

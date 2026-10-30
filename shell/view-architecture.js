@@ -1,97 +1,245 @@
-/* Architecture: the repo's .context/architecture/*.json, one tab per diagram.
+/* Architecture: .context/architecture/architecture.json, drawn as one page.
  * ============================================================================
- * The JSON is the only source, so what people see here and what an agent reads
- * cannot disagree. Only `canon ui` can reach it: a browser refuses fetch on
- * file://, so the bar's link is off when a set opens from disk.              */
+ * Where the product stands, how it fits together, what it costs, what breaks,
+ * what leaves the device and what is not known yet. The JSON is the only source,
+ * so what people see and what an agent reads cannot disagree. Only `canon ui` can
+ * reach it: a browser refuses fetch on file://, so the bar's link is off there.
+ *
+ * Everything is set as text, never as markup: the file is data.              */
 (function () {
   var S = window.BABUL_SHELL;
   if (!S) return;
-  var SVG = "http://www.w3.org/2000/svg";
-  var PAD = 40;
+  var NS = "http://www.w3.org/2000/svg";
+  var MAP = { width: 1072, pad: 16, gap: 56, head: 32, box: 62, boxGap: 10 };
+  var BASIS = { measured: "Measured", stated: "Stated", code: "In code", assumed: "Assumed", unknown: "Not known" };
 
+  function el(tag, cls, text) { return S.el(tag, cls, text); }
   function svg(tag, attrs, text) {
-    var n = document.createElementNS(SVG, tag);
+    var n = document.createElementNS(NS, tag);
     Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
     if (text != null) n.textContent = text;
     return n;
   }
-
-  /* Where the line from a box's centre towards a point leaves the box. */
-  function edge(box, toward) {
-    var cx = box.x + box.w / 2, cy = box.y + box.h / 2;
-    var dx = toward.x - cx, dy = toward.y - cy;
-    if (!dx && !dy) return { x: cx, y: cy };
-    var t = Math.min(dx ? box.w / 2 / Math.abs(dx) : Infinity, dy ? box.h / 2 / Math.abs(dy) : Infinity);
-    return { x: cx + dx * t, y: cy + dy * t };
+  function section(host, title, note) {
+    var s = el("section", "arch-section"), head = el("header", "arch-head");
+    head.appendChild(el("h2", null, title));
+    if (note) head.appendChild(el("p", null, note));
+    s.appendChild(head);
+    host.appendChild(s);
+    return s;
+  }
+  function basisCell(value) {
+    var td = el("td");
+    if (!value || !value.basis) return td;
+    td.appendChild(el("span", "arch-pill arch-pill--" + value.basis, BASIS[value.basis] || value.basis));
+    if (value.source) td.appendChild(el("span", "arch-source", value.source));
+    return td;
+  }
+  function table(parent, headers, rows) {
+    var wrap = el("div", "arch-card arch-scroll"), t = el("table"), body = el("tbody");
+    if (headers) {
+      var head = el("thead"), tr = el("tr");
+      headers.forEach(function (h) { tr.appendChild(el("th", null, h)); });
+      head.appendChild(tr);
+      t.appendChild(head);
+    }
+    rows.forEach(function (cells) {
+      var tr = el("tr");
+      cells.forEach(function (cell) { tr.appendChild(cell instanceof Node ? cell : el("td", null, cell)); });
+      body.appendChild(tr);
+    });
+    t.appendChild(body);
+    wrap.appendChild(t);
+    parent.appendChild(wrap);
   }
 
-  function draw(diagram) {
-    var boxes = {};
-    diagram.components.forEach(function (c) {
-      boxes[c.id] = { x: c.pos[0], y: c.pos[1], w: c.size[0], h: c.size[1], label: c.label, sublabel: c.sublabel };
+  /* ---- the map: one column per area, a box per part, a line per step of a flow */
+  function layout(arch) {
+    var count = arch.areas.length;
+    var colW = (MAP.width - MAP.pad * 2 - MAP.gap * (count - 1)) / count;
+    var tallest = 0, boxes = {};
+    arch.areas.forEach(function (area, i) {
+      var x = MAP.pad + i * (colW + MAP.gap);
+      var parts = arch.parts.filter(function (p) { return p.area === area.id; });
+      parts.forEach(function (p, j) {
+        boxes[p.id] = { x: x + 12, y: MAP.pad + MAP.head + j * (MAP.box + MAP.boxGap), w: colW - 24, h: MAP.box, part: p };
+      });
+      tallest = Math.max(tallest, parts.length);
+      area._x = x;
     });
-    var all = Object.keys(boxes).map(function (id) { return boxes[id]; });
-    var left = Math.min.apply(null, all.map(function (b) { return b.x; })) - PAD;
-    var top = Math.min.apply(null, all.map(function (b) { return b.y; })) - PAD;
-    var right = Math.max.apply(null, all.map(function (b) { return b.x + b.w; })) + PAD;
-    var bottom = Math.max.apply(null, all.map(function (b) { return b.y + b.h; })) + PAD;
+    var height = MAP.pad * 2 + MAP.head + tallest * (MAP.box + MAP.boxGap) + 8;
+    return { boxes: boxes, colW: colW, height: height };
+  }
+  function linkPath(a, b) {
+    if (a.x === b.x) {
+      var up = a.y > b.y, x = a.x + a.w - 14;
+      return "M" + x + " " + (up ? a.y : a.y + a.h) + "L" + x + " " + (up ? b.y + b.h : b.y);
+    }
+    var right = a.x < b.x, x1 = right ? a.x + a.w : a.x, x2 = right ? b.x : b.x + b.w;
+    var y1 = a.y + a.h / 2, y2 = b.y + b.h / 2, m = (x1 + x2) / 2;
+    return "M" + x1 + " " + y1 + "C" + m + " " + y1 + " " + m + " " + y2 + " " + x2 + " " + y2;
+  }
+  var pairsOf = function (path) { return path.slice(1).map(function (id, i) { return [path[i], id]; }); };
+  var keyOf = function (a, b) { return a < b ? a + "|" + b : b + "|" + a; };
 
-    var root = svg("svg", { "class": "arch-svg", viewBox: [left, top, right - left, bottom - top].join(" "), role: "img", "aria-label": diagram.meta.title });
-    var defs = svg("defs", {});
-    var marker = svg("marker", { id: "arch-arrow", markerWidth: 8, markerHeight: 8, refX: 7, refY: 4, orient: "auto" });
-    marker.appendChild(svg("path", { d: "M0 0L8 4L0 8z", "class": "arch-arrow" }));
-    defs.appendChild(marker);
-    root.appendChild(defs);
-
-    (diagram.connections || []).forEach(function (c) {
-      var from = boxes[c.from], to = boxes[c.to];
-      if (!from || !to) return;
-      var a = edge(from, { x: to.x + to.w / 2, y: to.y + to.h / 2 });
-      var b = edge(to, { x: from.x + from.w / 2, y: from.y + from.h / 2 });
-      root.appendChild(svg("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, "marker-end": "url(#arch-arrow)", "class": "arch-line" + (c.variant ? " arch-line--" + c.variant : "") }));
-      if (c.label) root.appendChild(svg("text", { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 7, "class": "arch-edge-label" }, c.label));
+  function drawMap(parent, arch) {
+    var card = el("div", "arch-card"), tabs = el("div", "arch-tabs"), line = el("div", "arch-flow");
+    var map = layout(arch);
+    var root = svg("svg", { "class": "arch-map", viewBox: "0 0 " + MAP.width + " " + map.height, role: "img", "aria-label": "How the parts connect" });
+    arch.areas.forEach(function (area) {
+      root.appendChild(svg("rect", { "class": "arch-area", x: area._x, y: MAP.pad, width: map.colW, height: map.height - MAP.pad * 2, rx: 10 }));
+      root.appendChild(svg("text", { "class": "arch-area-label", x: area._x + 12, y: MAP.pad + 22 }, area.label.toUpperCase()));
     });
-    all.forEach(function (b) {
-      root.appendChild(svg("rect", { x: b.x, y: b.y, width: b.w, height: b.h, rx: 8, "class": "arch-box" }));
-      var mid = b.y + b.h / 2;
-      root.appendChild(svg("text", { x: b.x + b.w / 2, y: b.sublabel ? mid - 3 : mid + 5, "class": "arch-label" }, b.label));
-      if (b.sublabel) root.appendChild(svg("text", { x: b.x + b.w / 2, y: mid + 15, "class": "arch-sublabel" }, b.sublabel));
+    var links = {}, nodes = {}, flows = arch.flows || [];
+    flows.forEach(function (flow) {
+      pairsOf(flow.path).forEach(function (pair) {
+        var key = keyOf(pair[0], pair[1]);
+        if (links[key] || pair[0] === pair[1] || !map.boxes[pair[0]] || !map.boxes[pair[1]]) return;
+        links[key] = svg("path", { "class": "arch-link", d: linkPath(map.boxes[pair[0]], map.boxes[pair[1]]) });
+        root.appendChild(links[key]);
+      });
     });
-    return root;
+    Object.keys(map.boxes).forEach(function (id) {
+      var b = map.boxes[id], p = b.part, g = svg("g", { "class": "arch-node" }), cost = p.cost || {};
+      g.appendChild(svg("rect", { "class": "arch-box", x: b.x, y: b.y, width: b.w, height: b.h, rx: 8 }));
+      g.appendChild(svg("text", { "class": "arch-name", x: b.x + 10, y: b.y + 20 }, p.label));
+      g.appendChild(svg("text", { "class": "arch-what", x: b.x + 10, y: b.y + 36 }, p.does));
+      g.appendChild(svg("text", { "class": "arch-price arch-price--" + (cost.basis || "unknown"), x: b.x + 10, y: b.y + 53 }, p.price || cost.today || ""));
+      nodes[id] = g;
+      root.appendChild(g);
+    });
+    function pick(i) {
+      var flow = flows[i], on = {}, used = {};
+      [].forEach.call(tabs.children, function (t, j) { t.setAttribute("aria-pressed", String(j === i)); });
+      if (!flow) return;
+      flow.path.forEach(function (id) { on[id] = true; });
+      pairsOf(flow.path).forEach(function (pair) { used[keyOf(pair[0], pair[1])] = true; });
+      Object.keys(nodes).forEach(function (id) { nodes[id].setAttribute("class", "arch-node" + (on[id] ? " is-on" : " is-dim")); });
+      Object.keys(links).forEach(function (key) { links[key].setAttribute("class", "arch-link" + (used[key] ? " is-on" : " is-dim")); });
+      line.replaceChildren();
+      var head = el("div");
+      head.appendChild(el("b", null, flow.cost));
+      if (flow.note) head.appendChild(el("span", "arch-source", flow.note));
+      var list = el("ol");
+      (flow.steps || []).forEach(function (step) { list.appendChild(el("li", null, step)); });
+      line.append(head, list);
+    }
+    flows.forEach(function (flow, i) {
+      var b = el("button", "arch-tab", flow.name);
+      b.type = "button";
+      b.addEventListener("click", function () { pick(i); });
+      tabs.appendChild(b);
+    });
+    if (flows.length) card.appendChild(tabs);
+    card.appendChild(root);
+    if (flows.length) card.appendChild(line);
+    parent.appendChild(card);
+    // Measured once on the page: the map keeps one line per box, and the Cost table below has the full text.
+    Object.keys(nodes).forEach(function (id) {
+      var b = map.boxes[id];
+      nodes[id].querySelectorAll("text").forEach(function (t) { fit(t, b.w - 20); });
+    });
+    pick(0);
+  }
+  function fit(text, width) {
+    var full = text.textContent;
+    if (text.getComputedTextLength() <= width) return;
+    var low = 0, high = full.length;
+    while (low < high) {
+      var mid = Math.ceil((low + high) / 2);
+      text.textContent = full.slice(0, mid).trimEnd() + "…";
+      if (text.getComputedTextLength() <= width) low = mid;
+      else high = mid - 1;
+    }
+    text.textContent = full.slice(0, low).trimEnd() + "…";
+    text.appendChild(svg("title", {}, full));
   }
 
-  function message(host, text) {
-    host.appendChild(S.el("p", "arch-message", text));
-  }
-
-  function show(host, diagrams) {
-    // Titles carry the order: "1 · Who uses it".
-    var drawable = diagrams.filter(function (d) { return d.diagram_type === "architecture" && d.components; })
-      .sort(function (a, b) { return a.meta.title.localeCompare(b.meta.title, undefined, { numeric: true }); });
-    if (!drawable.length) return message(host, "No diagrams yet. Add them to .context/architecture/.");
-
-    var tabs = S.el("div", "arch-tabs");
-    var stage = S.el("div", "arch-stage");
-    host.appendChild(tabs);
-    host.appendChild(stage);
-    var open = function (diagram) {
-      history.replaceState(null, "", "#" + diagram.name);
-      [].forEach.call(tabs.children, function (t) { t.classList.toggle("is-on", t.dataset.name === diagram.name); });
-      stage.replaceChildren(draw(diagram), S.el("code", "arch-source", ".context/architecture/" + diagram.name + ".json"));
-    };
-    drawable.forEach(function (diagram) {
-      var tab = S.el("button", "arch-tab", diagram.meta.title);
-      tab.type = "button";
-      tab.dataset.name = diagram.name;
-      tab.addEventListener("click", function () { open(diagram); });
-      tabs.appendChild(tab);
+  /* ---- growth: one number scaled up, against its limit ---------------------- */
+  function drawGrowth(parent, growth) {
+    var card = el("div", "arch-card arch-pad"), row = el("div", "arch-scale"), out = el("div", "arch-out");
+    row.appendChild(el("span", "arch-muted", growth.unit));
+    var cost = el("b"), perDay = el("b"), limit = el("b");
+    [[growth.costLabel || "Cost a month", cost], [growth.unit + ", per day", perDay]].concat(growth.limitPerDay ? [[growth.limitLabel || "Limit", limit]] : []).forEach(function (pair) {
+      var d = el("div");
+      d.appendChild(el("small", null, pair[0]));
+      d.appendChild(pair[1]);
+      out.appendChild(d);
     });
-    var wanted = location.hash.slice(1);
-    open(drawable.filter(function (d) { return d.name === wanted; })[0] || drawable[0]);
+    var money = function (v) { return v < 1 ? "$" + v.toFixed(2) : "$" + Math.round(v).toLocaleString("en-US"); };
+    function pick(i) {
+      var n = growth.steps[i], day = n / 30;
+      [].forEach.call(row.querySelectorAll("button"), function (b, j) { b.setAttribute("aria-pressed", String(j === i)); });
+      cost.textContent = money(n * growth.rate) + " / mo";
+      perDay.textContent = Math.round(day).toLocaleString("en-US");
+      if (growth.limitPerDay) {
+        var share = day / growth.limitPerDay;
+        limit.textContent = share > 1 ? "Over the limit" : share < 0.01 ? "Under 1% used" : Math.round(share * 100) + "% used";
+        limit.className = share > 1 ? "arch-warn" : "";
+      }
+    }
+    growth.steps.forEach(function (n, i) {
+      var b = el("button", "arch-tab", n.toLocaleString("en-US") + (n === growth.today ? " (today)" : ""));
+      b.type = "button";
+      b.addEventListener("click", function () { pick(i); });
+      row.appendChild(b);
+    });
+    card.append(row, out);
+    if (growth.note) card.appendChild(el("p", "arch-note", growth.note));
+    parent.appendChild(card);
+    pick(0);
   }
+
+  function show(host, arch) {
+    host.appendChild(el("h1", "arch-title", window.BABUL_MODEL.product.name + " architecture"));
+    host.appendChild(el("p", "arch-summary", arch.summary));
+    if (arch.verified) host.appendChild(el("p", "arch-source", "Verified " + arch.verified));
+
+    if ((arch.headlines || []).length) {
+      var tiles = el("div", "arch-tiles");
+      arch.headlines.forEach(function (h) {
+        var t = el("div", "arch-card arch-tile");
+        t.appendChild(el("small", null, h.label));
+        t.appendChild(el("b", null, h.value));
+        if (h.note) t.appendChild(el("span", null, h.note));
+        tiles.appendChild(t);
+      });
+      host.appendChild(tiles);
+    }
+    drawMap(section(host, "How it fits together", (arch.flows || []).length ? "Pick something a user does to see its path and what it costs." : null), arch);
+
+    table(section(host, "Cost", "Every number says where it came from, so a guess cannot pass for a fact."),
+      ["Service", "Pays for", "Today", "Grows with", "Basis"],
+      arch.parts.filter(function (p) { return p.cost && !p.cost.hide; }).map(function (p) {
+        return [p.label, p.does, p.cost.today, p.cost.grows || "", basisCell(p.cost)];
+      }));
+
+    if (arch.growth) drawGrowth(section(host, "What if it grows?", arch.growth.summary), arch.growth);
+
+    var failing = arch.parts.filter(function (p) { return p.ifDown; });
+    if (failing.length) {
+      table(section(host, "What breaks when something fails"), ["If this fails", "The user sees", "Their data", "Basis"],
+        failing.map(function (p) { return [p.label, p.ifDown.user || "", p.ifDown.data || "", basisCell(p.ifDown)]; }));
+    }
+
+    var two = el("div", "arch-two");
+    if ((arch.data || []).length) {
+      var data = section(two, "Where the data goes");
+      table(data, null, arch.data.map(function (d) { return [d.what, d.where]; }));
+    }
+    if ((arch.unknowns || []).length) {
+      var unknowns = section(two, "What we do not know yet"), card = el("div", "arch-card"), list = el("ul", "arch-gaps");
+      arch.unknowns.forEach(function (u) { list.appendChild(el("li", null, u)); });
+      card.appendChild(list);
+      unknowns.appendChild(card);
+    }
+    host.appendChild(two);
+  }
+
+  function message(host, text) { host.appendChild(el("p", "arch-note", text)); }
 
   S.onBuild = function () {
-    var host = S.el("div", "arch-view");
+    var host = el("div", "arch-view");
     S.canvas.appendChild(host);
     document.title = window.BABUL_MODEL.product.name + " — Architecture";
     fetch("/_architecture.json")
@@ -99,7 +247,10 @@
         if (!response.ok) throw new Error(String(response.status));
         return response.json();
       })
-      .then(function (diagrams) { show(host, diagrams); })
-      .catch(function () { message(host, "Could not read the diagrams. Is canon ui still running?"); });
+      .then(function (arch) {
+        if (!arch || !arch.parts || !arch.areas) return message(host, "No architecture yet. Add .context/architecture/architecture.json.");
+        show(host, arch);
+      })
+      .catch(function () { message(host, "Could not read the architecture. Run canon check, and make sure canon ui is still running."); });
   };
 })();

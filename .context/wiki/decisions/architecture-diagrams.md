@@ -2,21 +2,22 @@
 last-verified: 2026-10-30
 ---
 
-# Architecture diagrams
+# Architecture page
 
-**Choice:** each repo's diagrams are `.context/architecture/<question>.json`, the
-only source. `canon ui` draws them under an Architecture item in the shell's top
-bar, agents read them, and `canon check` verifies them. Why a part was chosen stays
-in a wiki concept page.
+**Choice:** each repo has one `.context/architecture/architecture.json`, drawn by
+`canon ui` as one page under Architecture in the shell's top bar: how it fits
+together, what it costs, what grows the bill, what breaks and what is not known.
+Agents read the same file, and `canon check` verifies it. Format: `architecture-page`.
 
-**Why:** the wiki site and the canon app never showed them, and search skipped
-them. Each diagram was a 1 KB JSON file beside an 800 KB generated HTML file, 47 MB
-across 16 repos. One file serves people, agents and the check.
+**Why:** diagrams of folders told nobody anything. What the owner needs is
+architecture and cost. Every figure carries a basis and a source, so a guess cannot
+pass for a fact, and an unknown is shown as unknown.
 
 **Rejected:**
-- Markdown copies: a second source that drifts (C-02).
-- Keeping Archify's HTML in a frame: two copies of every diagram, and the 47 MB.
+- Four Archify diagrams per repo (0.24.0): they repeated the folder structure, at
+  800 KB of HTML each.
+- Markdown copies of the data: a second source that drifts (C-02).
 
-**Cost:** no Archify toolbar, animation or image export, and canon keeps a small
-drawing routine. Only `canon ui` shows the view, because a browser refuses `fetch`
-on `file://`.
+**Cost:** the file is written from research, not generated, and goes stale; the
+check warns after 90 days. Only `canon ui` shows the view, because a browser refuses
+`fetch` on `file://`.

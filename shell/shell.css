@@ -446,21 +446,58 @@ select:focus-visible {
 /* A component file opened alone: its cells in a plain row, on the product's page. */
 .cells { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 24px; background: var(--page); color: var(--ink); }
 
-/* Architecture view: drawn from .context/architecture/*.json. */
-.arch-view { display: flex; flex-direction: column; gap: 12px; height: 100%; padding: 16px 24px; box-sizing: border-box; }
-.arch-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
-.arch-tab { padding: 6px 12px; border-radius: 6px; font-size: 13px; color: var(--chrome-ink-2); background: none; border: 0; cursor: pointer; }
+/* Architecture view: drawn from .context/architecture/architecture.json. */
+.arch-view { max-width: 1120px; margin: 0 auto; padding: 24px; font-size: 14px; line-height: 1.5; color: var(--chrome-active); }
+.arch-title { font-size: 26px; line-height: 1.2; font-weight: 600; margin: 0; }
+.arch-summary { margin: 6px 0 0; max-width: 720px; color: var(--chrome-ink-2); }
+.arch-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 18px; }
+.arch-card { background: var(--chrome-bg); border: 1px solid var(--chrome-line); border-radius: 12px; }
+.arch-tile { padding: 14px; }
+.arch-tile small { display: block; font-size: 12px; color: var(--chrome-ink-2); }
+.arch-tile b { display: block; font-size: 23px; line-height: 1.25; margin: 4px 0 2px; }
+.arch-tile span { display: block; font-size: 12px; line-height: 1.35; color: var(--chrome-ink-2); }
+.arch-section { margin-top: 28px; }
+.arch-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 10px; }
+.arch-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.arch-head p { margin: 0; font-size: 13px; color: var(--chrome-ink-2); }
+.arch-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 10px; border-bottom: 1px solid var(--chrome-line); }
+.arch-tab { padding: 5px 11px; border: 0; border-radius: 6px; background: none; font: inherit; color: var(--chrome-ink-2); cursor: pointer; }
 .arch-tab:hover { color: var(--chrome-active); }
-.arch-tab.is-on { background: var(--chrome-bg); color: var(--chrome-active); font-weight: 600; box-shadow: 0 0 0 1px var(--chrome-line); }
-.arch-stage { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
-.arch-svg { flex: 1; min-height: 0; width: 100%; background: var(--chrome-bg); border: 1px solid var(--chrome-line); border-radius: 12px; }
-.arch-source { font-size: 11px; color: var(--chrome-ink-3); }
-.arch-message { margin: 48px auto; font-size: 14px; color: var(--chrome-ink-2); }
-.arch-box { fill: var(--chrome-canvas); stroke: var(--chrome-line); stroke-width: 1.5; }
-.arch-label { text-anchor: middle; font-size: 15px; font-weight: 600; fill: var(--chrome-active); }
-.arch-sublabel { text-anchor: middle; font-size: 11px; fill: var(--chrome-ink-2); }
-.arch-line { stroke: var(--chrome-ink-3); stroke-width: 1.5; }
-.arch-line--emphasis { stroke: var(--chrome-active); stroke-width: 2; }
-.arch-line--dashed, .arch-line--security { stroke-dasharray: 6 5; }
-.arch-arrow { fill: var(--chrome-ink-2); }
-.arch-edge-label { text-anchor: middle; font-size: 11px; fill: var(--chrome-ink-2); paint-order: stroke; stroke: var(--chrome-bg); stroke-width: 4px; }
+.arch-tab[aria-pressed="true"] { background: var(--chrome-soft); color: var(--chrome-active); font-weight: 600; }
+.arch-map { display: block; width: 100%; height: auto; }
+.arch-area { fill: var(--chrome-canvas); }
+.arch-area-label { font-size: 11px; font-weight: 600; letter-spacing: .05em; fill: var(--chrome-ink-3); }
+.arch-box { fill: var(--chrome-bg); stroke: var(--chrome-line); stroke-width: 1.5; }
+.arch-name { font-size: 14px; font-weight: 600; fill: var(--chrome-active); }
+.arch-what { font-size: 11px; fill: var(--chrome-ink-2); }
+.arch-price { font-size: 11px; font-weight: 600; fill: var(--chrome-ink-3); }
+.arch-price--measured { fill: #b45309; }
+.arch-link { fill: none; stroke: var(--chrome-line); stroke-width: 1.5; }
+.arch-link.is-on { stroke: var(--chrome-active); stroke-width: 2.5; }
+.arch-node.is-on .arch-box { stroke: var(--chrome-active); stroke-width: 2; }
+.arch-node.is-dim, .arch-link.is-dim { opacity: .32; }
+.arch-flow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 20px; padding: 12px 16px; border-top: 1px solid var(--chrome-line); }
+.arch-flow b { font-size: 15px; font-weight: 600; }
+.arch-flow ol { flex: 1 1 380px; margin: 0; padding-left: 18px; list-style: decimal; font-size: 13px; color: var(--chrome-ink-2); }
+.arch-scroll { overflow-x: auto; }
+.arch-card table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.arch-card th { padding: 9px 12px; text-align: left; font-size: 12px; font-weight: 600; white-space: nowrap; color: var(--chrome-ink-2); border-bottom: 1px solid var(--chrome-line); }
+.arch-card td { padding: 9px 12px; vertical-align: top; border-bottom: 1px solid var(--chrome-line); }
+.arch-card tr:last-child td { border-bottom: 0; }
+.arch-card td:first-child { font-weight: 600; }
+.arch-pill { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; white-space: nowrap; background: var(--chrome-soft); color: var(--chrome-ink-2); }
+.arch-pill--measured { background: #d1fae5; color: #047857; }
+.arch-pill--assumed { background: #fef3c7; color: #b45309; }
+.arch-pill--unknown { background: #fee2e2; color: #b91c1c; }
+.arch-source { display: block; margin-top: 2px; font-size: 11px; color: var(--chrome-ink-3); }
+.arch-pad { padding: 14px 16px; }
+.arch-scale { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.arch-muted { font-size: 13px; color: var(--chrome-ink-2); }
+.arch-out { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 12px; }
+.arch-out small { display: block; font-size: 12px; color: var(--chrome-ink-2); }
+.arch-out b { font-size: 20px; font-weight: 600; }
+.arch-warn { color: #b91c1c; }
+.arch-note { margin: 8px 0 0; font-size: 12px; color: var(--chrome-ink-3); }
+.arch-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.arch-gaps { margin: 0; padding: 10px 16px 10px 32px; list-style: disc; font-size: 13px; }
+.arch-gaps li { margin: 6px 0; }

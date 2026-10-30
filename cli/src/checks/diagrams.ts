@@ -1,80 +1,91 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { join } from "node:path";
 import type { Check, Finding } from "./types.ts";
 
 const FOLDER = ".context/architecture";
+const FILE = `${FOLDER}/architecture.json`;
 const OLD_FOLDER = ".context/wiki/concepts/architecture";
-const DRAWN_TYPE = "architecture";
+const BASES = ["measured", "stated", "code", "assumed", "unknown"];
+const STALE_DAYS = 90;
+const DAY_MS = 86_400_000;
 
+interface Basis {
+  basis?: string;
+  source?: string;
+}
 interface Part {
   id: string;
-  label?: string;
-  pos?: number[];
-  size?: number[];
+  area?: string;
+  cost?: Basis & { today?: string };
+  ifDown?: Basis;
 }
-interface Connection {
-  id: string;
-  from: string;
-  to: string;
-}
-interface Diagram {
-  diagram_type?: string;
-  meta?: { title?: string };
-  components?: Part[];
-  connections?: Connection[];
+interface Architecture {
+  verified?: string;
+  summary?: string;
+  areas?: { id: string }[];
+  parts?: Part[];
+  flows?: { name: string; path?: string[] }[];
 }
 
-const jsonFiles = (repo: string, folder: string): string[] =>
-  existsSync(join(repo, folder))
-    ? readdirSync(join(repo, folder)).filter((file) => file.endsWith(".json")).sort().map((file) => `${folder}/${file}`)
-    : [];
+function basisProblems(what: string, value: Basis | undefined): string[] {
+  if (!value?.basis || !BASES.includes(value.basis)) return [`${what} has no valid basis`];
+  if (value.basis !== "unknown" && !value.source) return [`${what} is "${value.basis}" but names no source`];
+  return [];
+}
 
-const isPair = (value: unknown): boolean => Array.isArray(value) && value.length === 2 && value.every((n) => typeof n === "number");
-
-function problems(diagram: Diagram): string[] {
-  const parts = diagram.components ?? [];
+function problems(architecture: Architecture): string[] {
+  const areas = new Set((architecture.areas ?? []).map((area) => area.id));
+  const parts = architecture.parts ?? [];
   const ids = new Set(parts.map((part) => part.id));
   return [
-    ...(diagram.meta?.title ? [] : ["no meta.title"]),
-    ...parts.filter((part) => !part.label || !isPair(part.pos) || !isPair(part.size)).map((part) => `part "${part.id}" needs a label, pos and size`),
-    ...(diagram.connections ?? []).flatMap((connection) =>
-      [connection.from, connection.to].filter((end) => !ids.has(end)).map((end) => `connection "${connection.id}" points at "${end}", which is not a part`),
+    ...(architecture.summary ? [] : ["no summary"]),
+    ...parts.flatMap((part) => [
+      ...(part.area && areas.has(part.area) ? [] : [`part "${part.id}" is in area "${part.area}", which does not exist`]),
+      ...basisProblems(`part "${part.id}" cost`, part.cost),
+      // A guess must not read as a fact: "unknown" with a figure in it is the failure this page exists to stop.
+      ...(part.cost?.basis === "unknown" && /\d/.test(part.cost.today ?? "") ? [`part "${part.id}" cost is "unknown" but states a number: ${part.cost.today}`] : []),
+      ...(part.ifDown ? basisProblems(`part "${part.id}" ifDown`, part.ifDown) : []),
+    ]),
+    ...(architecture.flows ?? []).flatMap((flow) =>
+      (flow.path ?? []).filter((id) => !ids.has(id)).map((id) => `flow "${flow.name}" goes through "${id}", which is not a part`),
     ),
   ];
 }
 
-/** The repo's diagrams for the shell's Architecture view: a broken file is left out, and `canon check` names it. */
-export function diagramsJson(repo: string): string {
-  const diagrams = jsonFiles(repo, FOLDER).flatMap((file) => {
-    try {
-      return [{ name: basename(file, ".json"), ...JSON.parse(readFileSync(join(repo, file), "utf8")) }];
-    } catch {
-      return [];
-    }
-  });
-  return JSON.stringify(diagrams);
+/** The repo's architecture for the shell's view, or null when there is none. The view says so if the file does not parse. */
+export function architectureJson(repo: string): string {
+  try {
+    return readFileSync(join(repo, FILE), "utf8");
+  } catch {
+    return "null";
+  }
 }
 
-export const diagrams: Check = {
-  id: "diagrams",
-  module: null,
-  description: `every diagram in ${FOLDER}/ parses, and its connections join parts that exist`,
-  run({ repo }) {
-    const finding = (level: Finding["level"], file: string, message: string): Finding => ({ check: "diagrams", level, file, message });
-    const moved = jsonFiles(repo, OLD_FOLDER).map((file) => finding("warn", file, `diagrams live in ${FOLDER}/ now — move it, and delete its .html`));
+const jsonIn = (repo: string, folder: string): string[] =>
+  existsSync(join(repo, folder)) ? readdirSync(join(repo, folder)).filter((file) => file.endsWith(".json")).map((file) => `${folder}/${file}`) : [];
 
+export const diagrams: Check = {
+  id: "architecture-page",
+  module: null,
+  description: `${FILE} parses, every cost says where it came from, and its flows go through parts that exist`,
+  run({ repo, today }) {
+    const finding = (level: Finding["level"], file: string, message: string): Finding => ({ check: "architecture-page", level, file, message });
+    const old = [...jsonIn(repo, OLD_FOLDER), ...jsonIn(repo, FOLDER).filter((file) => file !== FILE)].map((file) =>
+      finding("warn", file, `old diagram: the architecture is one file now, ${FILE}`),
+    );
+    if (!existsSync(join(repo, FILE))) return old;
+
+    let architecture: Architecture;
+    try {
+      architecture = JSON.parse(readFileSync(join(repo, FILE), "utf8"));
+    } catch (error) {
+      return [...old, finding("error", FILE, `not valid JSON: ${(error as Error).message}`)];
+    }
+    const age = architecture.verified ? (today.getTime() - new Date(architecture.verified).getTime()) / DAY_MS : Infinity;
     return [
-      ...moved,
-      ...jsonFiles(repo, FOLDER).flatMap((file) => {
-        let diagram: Diagram;
-        try {
-          diagram = JSON.parse(readFileSync(join(repo, file), "utf8"));
-        } catch (error) {
-          return [finding("error", file, `not valid JSON: ${(error as Error).message}`)];
-        }
-        if (diagram.diagram_type !== DRAWN_TYPE) return [finding("warn", file, `the shell draws only "${DRAWN_TYPE}" diagrams, not "${diagram.diagram_type}"`)];
-        return problems(diagram).map((message) => finding("error", file, message));
-      }),
+      ...old,
+      ...problems(architecture).map((message) => finding("error", FILE, message)),
+      ...(age > STALE_DAYS ? [finding("warn", FILE, `not verified in ${STALE_DAYS} days — check the costs and update "verified"`)] : []),
     ];
   },
 };

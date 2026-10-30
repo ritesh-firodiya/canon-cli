@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.25.0 — 2026-10-30
+
+### Changed
+
+- **The Architecture view is one page about architecture and cost.** It draws
+  `.context/architecture/architecture.json`: headline numbers, a map with a path per
+  user action, cost with a basis for every figure, growth, what breaks, where data
+  goes and what is not known. Replaces the 0.24.0 diagram tabs. Format and rules are
+  in the new `architecture-page` standard.
+- The `diagrams` check is now `architecture-page`. It fails a cost with no basis or
+  source, and a figure marked unknown, and warns after 90 days without a check.
+
 ## 0.24.0 — 2026-10-30
 
 ### Added

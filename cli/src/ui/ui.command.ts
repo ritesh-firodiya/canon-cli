@@ -2,7 +2,7 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import type { Command } from "commander";
-import { diagramsJson } from "../checks/diagrams.ts";
+import { architectureJson } from "../checks/diagrams.ts";
 import type { Env } from "../lib/env.ts";
 import { loaderAt } from "./shell.ts";
 
@@ -62,7 +62,7 @@ export function registerUi(program: Command, env: Env): void {
           return;
         }
         if (url.split(/[?#]/)[0] === DIAGRAMS_URL) {
-          response.writeHead(200, { "content-type": TYPES[".json"], "cache-control": "no-store" }).end(diagramsJson(dirname(dirname(designs))));
+          response.writeHead(200, { "content-type": TYPES[".json"], "cache-control": "no-store" }).end(architectureJson(dirname(dirname(designs))));
           return;
         }
         const file = fileFor(designs, shell, url);
