@@ -90,12 +90,20 @@
       root.appendChild(svg("rect", { "class": "arch-area", x: area._x, y: MAP.pad, width: map.colW, height: map.height - MAP.pad * 2, rx: 10 }));
       root.appendChild(svg("text", { "class": "arch-area-label", x: area._x + 12, y: MAP.pad + 22 }, area.label.toUpperCase()));
     });
+    var defs = svg("defs", {});
+    [["arch-arrow", "arch-arrow"], ["arch-arrow-on", "arch-arrow arch-arrow--on"]].forEach(function (m) {
+      var marker = svg("marker", { id: m[0], markerWidth: 8, markerHeight: 8, refX: 7, refY: 4, orient: "auto-start-reverse", markerUnits: "userSpaceOnUse" });
+      marker.appendChild(svg("path", { d: "M0 0L8 4L0 8z", "class": m[1] }));
+      defs.appendChild(marker);
+    });
+    root.appendChild(defs);
     var links = {}, nodes = {}, flows = arch.flows || [];
     flows.forEach(function (flow) {
       pairsOf(flow.path).forEach(function (pair) {
         var key = keyOf(pair[0], pair[1]);
         if (links[key] || pair[0] === pair[1] || !map.boxes[pair[0]] || !map.boxes[pair[1]]) return;
         links[key] = svg("path", { "class": "arch-link", d: linkPath(map.boxes[pair[0]], map.boxes[pair[1]]) });
+        links[key].dataset.from = pair[0];
         root.appendChild(links[key]);
       });
     });
@@ -115,7 +123,21 @@
       flow.path.forEach(function (id) { on[id] = true; });
       pairsOf(flow.path).forEach(function (pair) { used[keyOf(pair[0], pair[1])] = true; });
       Object.keys(nodes).forEach(function (id) { nodes[id].setAttribute("class", "arch-node" + (on[id] ? " is-on" : " is-dim")); });
-      Object.keys(links).forEach(function (key) { links[key].setAttribute("class", "arch-link" + (used[key] ? " is-on" : " is-dim")); });
+      // A path shows the way it travels; a line off the path shows every way any action uses it.
+      var travelled = {};
+      (flows.length ? flows : []).forEach(function (f) {
+        if (f !== flow) pairsOf(f.path).forEach(function (pair) { travelled[keyOf(pair[0], pair[1])] = travelled[keyOf(pair[0], pair[1])] || []; travelled[keyOf(pair[0], pair[1])].push(pair[0]); });
+      });
+      var own = {};
+      pairsOf(flow.path).forEach(function (pair) { var k = keyOf(pair[0], pair[1]); (own[k] = own[k] || []).push(pair[0]); });
+      Object.keys(links).forEach(function (key) {
+        var link = links[key], lit = used[key], starts = (lit ? own[key] : travelled[key]) || [], marker = "url(#" + (lit ? "arch-arrow-on" : "arch-arrow") + ")";
+        link.setAttribute("class", "arch-link" + (lit ? " is-on" : " is-dim"));
+        link.removeAttribute("marker-end");
+        link.removeAttribute("marker-start");
+        if (starts.indexOf(link.dataset.from) >= 0) link.setAttribute("marker-end", marker);
+        if (starts.some(function (id) { return id !== link.dataset.from; })) link.setAttribute("marker-start", marker);
+      });
       line.replaceChildren();
       var head = el("div");
       head.appendChild(el("b", null, flow.cost));

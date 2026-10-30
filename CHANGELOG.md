@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.25.1 — 2026-10-30
+
+### Fixed
+
+- The Architecture map has arrows, so a path shows which way it travels.
+
 ## 0.25.0 — 2026-10-30
 
 ### Changed

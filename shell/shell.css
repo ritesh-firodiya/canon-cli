@@ -472,6 +472,8 @@ select:focus-visible {
 .arch-what { font-size: 11px; fill: var(--chrome-ink-2); }
 .arch-price { font-size: 11px; font-weight: 600; fill: var(--chrome-ink-3); }
 .arch-price--measured { fill: #b45309; }
+.arch-arrow { fill: var(--chrome-line); }
+.arch-arrow--on { fill: var(--chrome-active); }
 .arch-link { fill: none; stroke: var(--chrome-line); stroke-width: 1.5; }
 .arch-link.is-on { stroke: var(--chrome-active); stroke-width: 2.5; }
 .arch-node.is-on .arch-box { stroke: var(--chrome-active); stroke-width: 2; }
