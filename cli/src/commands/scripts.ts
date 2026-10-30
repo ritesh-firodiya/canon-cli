@@ -26,10 +26,4 @@ export function registerScripts(program: Command, env: Env): void {
         CANON_FLOW_FORMERLY: JSON.stringify(formerly),
       });
     });
-
-  program
-    .command("arch-set")
-    .description("give a design set its architecture screens from a spec (see scripts/arch-set.py)")
-    .argument("<spec>", "spec.json naming the set and what to draw")
-    .action((spec: string) => runScript(env, "arch-set.py", [resolve(spec)]));
 }

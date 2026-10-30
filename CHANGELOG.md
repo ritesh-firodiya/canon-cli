@@ -10,6 +10,8 @@
 
 ### Removed
 
+- `canon arch-set`. It wrote architecture screens into routes.js, which no
+  design set has used since sets became Babul sets.
 - The plugin evals that ran on real product repos, and their scaffold. The
   fixture-product evals stay.
 

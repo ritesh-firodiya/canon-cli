@@ -26,7 +26,6 @@
     "scripts/check-designs.py",
     "shell",
     "scripts/flow.py",
-    "scripts/arch-set.py",
     ".claude-plugin"
   ],
   "engines": {

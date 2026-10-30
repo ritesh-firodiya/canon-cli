@@ -90,7 +90,6 @@ canon ui               # this repo's design set on localhost, with canon's shell
 canon wiki             # every product wiki on localhost
 canon search "<q>"     # search the knowledge index
 canon flow <product>   # how far each local Claude conversation got against the pipeline (--write: metrics/flow.json)
-canon arch-set <spec>  # give a design set its architecture screens
 canon mcp              # the search MCP server, for any MCP client
 ```
 
@@ -142,7 +141,7 @@ hooks/            session start: constitution titles, qmd refresh
 standards/        default standards
 packs/            vendor doc packs
 templates/        files init writes (dependency-cruiser base and starters)
-scripts/          log-verdict.mjs (the verdict log), check-designs.py, flow.py, arch-set.py
+scripts/          log-verdict.mjs (the verdict log), check-designs.py, flow.py
 evals/            plugin evals on a fixture product
 cli/              the canon CLI (TypeScript, vitest); `@freetesh/canon/api` for tools built on it
 ```
