@@ -36,6 +36,13 @@ describe("design-set checks", () => {
     expect(result.fail).toBe(0);
   });
 
+  test("a link in a component's definition is not a link from its board", () => {
+    expect(fails({
+      [`${D}/mobile/home/next.html`]: page("home/next", "next.tsx", "<c-nav></c-nav>Saved for later"),
+      [`${D}/mobile/components/nav.html`]: '<!doctype html><html><head><script src="../../shell.js" data-view="components"></script><template><a href="../home/next.html">Next</a></template></head><body data-component="nav" data-group="Nav"><c-nav></c-nav></body></html>',
+    })).toEqual([]);
+  });
+
   test("markup, tokens and dead styles are checked against the set itself", () => {
     expect(fails({
       [`${D}/mobile/home/next.html`]: page("home/next", "next.tsx", '<div class="card bg-ink-9 card--odd" style="color:var(--nope)">Saved for later'),

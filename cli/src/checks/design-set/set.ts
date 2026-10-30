@@ -151,13 +151,13 @@ export function loadSurface(repo: string, surface: string, shell: string): Surfa
 
 /** Every local link in a drawn file, as [raw href, target relative to the surface]. */
 export function hrefs(s: Surface, file: string): [string, string][] {
-  const text = read(join(s.dir, file));
+  // A definition's links are drawn by the pages that use it, not by its board.
+  const text = read(join(s.dir, file)).replace(/<head[\s>][\s\S]*?<\/head>/i, (head) => head.replace(/<template[\s>][\s\S]*<\/template>/i, ""));
   const attr = new RegExp(`\\b(?:${s.linkAttrs.join("|")})="([^"]+)"`, "g");
   return [...text.matchAll(attr)].flatMap((m): [string, string][] => {
     const raw = m[1];
     // tel: and sms: leave the set the same way mailto: does.
-    // A hole is a definition's property; the link is checked where an instance sets it.
-    if (/^(http|#|mailto:|tel:|sms:)/.test(raw) || raw.includes("{")) return [];
+    if (/^(http|#|mailto:|tel:|sms:)/.test(raw)) return [];
     return [[raw, posix.normalize(posix.join(posix.dirname(file), raw.split("?")[0].split("#")[0]))]];
   });
 }

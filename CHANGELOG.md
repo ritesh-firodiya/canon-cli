@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.23.1 — 2026-10-30
+
+### Fixed
+
+- `canon check` no longer reads the links in a component's definition as links
+  from its board, which failed sets whose nav or footer component links to pages.
+
 ## 0.23.0 — 2026-10-30
 
 ### Changed
