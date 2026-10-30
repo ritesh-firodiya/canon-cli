@@ -1,9 +1,9 @@
 import { existsSync, readdirSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
-import { ALL_CHECKS } from "./checks/index.ts";
-import type { Check, Finding } from "./checks/types.ts";
-import { loadConfig } from "./config/load.ts";
-import { isDirectory } from "./lib/files.ts";
+import { ALL_CHECKS } from "../checks/index.ts";
+import type { Check, Finding } from "../checks/types.ts";
+import { loadConfig } from "../config/load.ts";
+import { isDirectory } from "../lib/files.ts";
 
 export interface Report {
   repo: string;

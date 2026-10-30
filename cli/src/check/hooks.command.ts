@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { chmodSync, existsSync, lstatSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { Command } from "commander";
-import { findProducts } from "../check.ts";
+import { findProducts } from "./check.ts";
 import { requireWorkspace, type Env } from "../lib/env.ts";
 
 const MARK = "installed by `canon hooks install`";

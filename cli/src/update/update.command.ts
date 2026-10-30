@@ -4,7 +4,7 @@ import { join, resolve } from "node:path";
 import type { Command } from "commander";
 import { fetchText, runCommand } from "../lib/system.ts";
 import type { Env } from "../lib/env.ts";
-import { updateCanon } from "../update.ts";
+import { updateCanon } from "./update.ts";
 
 export function registerUpdate(program: Command, env: Env): void {
   program

@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { kindCovers } from "../config/schema.ts";
-import { packageVersion, pinnedVersion } from "../shell.ts";
+import { packageVersion, pinnedVersion } from "../ui/shell.ts";
 import { checkSurface } from "./design-set/index.ts";
 import type { Check, Finding } from "./types.ts";
 

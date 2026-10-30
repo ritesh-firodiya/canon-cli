@@ -151,11 +151,13 @@ Inside `cli/src/`:
 ```
 index.ts          the program: registers every command
 api.ts            what other tools import (`@freetesh/canon/api`)
-commands/         one file per command — options and output only
+<feature>/        one folder per feature: its logic, and a <command>.command.ts per command
+                  (options and output only) — check, init, packs, sync, update, status,
+                  doctor, pipeline, standards, learn, wiki, ui, flow, search, weigh
 checks/           one file per check, named by its id; index.ts lists them
+                  (design-set/ is the design checks, one file per group)
 config/           .claude/canon.yaml: schema and loading
 lib/              shared helpers: files, frontmatter, env, qmd, system calls
-<name>.ts         the logic the commands call: check (+ format for its output), init, packs (add), sync, …
 ```
 
 Tests mirror it in `cli/test/`.

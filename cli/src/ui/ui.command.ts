@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import type { Command } from "commander";
 import type { Env } from "../lib/env.ts";
-import { loaderFor, packageVersion, servedLoader } from "../shell.ts";
+import { loaderFor, packageVersion, servedLoader } from "./shell.ts";
 
 const DESIGNS = ".context/designs";
 const SERVED_SHELL = "/_shell/";

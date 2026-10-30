@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { updateCanon } from "../src/update.ts";
+import { isOlder, updateCanon } from "../src/update/update.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const installed = (version: string, extra: Record<string, string> = {}) =>
@@ -40,6 +40,13 @@ describe("updateCanon", () => {
     const lines = await updateCanon({ canonRoot: join(installed("0.20.1", { "canon/.git/HEAD": "" }), "canon"), ...checkout });
     expect(lines[0]).toMatch(/checkout .* git pull there/);
     expect(checkout.calls.some((call) => call.startsWith("npm"))).toBe(false);
+  });
+
+  test("an install newer than npm's latest, as before a publish, is never moved back", async () => {
+    const h = harness("0.20.1");
+    expect((await updateCanon({ canonRoot: join(installed("0.21.0"), "canon"), ...h }))[0]).toBe("cli: 0.21.0 is the latest");
+    expect(h.calls.some((call) => call.startsWith("npm"))).toBe(false);
+    expect([isOlder("0.9.0", "0.10.0"), isOlder("1.0.0", "0.10.0"), isOlder("1.0.0", "1.0.0")]).toEqual([true, false, false]);
   });
 
   test("a failed install stops before the plugin; a failed plugin update is reported, not thrown", async () => {

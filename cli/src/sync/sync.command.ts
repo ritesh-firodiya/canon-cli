@@ -1,9 +1,9 @@
 import { resolve } from "node:path";
 import type { Command } from "commander";
-import { exitCode, formatReports } from "../format.ts";
+import { exitCode, formatReports } from "../check/format.ts";
 import { CACHE_DIR, fetchText, runCommand } from "../lib/system.ts";
-import { runChecks } from "../check.ts";
-import { syncRepo } from "../sync.ts";
+import { runChecks } from "../check/check.ts";
+import { syncRepo } from "./sync.ts";
 import type { Env } from "../lib/env.ts";
 
 export function registerSync(program: Command, env: Env): void {

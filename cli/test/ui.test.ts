@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { fileFor, findDesigns } from "../src/commands/ui.ts";
-import { servedLoader } from "../src/shell.ts";
+import { fileFor, findDesigns } from "../src/ui/ui.command.ts";
+import { servedLoader } from "../src/ui/shell.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 describe("canon ui", () => {

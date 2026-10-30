@@ -1,6 +1,6 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import type { StageSpec } from "./config/schema.ts";
+import type { StageSpec } from "../config/schema.ts";
 
 export interface Approval {
   stage: string;

@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { readApprovals } from "../pipeline.ts";
+import { readApprovals } from "../pipeline/pipeline.ts";
 import type { Check, Finding } from "./types.ts";
 
 /**

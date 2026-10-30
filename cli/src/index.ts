@@ -1,28 +1,28 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
 import { Command } from "commander";
-import { registerAdd } from "./commands/add.ts";
-import { registerApprove } from "./commands/approve.ts";
-import { registerCheck } from "./commands/check.ts";
-import { registerCopies } from "./commands/copies.ts";
-import { registerDoctor } from "./commands/doctor.ts";
-import { registerHooks } from "./commands/hooks.ts";
+import { registerAdd } from "./packs/add.command.ts";
+import { registerApprove } from "./pipeline/approve.command.ts";
+import { registerCheck } from "./check/check.command.ts";
+import { registerCopies } from "./check/copies.command.ts";
+import { registerDoctor } from "./doctor/doctor.command.ts";
+import { registerHooks } from "./check/hooks.command.ts";
 import type { Env } from "./lib/env.ts";
-import { registerInit } from "./commands/init.ts";
-import { registerLearn } from "./commands/learn.ts";
-import { registerPipeline } from "./commands/pipeline.ts";
-import { registerStandards } from "./commands/standards.ts";
-import { registerStatus } from "./commands/status.ts";
-import { registerSync } from "./commands/sync.ts";
-import { registerUpdate } from "./commands/update.ts";
-import { registerUi } from "./commands/ui.ts";
-import { registerWiki } from "./commands/wiki.ts";
-import { registerWeigh } from "./commands/weigh.ts";
-import { findWorkspace } from "./check.ts";
-import { registerMcp } from "./commands/mcp.ts";
-import { registerSearch } from "./commands/search.ts";
-import { registerFlow } from "./commands/flow.ts";
-import { canonVersion } from "./status.ts";
+import { registerInit } from "./init/init.command.ts";
+import { registerLearn } from "./learn/learn.command.ts";
+import { registerPipeline } from "./pipeline/pipeline.command.ts";
+import { registerStandards } from "./standards/standards.command.ts";
+import { registerStatus } from "./status/status.command.ts";
+import { registerSync } from "./sync/sync.command.ts";
+import { registerUpdate } from "./update/update.command.ts";
+import { registerUi } from "./ui/ui.command.ts";
+import { registerWiki } from "./wiki/wiki.command.ts";
+import { registerWeigh } from "./weigh/weigh.command.ts";
+import { findWorkspace } from "./check/check.ts";
+import { registerMcp } from "./search/mcp.command.ts";
+import { registerSearch } from "./search/search.command.ts";
+import { registerFlow } from "./flow/flow.command.ts";
+import { canonVersion } from "./status/status.ts";
 
 const env: Env = {
   canonRoot: resolve(import.meta.dirname, "..", ".."),

@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import { loadConfig } from "../config/load.ts";
-import { runDoctor, systemProbe } from "../doctor.ts";
+import { runDoctor, systemProbe } from "./doctor.ts";
 
 export function registerDoctor(program: Command): void {
   program

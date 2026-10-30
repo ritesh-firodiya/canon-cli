@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { syncRepo } from "../src/sync.ts";
+import { syncRepo } from "../src/sync/sync.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const canonWith = (version: string) =>

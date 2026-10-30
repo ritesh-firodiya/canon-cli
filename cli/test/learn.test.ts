@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { proposals, readDecisions, readVerdicts, recordDecision, summarise } from "../src/learn.ts";
+import { proposals, readDecisions, readVerdicts, recordDecision, summarise } from "../src/learn/learn.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const line = (principles: string[], reason: string, request = "r") =>

@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { dirname, join } from "node:path";
 import { parse, parseDocument } from "yaml";
 import { z } from "zod";
-import { KINDS } from "./config/schema.ts";
+import { KINDS } from "../config/schema.ts";
 
 const packSchema = z
   .object({

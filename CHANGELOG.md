@@ -1,12 +1,20 @@
 # Changelog
 
-## Unreleased
+## 0.21.0 — 2026-10-30
 
 ### Added
 
 - **`canon update`** moves the CLI (npm or pnpm global) and the Claude Code
   plugin to the latest release, then runs `canon sync` in the repo. A git
   checkout is left to `git pull`.
+  It never moves an install back to an older release.
+
+### Changed
+
+- **`cli/src` is one folder per feature**: its logic beside a
+  `<command>.command.ts` per command. `commands/` is gone.
+- **canon names no product.** Test fixtures, comments and the demo use
+  made-up names, and a test fails when a tracked file names a repo beside it.
 
 ### Removed
 

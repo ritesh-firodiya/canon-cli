@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { isStandardName } from "./config/schema.ts";
+import { isStandardName } from "../config/schema.ts";
 
 export interface Standard {
   name: string;

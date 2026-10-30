@@ -1,10 +1,10 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { parseDocument } from "yaml";
-import { loadConfig } from "./config/load.ts";
-import { indexKnowledge, refreshArchitectureBase } from "./init.ts";
-import { fetchPackDocs, findPack, type CommandRunner } from "./packs.ts";
-import { canonVersion } from "./status.ts";
+import { loadConfig } from "../config/load.ts";
+import { indexKnowledge, refreshArchitectureBase } from "../init/init.ts";
+import { fetchPackDocs, findPack, type CommandRunner } from "../packs/packs.ts";
+import { canonVersion } from "../status/status.ts";
 
 export interface SyncOptions {
   canonRoot: string;

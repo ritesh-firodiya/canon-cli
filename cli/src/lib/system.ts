@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { RunResult } from "../packs.ts";
+import type { RunResult } from "../packs/packs.ts";
 
 export const CACHE_DIR = process.env.CANON_CACHE ?? join(homedir(), ".cache", "canon");
 const FETCH_TIMEOUT_MS = 30_000;

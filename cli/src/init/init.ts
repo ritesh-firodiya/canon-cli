@@ -1,10 +1,10 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { stringify } from "yaml";
-import { RULES_FILES } from "./checks/architecture.ts";
-import { requiredContext } from "./checks/context-layout.ts";
-import { inferKind, inferModules } from "./config/load.ts";
-import { kindCovers, MODULES_BY_KIND, type Kind, type Module } from "./config/schema.ts";
+import { RULES_FILES } from "../checks/architecture.ts";
+import { requiredContext } from "../checks/context-layout.ts";
+import { inferKind, inferModules } from "../config/load.ts";
+import { kindCovers, MODULES_BY_KIND, type Kind, type Module } from "../config/schema.ts";
 
 export type Runner = (command: string, args: string[]) => void;
 

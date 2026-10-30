@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { constitutionTitles, resolveStandards } from "../src/standards.ts";
+import { constitutionTitles, resolveStandards } from "../src/standards/standards.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const canon = () =>

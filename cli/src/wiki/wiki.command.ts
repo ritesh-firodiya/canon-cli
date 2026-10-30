@@ -3,10 +3,10 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Command } from "commander";
 import { architectureGraph } from "../checks/architecture.ts";
-import { formatReports } from "../format.ts";
+import { formatReports } from "../check/format.ts";
 import { CACHE_DIR } from "../lib/system.ts";
-import { findProducts, runChecks } from "../check.ts";
-import { buildSite, quartzConfig } from "../wiki.ts";
+import { findProducts, runChecks } from "../check/check.ts";
+import { buildSite, quartzConfig } from "./wiki.ts";
 import { requireWorkspace, type Env } from "../lib/env.ts";
 
 // Quartz v5 has no tagged release yet, so pin the exact commit: an unpinned

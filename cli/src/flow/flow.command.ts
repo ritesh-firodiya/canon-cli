@@ -1,10 +1,10 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import type { Command } from "commander";
-import { findProducts } from "../check.ts";
+import { findProducts } from "../check/check.ts";
 import { loadConfig } from "../config/load.ts";
-import { flow } from "../flow/flow.ts";
-import { allSessions } from "../flow/sessions.ts";
+import { flow } from "./flow.ts";
+import { allSessions } from "./sessions.ts";
 import { requireWorkspace, type Env } from "../lib/env.ts";
 
 export function registerFlow(program: Command, env: Env): void {

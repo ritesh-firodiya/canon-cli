@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { addPack, fetchPackDocs, listPacks } from "../src/packs.ts";
+import { addPack, fetchPackDocs, listPacks } from "../src/packs/packs.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const canon = () =>

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadConfig } from "./config/load.ts";
-import { runChecks, type RunOptions } from "./check.ts";
+import { loadConfig } from "../config/load.ts";
+import { runChecks, type RunOptions } from "../check/check.ts";
 
 export function canonVersion(canonRoot: string): string {
   const manifest = join(canonRoot, ".claude-plugin", "plugin.json");

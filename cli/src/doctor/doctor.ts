@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import type { ToolSpec } from "./config/schema.ts";
+import type { ToolSpec } from "../config/schema.ts";
 
 /** Runs `<command> --version` and returns its first output line, or null if the command is missing. */
 export type Probe = (command: string) => string | null;

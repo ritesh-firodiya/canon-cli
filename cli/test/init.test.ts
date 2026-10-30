@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { parse } from "yaml";
-import { applyInit, architectureStarters, detectExpoSdk, parseChoices, planInit } from "../src/init.ts";
+import { applyInit, architectureStarters, detectExpoSdk, parseChoices, planInit } from "../src/init/init.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const recorder = () => {

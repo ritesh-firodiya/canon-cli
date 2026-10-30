@@ -1,7 +1,7 @@
 import { homedir } from "node:os";
 import type { Command } from "commander";
-import { proposals, readDecisions, readVerdicts, recordDecision, summarise } from "../learn.ts";
-import { findProducts } from "../check.ts";
+import { proposals, readDecisions, readVerdicts, recordDecision, summarise } from "./learn.ts";
+import { findProducts } from "../check/check.ts";
 import { requireWorkspace, type Env } from "../lib/env.ts";
 
 const DEFAULT_THRESHOLD = 3;

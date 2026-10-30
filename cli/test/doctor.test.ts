@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { runDoctor, type Probe } from "../src/doctor.ts";
+import { runDoctor, type Probe } from "../src/doctor/doctor.ts";
 
 const probe = (outputs: Record<string, string | null>): Probe => (command) => outputs[command] ?? null;
 

@@ -1,11 +1,18 @@
 import { existsSync } from "node:fs";
 import { join, sep } from "node:path";
-import type { CommandRunner } from "./packs.ts";
-import { canonVersion } from "./status.ts";
+import type { CommandRunner } from "../packs/packs.ts";
+import { canonVersion } from "../status/status.ts";
 
 export const PACKAGE = "@freetesh/canon";
 const PLUGIN = "canon@canon";
 const MARKETPLACE = "canon";
+
+/** Whether version a is older than b, comparing major.minor.patch as numbers. */
+export function isOlder(a: string, b: string): boolean {
+  const [x, y] = [a, b].map((v) => v.split(".").map(Number));
+  for (let i = 0; i < 3; i += 1) if ((x[i] ?? 0) !== (y[i] ?? 0)) return (x[i] ?? 0) < (y[i] ?? 0);
+  return false;
+}
 
 export interface UpdateOptions {
   canonRoot: string;
@@ -22,7 +29,7 @@ export async function updateCanon(options: UpdateOptions): Promise<string[]> {
   const lines: string[] = [];
   if (existsSync(join(canonRoot, ".git"))) {
     lines.push(`cli: running from a checkout at ${canonRoot} (${current}, latest ${latest}) — git pull there`);
-  } else if (current === latest) {
+  } else if (!isOlder(current, latest)) {
     lines.push(`cli: ${current} is the latest`);
   } else {
     // A pnpm global install lives under pnpm's store; anything else came from npm.

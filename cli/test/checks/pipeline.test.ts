@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { pipeline } from "../../src/checks/pipeline.ts";
-import { GATES_LOG, readApprovals, recordApproval, stagesOf } from "../../src/pipeline.ts";
+import { GATES_LOG, readApprovals, recordApproval, stagesOf } from "../../src/pipeline/pipeline.ts";
 import { loadConfig } from "../../src/config/load.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";

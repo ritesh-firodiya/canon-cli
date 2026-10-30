@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import type { Command } from "commander";
-import { exitCode, formatReports } from "../format.ts";
-import { findProducts, runChecks } from "../check.ts";
+import { exitCode, formatReports } from "./format.ts";
+import { findProducts, runChecks } from "./check.ts";
 import { requireWorkspace, type Env } from "../lib/env.ts";
 
 export function registerCheck(program: Command, env: Env): void {

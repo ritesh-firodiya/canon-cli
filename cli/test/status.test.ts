@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { buildStatus } from "../src/status.ts";
+import { buildStatus } from "../src/status/status.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 describe("buildStatus", () => {

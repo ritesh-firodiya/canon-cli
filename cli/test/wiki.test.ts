@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readlinkSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { parse } from "yaml";
-import { buildSite, quartzConfig } from "../src/wiki.ts";
+import { buildSite, quartzConfig } from "../src/wiki/wiki.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 describe("buildSite", () => {

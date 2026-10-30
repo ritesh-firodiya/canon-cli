@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import type { Command } from "commander";
 import { loadConfig } from "../config/load.ts";
-import { recordApproval } from "../pipeline.ts";
+import { recordApproval } from "./pipeline.ts";
 
 export function registerApprove(program: Command): void {
   program

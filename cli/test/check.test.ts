@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { findProducts, findWorkspace, runChecks } from "../src/check.ts";
+import { findProducts, findWorkspace, runChecks } from "../src/check/check.ts";
 import type { Check } from "../src/checks/types.ts";
 import { makeTree } from "./helpers/fixture.ts";
 

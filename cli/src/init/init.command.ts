@@ -3,10 +3,10 @@ import * as prompts from "@clack/prompts";
 import { Option, type Command } from "commander";
 import { KINDS, kindCovers, MODULES, type Kind } from "../config/schema.ts";
 import { RULES_FILES } from "../checks/architecture.ts";
-import { applyInit, parseChoices, planInit, type InitAnswers, type InitPlan } from "../init.ts";
-import { listPacks, type Pack } from "../packs.ts";
+import { applyInit, parseChoices, planInit, type InitAnswers, type InitPlan } from "./init.ts";
+import { listPacks, type Pack } from "../packs/packs.ts";
 import { runCommand } from "../lib/system.ts";
-import { canonVersion } from "../status.ts";
+import { canonVersion } from "../status/status.ts";
 import type { Env } from "../lib/env.ts";
 
 function cancelled<T>(value: T | symbol): value is symbol {
