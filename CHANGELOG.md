@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`canon update`** moves the CLI (npm or pnpm global) and the Claude Code
+  plugin to the latest release, then runs `canon sync` in the repo. A git
+  checkout is left to `git pull`.
+
 ## 0.20.1 — 2026-10-30
 
 ### Added

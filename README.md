@@ -79,6 +79,7 @@ canon copies --sync    # repair drifted shared files from copies.source (never a
 canon hooks install    # a pre-push hook that runs `canon check` (--all: every product)
 canon standards        # which standards apply here, and where each comes from
 canon sync             # refresh pack docs and the search index, move the pinned version
+canon update           # update the CLI and the Claude plugin to the latest release, then sync
 canon status           # version, kind, modules, config layers, check summary
 canon doctor           # node, git, python3, qmd — plus any tools your config lists
 canon learn            # proposals from overridden verdicts
