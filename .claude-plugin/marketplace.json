@@ -7,7 +7,7 @@
     {
       "name": "canon",
       "source": "./",
-      "version": "0.20.0",
+      "version": "0.20.1",
       "description": "Keeps your domain knowledge and AI rules in your repos and enforces them, so Claude hallucinates less."
     }
   ],

@@ -108,6 +108,7 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     context: { folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder) },
     pipeline: lastDefined(pick("pipeline")) ?? [],
     name: lastDefined(pick("name")),
+    space: lastDefined(pick("space")),
     formerly: [...new Set(pick("formerly").flatMap((names) => names ?? []))],
     copies: {
       source,
@@ -116,6 +117,7 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     },
   };
   if (config.name === undefined) delete config.name;
+  if (config.space === undefined) delete config.space;
   if (Object.keys(config.expo ?? {}).length === 0) delete config.expo;
   return { config, sources };
 }

@@ -114,6 +114,11 @@ export const layerSchema = z
     /** The repo's older folder names, so `canon flow` still counts conversations held under them. */
     formerly: z.array(z.string().min(1)),
     /**
+     * The product this repo is part of, as a space in Canon. Repos naming the same space form one (a site and
+     * its CLI, a backend and its app); a repo without it is a space of its own, named after the repo.
+     */
+    space: kebab,
+    /**
      * Files copied from one source repo. The source names sets of them in its own canon.yaml; a
      * product names the source and lists the sets it uses, and only those are held equal to it.
      */
@@ -149,6 +154,8 @@ export interface Config {
   /** Ordered stages; empty when no layer declares one. */
   pipeline: StageSpec[];
   name?: string;
+  /** The space (product) this repo is part of in Canon; unset means the repo is its own. */
+  space?: string;
   /** Older folder names of the repo. */
   formerly: string[];
   /** `source` is absolute, resolved from the layer that set it. `use` adds up across layers. */

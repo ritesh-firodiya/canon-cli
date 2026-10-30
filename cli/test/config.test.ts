@@ -52,6 +52,12 @@ describe("loadConfig", () => {
     expect(sources).toHaveLength(1);
   });
 
+  test("a repo names the space (product) it is part of; a bad name is refused", () => {
+    expect(loadConfig(makeTree({ ".claude/canon.yaml": "kind: package\nspace: canon\n" })).config.space).toBe("canon");
+    expect(loadConfig(makeTree({ ".claude/canon.yaml": "kind: package\n" })).config.space).toBeUndefined();
+    expect(() => loadConfig(makeTree({ ".claude/canon.yaml": "kind: package\nspace: Not Kebab\n" }))).toThrow();
+  });
+
   test("the local layer wins over the repo's canon.yaml", () => {
     const repo = makeTree({
       ".claude/canon.yaml": "weigh:\n  weights:\n    C-07: 2\n    C-15: 3\n",

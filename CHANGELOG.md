@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.20.1 — 2026-10-30
+
+### Added
+
+- **`space:` in canon.yaml** names the product a repo is part of. Repos naming
+  the same space form one in Canon (a site and its CLI, a backend and its app);
+  a repo without it is a space of its own.
+
 ## 0.20.0 — 2026-10-30
 
 ### Changed
