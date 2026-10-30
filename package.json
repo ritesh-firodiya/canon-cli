@@ -23,7 +23,6 @@
     "packs",
     "templates",
     "scripts/log-verdict.mjs",
-    "scripts/check-designs.py",
     "shell",
     "scripts/flow.py",
     ".claude-plugin"

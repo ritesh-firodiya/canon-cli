@@ -10,6 +10,9 @@
 
 ### Removed
 
+- The Python design checker. `canon check` now runs the same checks in
+  TypeScript, so checking a design set no longer needs python3. Sets still on
+  routes.js are no longer checked; every set is a Babul set.
 - `canon arch-set`. It wrote architecture screens into routes.js, which no
   design set has used since sets became Babul sets.
 - The plugin evals that ran on real product repos, and their scaffold. The
