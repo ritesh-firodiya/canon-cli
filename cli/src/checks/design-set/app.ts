@@ -5,8 +5,10 @@ import type { Surface } from "./set.ts";
 
 // The checks that compare the set with the app that renders it: routes, then navigation both ways.
 
-/** expo-router makes every .tsx under app/ a screen except a layout; the Next.js app router makes a screen of page.tsx only. */
-const isScreen = (s: Surface, name: string) => (s.web ? name === "page.tsx" : name.endsWith(".tsx") && name !== "_layout.tsx");
+/** A Next.js page: page.tsx, or page.<edition>.tsx when next.config's pageExtensions builds one per edition (page.ce.tsx, page.cloud.tsx). */
+export const isNextPage = (name: string) => /^page(\.[a-z]+)?\.tsx$/.test(name);
+/** expo-router makes every .tsx under app/ a screen except a layout; the Next.js app router makes a screen of its page files only. */
+const isScreen = (s: Surface, name: string) => (s.web ? isNextPage(name) : name.endsWith(".tsx") && name !== "_layout.tsx");
 
 /** What `missing` says, as one string a route or a file name is looked up in. */
 const recorded = (s: Surface) => s.missing.map((m) => `${m.what ?? ""} ${m.why ?? ""}`).join(" ");
@@ -22,7 +24,9 @@ export function routes(s: Surface): void {
   for (const r of sorted([...declared].filter((r) => !onDisk.has(r)))) s.report.bad(`routes.js points at src/app/${r}, which does not exist`);
   // A route that ships with no drawing is allowed ONLY while `missing` says why.
   const said = recorded(s);
-  for (const r of sorted([...onDisk].filter((r) => !declared.has(r)))) {
+  // One screen can ship as page.ce.tsx and page.cloud.tsx (an edition each): a drawing of either draws the route.
+  const drawnRoutes = new Set([...declared].map((r) => appRoute(s, r)));
+  for (const r of sorted([...onDisk].filter((r) => !declared.has(r) && !drawnRoutes.has(appRoute(s, r))))) {
     if (said.includes(r)) s.report.say(`   pending: src/app/${r} ships and is recorded in \`missing\``);
     else s.report.bad(`src/app/${r} ships and no screen draws it, and \`missing\` does not say why`);
   }
@@ -43,7 +47,7 @@ export function appRoute(s: Surface, href: string): string {
   let h = href.split("?")[0].replace(/^\/+|\/+$/g, "");
   h = `${h}/`.replace(/\([^)/]+\)\//g, "").replace(/\/+$/, "");
   h = h.replace(/\.tsx$/, "").replace(/\[[^\]/]*\]/g, "[]");
-  return h.replace(s.web ? /(^|\/)(?:index|page)$/ : /(^|\/)index$/, "");
+  return h.replace(s.web ? /(^|\/)(?:index|page(?:\.[a-z]+)?)$/ : /(^|\/)index$/, "");
 }
 
 // A route literal, in whichever quote the app writes them.
@@ -126,7 +130,8 @@ function screenSource(s: Surface, path: string, hooks: Map<string, number>): str
   const parts: string[] = [];
   const visit = (dir: string, top: boolean) => {
     const entries = readdirSync(dir, { withFileTypes: true });
-    if (!top && entries.some((e) => e.isFile() && e.name === "page.tsx")) return;
+    // A folder with its own page, or a route handler (route.ts: an API, not part of this screen), is not this screen's source.
+    if (!top && entries.some((e) => e.isFile() && (isNextPage(e.name) || /^route(\.[a-z]+)?\.ts$/.test(e.name)))) return;
     for (const e of entries.filter((e) => e.isFile() && /\.tsx?$/.test(e.name)).sort((a, b) => (a.name < b.name ? -1 : 1))) parts.push(read(join(dir, e.name)));
     for (const e of entries.filter((e) => e.isDirectory())) visit(join(dir, e.name), false);
   };
