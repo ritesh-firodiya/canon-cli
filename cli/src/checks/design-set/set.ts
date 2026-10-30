@@ -65,7 +65,6 @@ export interface Surface {
   onDisk: Set<string>;
   edges: Edge[];
   missing: Missing[];
-  defs: string[];
   linkAttrs: string[];
   scan: Scan;
   tokens: Tokens;
@@ -134,12 +133,12 @@ export function loadSurface(repo: string, surface: string, shell: string): Surfa
     return [edge];
   });
 
-  const defs = existsSync(join(dir, "components")) ? readdirSync(join(dir, "components")).filter((f) => f.endsWith(".js")).sort().map((f) => `components/${f}`) : [];
+  const boards = existsSync(join(dir, "components")) ? readdirSync(join(dir, "components")).filter((f) => f.endsWith(".html")).sort().map((f) => `components/${f}`) : [];
   // A property a definition puts in an href — top-bar's `back` — is a link where an instance sets it, exactly as an href is.
-  const linkAttrs = ["href", ...sorted(defs.flatMap((d) => [...read(join(dir, d)).matchAll(/href="\{([a-z][a-z0-9-]*)\}"/g)].map((m) => m[1])))];
+  const linkAttrs = ["href", ...sorted(boards.flatMap((d) => [...read(join(dir, d)).matchAll(/href="\{([a-z][a-z0-9-]*)\}"/g)].map((m) => m[1])))];
 
   return {
-    dir, root, shell, web, srcDir, appDir, product, edges, defs, linkAttrs, scan, report,
+    dir, root, shell, web, srcDir, appDir, product, edges, linkAttrs, scan, report,
     screens: all.map((s) => s.file),
     files: new Map(all.map((s) => [s.file, s])),
     declared: new Set(all.map((s) => s.file)),
@@ -157,7 +156,8 @@ export function hrefs(s: Surface, file: string): [string, string][] {
   return [...text.matchAll(attr)].flatMap((m): [string, string][] => {
     const raw = m[1];
     // tel: and sms: leave the set the same way mailto: does.
-    if (/^(http|#|mailto:|tel:|sms:)/.test(raw)) return [];
+    // A hole is a definition's property; the link is checked where an instance sets it.
+    if (/^(http|#|mailto:|tel:|sms:)/.test(raw) || raw.includes("{")) return [];
     return [[raw, posix.normalize(posix.join(posix.dirname(file), raw.split("?")[0].split("#")[0]))]];
   });
 }

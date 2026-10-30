@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.23.0 — 2026-10-30
+
+### Changed
+
+- **A component is one HTML file.** Its definition moves from
+  `components/<id>.js` into the `<head>` of its board, `components/<id>.html`,
+  and a page reads it through a hidden frame. `canon check` no longer reads
+  `components/*.js`, so a set must move its definitions when it takes this release.
+- **A set opens from `file:///` again.** It holds one `shell.js`, canon's loader
+  pointed at `@freetesh/canon@0` on unpkg. `canon ui` and sites that publish sets
+  still put their own in its place. `canon check` now fails only on a copied
+  `_shell/`.
+
 ## 0.22.0 — 2026-10-30
 
 ### Changed

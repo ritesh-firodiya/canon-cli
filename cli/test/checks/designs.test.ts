@@ -28,11 +28,9 @@ describe("designs", () => {
       expect(run({})).toEqual([]);
     });
 
-    test("a leftover shell.js or a copied _shell is an error", () => {
-      const message = "the shell lives in canon — delete this copy; `canon ui` serves it";
+    test("a copied _shell is an error; the set's one shell.js loader is not", () => {
       expect(run({ ".context/designs/shell.js": "", ".context/designs/_shell/boot.js": "" })).toEqual([
-        `.context/designs/_shell: ${message}`,
-        `.context/designs/shell.js: ${message}`,
+        ".context/designs/_shell: the shell lives in canon — delete this copy",
       ]);
     });
   });

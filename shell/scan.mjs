@@ -19,7 +19,7 @@ const [dir, size] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 if (!dir) { console.error("usage: node scan.mjs <designs dir> [size] [--json]"); process.exit(2); }
 const ROOT = resolve(dir);
 vm.runInThisContext(readFileSync(join(SHELL, "describe.js"), "utf8"));
-const { parse, Collector, startOf } = globalThis.BABUL_DESCRIBE;
+const { parse, Collector, startOf, definitionIn } = globalThis.BABUL_DESCRIBE;
 const data = (name, key = name) => JSON.parse(readFileSync(join(ROOT, `${name}.js`), "utf8").replace(`(window.BABUL ||= {}).${key} = `, "").replace(/;\s*$/, ""));
 const product = data("design", "product"), tokens = data("tokens");
 const SIZE = size ?? product.sizes[0];
@@ -34,17 +34,17 @@ while (queue.length) {
   const [kind, id] = queue.shift();
   if (seen.has(kind + id)) continue;
   seen.add(kind + id);
-  const file = kind === "page" ? `${id}.html` : `components/${id}.${kind === "board" ? "html" : "js"}`;
+  const file = kind === "page" ? `${id}.html` : `components/${id}.html`;
   if (!existsSync(join(DIR, file))) { c.errors.push(`${file} is linked or used, and does not exist`); continue; }
-  const found = kind === "page" ? c.addPage(id, parse(read(file))) : kind === "board" ? c.addBoard(id, parse(read(file))) : c.addDef(id, read(file));
+  const found = kind === "page" ? c.addPage(id, parse(read(file))) : kind === "board" ? c.addBoard(id, parse(read(file))) : c.addDef(id, definitionIn(read(file)));
   for (const p of found.pages) queue.push(["page", p]);
   for (const x of found.components) queue.push(["def", x], ["board", x]);
 }
 for (const d of readdirSync(DIR, { withFileTypes: true })) {
   if (!d.isDirectory() || d.name === "styles") continue;
   for (const f of readdirSync(join(DIR, d.name))) {
-    const [kind, id] = d.name === "components" ? [f.endsWith(".js") ? "def" : "board", f.replace(/\.\w+$/, "")] : ["page", `${d.name}/${f.replace(/\.html$/, "")}`];
-    if ((f.endsWith(".html") || f.endsWith(".js")) && !seen.has(kind + id)) c.errors.push(`${d.name}/${f} is reached from no page — link it, or use the component on one`);
+    const [kind, id] = d.name === "components" ? ["board", f.replace(/\.\w+$/, "")] : ["page", `${d.name}/${f.replace(/\.html$/, "")}`];
+    if (f.endsWith(".html") && !seen.has(kind + id)) c.errors.push(`${d.name}/${f} is reached from no page — link it, or use the component on one`);
   }
 }
 const model = c.finish();

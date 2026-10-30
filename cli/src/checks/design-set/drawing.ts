@@ -74,7 +74,7 @@ export function tokens(s: Surface): void {
 
   const missingVars = new Set<string>();
   const missingClasses = new Set<string>();
-  for (const f of [...sorted(s.declared), ...shellPages(s), ...s.defs]) {
+  for (const f of [...sorted(s.declared), ...shellPages(s)]) {
     const text = read(join(s.dir, f));
     for (const m of unbrace(text).matchAll(/var\((--[a-z0-9-]+)/g)) if (!vars.has(m[1])) missingVars.add(`${f}\0${m[1]}`);
     for (const raw of classes(text)[0]) {
@@ -157,7 +157,7 @@ export function babul(s: Surface): void {
   }
   const used = new Set<string>();
   const built = new Set<string>();
-  for (const f of [...sorted([...s.declared].filter((f) => s.onDisk.has(f))), ...s.defs]) {
+  for (const f of sorted([...s.declared].filter((f) => s.onDisk.has(f)))) {
     const [fixed, prefixes] = classes(read(join(s.dir, f)));
     for (const c of fixed) used.add(c);
     for (const p of prefixes) built.add(p);

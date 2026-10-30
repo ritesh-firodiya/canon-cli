@@ -39,7 +39,7 @@ export function registerUi(program: Command, env: Env): void {
     .action((options: { port: string }) => {
       const designs = findDesigns(process.cwd());
       if (!designs) throw new Error(`no ${DESIGNS}/design.js here or above — not a design set`);
-      // Every page loads ../shell.js; the set holds no copy, so it is served from here.
+      // Every page loads ../shell.js; serving it from here puts this canon's shell in place of the set's published one.
       const loader = loaderAt(env.canonRoot, SERVED_SHELL);
       const shell = join(env.canonRoot, "shell");
       const sizes: string[] = JSON.parse(

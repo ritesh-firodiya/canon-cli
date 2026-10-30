@@ -90,7 +90,19 @@
   var titleCase = function (n) { return n[0].toUpperCase() + n.slice(1).replace(/-/g, " "); };
   var pascal = function (id) { return id.replace(/(^|-)(\w)/g, function (_, __, c) { return c.toUpperCase(); }); };
   function holes(value) { var out = [], h; HOLE.lastIndex = 0; while ((h = HOLE.exec(value))) out.push(h); return out; }
-  var DEFINE = /^\s*BABUL_SHELL\.define\("([\w-]+)", `([\s\S]*)`\);\s*$/;
+  /* A board's own definition: the templates in its <head>, from the file's text. */
+  function definitionIn(html) {
+    var head = /<head[\s>][\s\S]*?<\/head>/i.exec(html);
+    return (head ? head[0].match(/<template[\s>][\s\S]*<\/template>/i) || [""] : [""])[0];
+  }
+  /* The board without its definition, which is checked as the definition. */
+  function withoutDefinition(tree) {
+    return Object.assign({}, tree, { children: tree.children.map(function (c) {
+      if (c.tag === "html") return withoutDefinition(c);
+      if (c.tag !== "head") return c;
+      return Object.assign({}, c, { children: c.children.filter(function (n) { return n.tag !== "template"; }) });
+    }) });
+  }
 
   /* What a page, board or definition points at, so the crawl can follow it. */
   function refs(from, tree) {
@@ -119,11 +131,10 @@
       errors: errors,
       pages: pages, boards: boards, defs: defs,
       addPage: function (id, tree) { pages[id] = tree; return refs(id, tree); },
-      addBoard: function (id, tree) { boards[id] = tree; return refs("components/" + id, tree); },
+      addBoard: function (id, tree) { boards[id] = withoutDefinition(tree); return refs("components/" + id, boards[id]); },
       addDef: function (id, source) {
-        var m = DEFINE.exec(source);
-        if (!m || m[1] !== id) { fail("components/" + id + '.js is not BABUL_SHELL.define("' + id + '", `…`);'); return { pages: [], components: [] }; }
-        defs[id] = { source: m[2], tree: parse(m[2]) };
+        if (!source) { fail("components/" + id + ".html has no <template> in its <head>"); return { pages: [], components: [] }; }
+        defs[id] = { source: source, tree: parse(source) };
         return refs("components/" + id, defs[id].tree);
       },
       finish: function () { return model(product, tokens, lucideVersion, startOf(product, size), pages, boards, defs, fail, errors); },
@@ -137,7 +148,7 @@
       function use(name) {
         if (name === "state") return null;
         if (PASS.test(name)) {
-          if (!passed[name]) fail("components/" + id + ".js reads {" + name + "}, which passes to the root element and is never a prop — rename it");
+          if (!passed[name]) fail("components/" + id + ".html reads {" + name + "}, which passes to the root element and is never a prop — rename it");
           passed[name] = true;
           return null;
         }
@@ -198,7 +209,7 @@
     ids.forEach(function (id) {
       var c = components[id], board = boards[id];
       if (!board) {
-        fail("components/" + id + ".js has no board, components/" + id + ".html");
+        fail("components/" + id + ".html does not exist");
         c.order.forEach(function (name) { c.props[name].options = c.props[name].used; });
         c.states = [{ name: "default", status: "made" }];
         return;
@@ -212,7 +223,7 @@
         if (p.token) {
           var group = p.token.split("-").reduce(function (node, k) { return node && node[k]; }, tokens.color);
           p.options = Object.keys(group || {}).filter(function (k) { return k[0] !== "$"; });
-          if (!p.options.length) fail("components/" + id + ".js builds a class from " + name + ", and color." + p.token + " has no colours");
+          if (!p.options.length) fail("components/" + id + ".html builds a class from " + name + ", and color." + p.token + " has no colours");
           // A prop the definition tests for (data-if) is optional: no default, or it is never absent.
           p.default = p.optional ? undefined : p.options[0];
           return;
@@ -222,7 +233,7 @@
           if (cell[name] === undefined) fail("components/" + id + ".html: a <c-" + id + "> without " + name + " — the board spells out every variant");
           else if (p.options.indexOf(cell[name]) < 0) p.options.push(cell[name]);
         });
-        p.used.forEach(function (v) { if (p.options.indexOf(v) < 0) fail("components/" + id + ".js uses " + name + '="' + v + '", which its board never draws'); });
+        p.used.forEach(function (v) { if (p.options.indexOf(v) < 0) fail("components/" + id + ".html uses " + name + '="' + v + '", which its board never draws'); });
         p.default = p.options[0];
       });
       var made = ["default"];
@@ -290,7 +301,7 @@
       checkInstances(id + ".html", tree);
     });
     ids.forEach(function (id) {
-      checkInstances("components/" + id + ".js", defs[id].tree);
+      checkInstances("components/" + id + ".html", defs[id].tree);
       if (boards[id]) checkInstances("components/" + id + ".html", boards[id]);
     });
 
@@ -455,5 +466,5 @@
     };
   }
 
-  G.BABUL_DESCRIBE = { parse: parse, fromDom: fromDom, Collector: Collector, startOf: startOf };
+  G.BABUL_DESCRIBE = { parse: parse, fromDom: fromDom, definitionIn: definitionIn, Collector: Collector, startOf: startOf };
 })(typeof window !== "undefined" ? window : globalThis);

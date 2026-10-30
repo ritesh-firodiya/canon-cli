@@ -26,12 +26,12 @@ shows from the HTML itself, and checked against the app it describes.
 <repo>/.context/designs/
   design.js          the product: start page, logo and art, sizes, frames, themes, stack, known gaps
   tokens.js         colour, typography, spacing, radius, shadow — W3C design tokens
+  shell.js          the set's one link to canon's shell, written once and never edited
   assets/           source art: icon.svg, adaptive layers, feature graphic
   <size>/           mobile · tablet · web · email — one folder per size
     index.html            the journey
     styles/<group>.html   icons · colors · typography · spacing · radius · shadows
-    components/<id>.js    a component, defined once
-    components/<id>.html  its board: one instance per variant and state
+    components/<id>.html  a component: its definition in <head>, its board in <body>
     <group>/<page>.html   one page, every state in it
     styles.css            the classes the components are built from
 ```
@@ -45,7 +45,7 @@ architecture are canon's, in `.context/wiki/` (§10); the designs follow them.
 
 ## 2. The HTML is the only source
 
-Two files are written by hand, because nothing draws them: `design.js` and
+Two data files are written by hand, because nothing draws them: `design.js` and
 `tokens.js` (§8), each strict JSON behind `(window.BABUL ||= {}).<key> = ` so a
 `<script>` loads it from disk and Babul reads the JSON.
 
@@ -103,17 +103,18 @@ not a link between pages.
 <script src="../shell.js" data-view="journey"></script>         <!-- the journey -->
 ```
 
-`shell.js` is not in the set: `canon ui` serves it, and loads canon's
-`boot.js`, which writes in the rest: `design.js`,
+`shell.js` loads canon's `boot.js`, which writes in the rest: `design.js`,
 `tokens.js`, the shell, Tailwind, lucide, `shell.css` and the size's
 `styles.css`.
 
-- **The shell is canon's; a set holds none of it** — no `shell.js`, no
-  `_shell/`. Open a set with `canon ui`; a page opened straight from disk has
-  no shell. A site that publishes sets writes each `shell.js` itself, from
-  canon's `shell/loader.js`, pointed at the shell it hosts.
+- **The shell is canon's; a set holds only the link to it.** Its `shell.js` is
+  canon's `shell/loader.js`, pointed at `@freetesh/canon@0` on unpkg, so a page
+  opened straight from disk (`file:///`) works and a release needs no edit in any
+  set. No `_shell/`. `canon ui` serves its own shell at `/shell.js` instead, and
+  a site that publishes sets writes each `shell.js` from the same loader, pointed
+  at the shell it hosts.
 
-- **Every CDN is pinned**: Tailwind 3.4.17, lucide 0.544.0, React 18.3.1,
+- **Every CDN is pinned**, but for that link, which follows canon's major version: Tailwind 3.4.17, lucide 0.544.0, React 18.3.1,
   React Flow 11.11.4 (v12's UMD build expects `react/jsx-runtime` as a global).
 - **Tailwind, and only Tailwind**, plus `styles.css`. No build step.
 - **Icons are lucide**, by the name of the component the app imports.
@@ -171,15 +172,14 @@ library**: longest-path depth from the start gives the column.
 
 ## 7. Components
 
-**A component is defined once, in `components/<id>.js`** (a script: a page on
-`file://` cannot load another HTML file), and used by name:
+**A component is defined once, in the `<head>` of `components/<id>.html`** — a
+page on `file://` cannot read another file, so it opens the board in a hidden
+frame, which posts its definition back — and used by name:
 
-```js
-BABUL_SHELL.define("go-button", `
+```html
 <template state="disabled"><span class="btn-go is-off"><slot></slot></span></template>
 <template><a class="btn-go"><slot></slot> <i data-if="icon" data-lucide="{icon}" class="w-5 h-5"></i></a></template>
 <template variant="got"><a class="btn-go btn-go--got"><i data-lucide="check" class="w-6 h-6"></i> <slot></slot></a></template>
-`);
 ```
 ```html
 <c-go-button variant="got" href="score.html" class="flex-[2]">Got it</c-go-button>
@@ -198,7 +198,7 @@ BABUL_SHELL.define("go-button", `
   options.
 - An instance names any variant its definition tests by value: a test cannot
   see a default.
-- **The board is the spec.** `<body data-component="go-button"
+- **The board is the spec.** Its `<body data-component="go-button"
   data-group="Actions" data-source="src/components/ui/go-button.tsx"
   data-not-needed="pressed">` holds only instances, each spelling out every
   variant; the first value drawn is the default.
@@ -280,7 +280,7 @@ shadow**, as W3C design tokens in Babul's groups:
 | Check | Asks |
 |---|---|
 | **scan** | does the crawl from the start reach every page, board and definition; does every instance name a real component, property, variant and state; every link a page or state; every state note a block; is every file in `assets/` drawn or named? |
-| **shell** | does the set hold no `shell.js` and no copied `_shell/`? |
+| **shell** | does the set hold no copied `_shell/`? |
 | **well-formed** | is every `<div>` closed exactly once? |
 | **links** | does every local `href` point at a file that exists? |
 | **tokens** | does every class and `var(--…)` resolve? |
@@ -298,7 +298,7 @@ A route the set does not draw yet is listed in `design.js` `missing`, with why.
 
 | Part | Comes from |
 |---|---|
-| `shell.js` | served by `canon ui`; never in the set |
+| `shell.js` | canon's `shell/loader.js`; `canon ui` serves its own in its place |
 | `<size>/index.html`, `<size>/styles/*.html` | the same in every set but the `<title>`, which names the product |
 | `design.js`, `tokens.js`, `styles.css` | written for this product |
 | pages, components, boards | drawn |

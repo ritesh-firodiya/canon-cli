@@ -1,5 +1,5 @@
 /* The shell's entry. A design set does not hold the shell: each page loads the
- * loader, shell.js, which `canon ui` (or a site publishing the set) serves —
+ * loader, shell.js —
  *
  *     <script src="../../shell.js"></script>                            a page
  *     <script src="../../shell.js" data-view="components"></script>     a component
@@ -49,6 +49,12 @@
   if (flag("scan")) {
     script(shell + "describe.js");
     out.push("<script>document.addEventListener('DOMContentLoaded', function () { parent.postMessage({ babulScan: BABUL_DESCRIBE.fromDom(document) }, '*'); });</" + "script>");
+    return document.write(out.join("\n"));
+  }
+
+  /* ?def: a board only hands its definition to the page that uses it (expand.js). */
+  if (flag("def")) {
+    out.push("<script>document.addEventListener('DOMContentLoaded', function () { parent.postMessage({ babulDef: [].map.call(document.head.querySelectorAll('template'), function (t) { return t.outerHTML; }).join('\\n') }, '*'); });</" + "script>");
     return document.write(out.join("\n"));
   }
 

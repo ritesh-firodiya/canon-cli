@@ -1,5 +1,5 @@
 /* Expands component instances (<c-go-button variant="got">) from their
- * definitions in <size>/components/<id>.js, and keeps only the page's blocks for
+ * definitions in the <head> of <size>/components/<id>.html, and keeps only the page's blocks for
  * ?state= (default "data"). Runs once before the shell draws, so a page reads
  * the same in the shell, under ?bare, and to anything reading the drawn page.
  * The template syntax is the design-sets standard, §7.                       */
@@ -7,17 +7,24 @@
   var S = window.BABUL_SHELL;
   if (!S) return;
   var PASS = /^(class|href|title|style|id|target|aria-.*|data-.*)$/;
+  var DEF_TIMEOUT_MS = 8000;
   var defs = {}, loading = {};
   S.defSource = {};
 
-  S.define = function (id, html) {
+  function define(id, html) {
     var t = document.createElement("template");
     t.innerHTML = html;
     defs[id] = [].filter.call(t.content.children, function (c) { return c.localName === "template"; });
-    S.defSource[id] = 'BABUL_SHELL.define("' + id + '", `' + html + "`);";
-  };
+    S.defSource[id] = html;
+  }
 
-  /* Each definition is a script beside the board, loaded when something uses it. */
+  /* Each definition is in its board, read through a hidden frame when something
+     uses it: a page on file:// cannot read another file, but a frame can post its own. */
+  var waiting = [];
+  window.addEventListener("message", function (e) {
+    var hit = waiting.filter(function (w) { return w.frame.contentWindow === e.source; })[0];
+    if (hit && e.data && e.data.babulDef != null) hit.done(e.data.babulDef);
+  });
   var usedIn = function (root) {
     var ids = [];
     [].forEach.call(root.querySelectorAll("*"), function (n) {
@@ -28,15 +35,22 @@
   S.loadDefs = function (ids) {
     return Promise.all(ids.map(function (id) {
       if (!loading[id]) loading[id] = new Promise(function (done) {
-        var tag = document.createElement("script");
-        tag.src = S.root + S.size + "/components/" + id + ".js";
-        tag.onload = function () {
+        var frame = document.createElement("iframe");
+        frame.hidden = true;
+        frame.src = S.root + S.size + "/components/" + id + ".html?def";
+        var entry = { frame: frame, done: function (html) {
+          clearTimeout(timer);
+          frame.remove();
+          waiting.splice(waiting.indexOf(entry), 1);
+          if (html === null) { console.warn("[expand] no definition for <c-" + id + ">"); return done(); }
+          define(id, html);
           var nested = [];
-          (defs[id] || []).forEach(function (t) { nested = nested.concat(usedIn(t.content)); });
+          defs[id].forEach(function (t) { nested = nested.concat(usedIn(t.content)); });
           S.loadDefs(nested).then(done);
-        };
-        tag.onerror = function () { console.warn("[expand] no definition for <c-" + id + ">"); done(); };
-        document.head.appendChild(tag);
+        } };
+        var timer = setTimeout(function () { entry.done(null); }, DEF_TIMEOUT_MS);
+        waiting.push(entry);
+        (document.body || document.documentElement).appendChild(frame);
       });
       return loading[id];
     }));

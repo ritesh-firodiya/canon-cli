@@ -46,7 +46,7 @@
     seen["component " + id] = true;
     return Promise.all([
       S.loadDefs([id]).then(function () {
-        return S.defSource[id] ? follow(c.addDef(id, S.defSource[id])) : c.errors.push("components/" + id + ".js did not load");
+        return S.defSource[id] ? follow(c.addDef(id, S.defSource[id])) : c.errors.push("components/" + id + ".html did not load");
       }),
       scan("components/" + id + ".html").then(function (tree) { return tree && follow(c.addBoard(id, tree)); }),
     ]);

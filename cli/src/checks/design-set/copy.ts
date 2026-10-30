@@ -53,7 +53,7 @@ export function copy(s: Surface): void {
     s.report.say(`   skipped — no app at ${s.appDir}`);
     return;
   }
-  const drawn = flat([...sorted(s.onDisk), ...s.defs].map((f) => read(join(s.dir, f))).join(" "));
+  const drawn = flat(sorted(s.onDisk).map((f) => read(join(s.dir, f))).join(" "));
   const words = dictionary(s);
   const raisers = s.web ? /(?:\btoast|window\.confirm)\(/g : /(?:Alert\.alert|showToast)\(/g;
   const before = s.report.fail;

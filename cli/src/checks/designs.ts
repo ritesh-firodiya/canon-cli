@@ -20,13 +20,11 @@ export function designSurfaces(repo: string): string[] {
     .sort();
 }
 
-/** A Babul set holds none of its shell: `canon ui` serves shell.js and the shell itself, both from canon. */
+/** A Babul set holds no copy of the shell: only its shell.js, a loader that points at canon's. */
 function shellFindings(repo: string): Finding[] {
   const root = join(repo, DESIGNS);
   if (!existsSync(join(root, "design.js"))) return [];
-  return ["_shell", "shell.js"]
-    .filter((name) => existsSync(join(root, name)))
-    .map((name) => ({ check: "designs", level: "error", file: `${DESIGNS}/${name}`, message: "the shell lives in canon — delete this copy; `canon ui` serves it" }));
+  return existsSync(join(root, "_shell")) ? [{ check: "designs", level: "error", file: `${DESIGNS}/_shell`, message: "the shell lives in canon — delete this copy" }] : [];
 }
 
 /** Runs the design-set checks (./design-set) once per drawn surface. */
