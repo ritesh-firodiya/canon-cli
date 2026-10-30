@@ -143,7 +143,7 @@ standards/        default standards
 packs/            vendor doc packs
 templates/        files init writes (dependency-cruiser base and starters)
 scripts/          log-verdict.mjs (the verdict log), check-designs.py, flow.py, arch-set.py
-evals/            plugin evals: the fixture product, and cases over real product repos (_scaffold/product.sh)
+evals/            plugin evals on a fixture product
 cli/              the canon CLI (TypeScript, vitest); `@freetesh/canon/api` for tools built on it
 ```
 
