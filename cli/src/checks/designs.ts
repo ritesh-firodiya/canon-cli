@@ -1,7 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { kindCovers } from "../config/schema.ts";
-import { packageVersion, pinnedVersion } from "../ui/shell.ts";
 import { checkSurface } from "./design-set/index.ts";
 import type { Check, Finding } from "./types.ts";
 
@@ -9,36 +8,25 @@ const DESIGNS = ".context/designs";
 const MAX_OUTPUT_LINES = 15;
 
 /**
- * Every drawn surface: in a Babul set (babul.js beside the sizes), each size folder with its journey (index.html).
+ * Every drawn surface: in a Babul set (design.js beside the sizes), each size folder with its journey (index.html).
  */
 export function designSurfaces(repo: string): string[] {
   const root = join(repo, DESIGNS);
   if (!existsSync(root)) return [];
-  if (!existsSync(join(root, "babul.js"))) return [];
+  if (!existsSync(join(root, "design.js"))) return [];
   return readdirSync(root, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && existsSync(join(root, entry.name, "index.html")))
     .map((entry) => `${DESIGNS}/${entry.name}`)
     .sort();
 }
 
-/** A Babul set holds one file of its shell, shell.js, pinned to a published canon; the shell itself lives in canon. */
-function shellFindings(repo: string, canonRoot: string): Finding[] {
+/** A Babul set holds none of its shell: `canon ui` serves shell.js and the shell itself, both from canon. */
+function shellFindings(repo: string): Finding[] {
   const root = join(repo, DESIGNS);
-  if (!existsSync(join(root, "babul.js"))) return [];
-  const found: Finding[] = [];
-  const error = (file: string, message: string) => found.push({ check: "designs", level: "error", file, message });
-  if (existsSync(join(root, "_shell"))) error(`${DESIGNS}/_shell`, "the shell lives in canon — delete this copy");
-  const loader = join(root, "shell.js");
-  if (!existsSync(loader)) {
-    error(`${DESIGNS}/shell.js`, "missing — `canon ui` writes it");
-    return found;
-  }
-  const pinned = pinnedVersion(canonRoot, readFileSync(loader, "utf8"));
-  const current = packageVersion(canonRoot);
-  if (!pinned) error(`${DESIGNS}/shell.js`, "is not canon's loader — delete it and run `canon ui`");
-  else if (pinned !== current)
-    found.push({ check: "designs", level: "warn", file: `${DESIGNS}/shell.js`, message: `pins canon ${pinned}; this canon is ${current} — change the version in it` });
-  return found;
+  if (!existsSync(join(root, "design.js"))) return [];
+  return ["_shell", "shell.js"]
+    .filter((name) => existsSync(join(root, name)))
+    .map((name) => ({ check: "designs", level: "error", file: `${DESIGNS}/${name}`, message: "the shell lives in canon — delete this copy; `canon ui` serves it" }));
 }
 
 /** Runs the design-set checks (./design-set) once per drawn surface. */
@@ -47,7 +35,7 @@ export const designs: Check = {
   module: "design",
   description: "every drawn surface follows the design-sets standard",
   run({ repo, canonRoot }) {
-    return shellFindings(repo, canonRoot).concat(designSurfaces(repo).flatMap((surface): Finding[] => {
+    return shellFindings(repo).concat(designSurfaces(repo).flatMap((surface): Finding[] => {
       let result;
       try {
         result = checkSurface(repo, surface, join(canonRoot, "shell"));

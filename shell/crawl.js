@@ -1,4 +1,4 @@
-/* Reads the set from its HTML each time the shell opens. From babul.js's start
+/* Reads the set from its HTML each time the shell opens. From design.js's start
  * page it follows every link and every component, loading each page and board
  * in a hidden frame with ?scan; the frame posts back its own markup (a page on
  * file:// cannot read another file, but a frame can describe itself).

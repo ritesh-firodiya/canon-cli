@@ -361,7 +361,7 @@
     });
 
     /* ---- the order pages are reached in, and the journeys -------------------- */
-    if (!pages[start]) fail("babul.js names start " + start + ", which is no page");
+    if (!pages[start]) fail("design.js names start " + start + ", which is no page");
     var order = [], queue = pages[start] ? [start] : [];
     while (queue.length) {
       var id = queue.shift();

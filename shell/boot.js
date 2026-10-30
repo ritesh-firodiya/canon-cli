@@ -1,5 +1,5 @@
 /* The shell's entry. A design set does not hold the shell: each page loads the
- * set's one-file loader, shell.js, which loads this from canon —
+ * loader, shell.js, which `canon ui` (or a site publishing the set) serves —
  *
  *     <script src="../../shell.js"></script>                            a page
  *     <script src="../../shell.js" data-view="components"></script>     a component
@@ -33,7 +33,7 @@
     reactFlow: "https://unpkg.com/reactflow@11.11.4/dist/umd/index.js",
     reactFlowCss: "https://unpkg.com/reactflow@11.11.4/dist/style.css",
   };
-  var DATA = ["babul", "tokens"];
+  var DATA = ["design", "tokens"];
   var flag = function (name) { return new RegExp("[?&]" + name + "\\b").test(location.search); };
 
   window.BABUL_SHELL = {

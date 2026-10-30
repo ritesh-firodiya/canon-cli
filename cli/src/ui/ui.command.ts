@@ -1,9 +1,9 @@
-import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import type { Command } from "commander";
 import type { Env } from "../lib/env.ts";
-import { loaderFor, packageVersion, servedLoader } from "./shell.ts";
+import { loaderAt } from "./shell.ts";
 
 const DESIGNS = ".context/designs";
 const SERVED_SHELL = "/_shell/";
@@ -13,10 +13,10 @@ const TYPES: Record<string, string> = {
   ".woff2": "font/woff2", ".mp4": "video/mp4",
 };
 
-/** The design set at or above `start`: the folder holding babul.js. */
+/** The design set at or above `start`: the folder holding design.js. */
 export function findDesigns(start: string): string | null {
   for (let folder = resolve(start); ; folder = dirname(folder)) {
-    if (existsSync(join(folder, DESIGNS, "babul.js"))) return join(folder, DESIGNS);
+    if (existsSync(join(folder, DESIGNS, "design.js"))) return join(folder, DESIGNS);
     if (dirname(folder) === folder) return null;
   }
 }
@@ -38,15 +38,12 @@ export function registerUi(program: Command, env: Env): void {
     .option("--port <port>", "port", "4611")
     .action((options: { port: string }) => {
       const designs = findDesigns(process.cwd());
-      if (!designs) throw new Error(`no ${DESIGNS}/babul.js here or above — not a design set`);
-      const loader = join(designs, "shell.js");
-      if (!existsSync(loader)) {
-        writeFileSync(loader, loaderFor(env.canonRoot, packageVersion(env.canonRoot)));
-        console.log(`wrote ${DESIGNS}/shell.js, the set's link to canon's shell`);
-      }
+      if (!designs) throw new Error(`no ${DESIGNS}/design.js here or above — not a design set`);
+      // Every page loads ../shell.js; the set holds no copy, so it is served from here.
+      const loader = loaderAt(env.canonRoot, SERVED_SHELL);
       const shell = join(env.canonRoot, "shell");
       const sizes: string[] = JSON.parse(
-        readFileSync(join(designs, "babul.js"), "utf8").replace("(window.BABUL ||= {}).product = ", "").replace(/;\s*$/, ""),
+        readFileSync(join(designs, "design.js"), "utf8").replace("(window.BABUL ||= {}).product = ", "").replace(/;\s*$/, ""),
       ).sizes;
 
       const server = createServer((request, response) => {
@@ -55,13 +52,16 @@ export function registerUi(program: Command, env: Env): void {
           response.writeHead(302, { location: `/${sizes[0]}/index.html` }).end();
           return;
         }
+        if (url.split(/[?#]/)[0] === "/shell.js") {
+          response.writeHead(200, { "content-type": TYPES[".js"], "cache-control": "no-store" }).end(loader);
+          return;
+        }
         const file = fileFor(designs, shell, url);
         if (!file || !existsSync(file)) {
           response.writeHead(404).end("not found");
           return;
         }
-        const body = file === loader ? servedLoader(readFileSync(file, "utf8"), SERVED_SHELL) : readFileSync(file);
-        response.writeHead(200, { "content-type": TYPES[extname(file)] ?? "application/octet-stream", "cache-control": "no-store" }).end(body);
+        response.writeHead(200, { "content-type": TYPES[extname(file)] ?? "application/octet-stream", "cache-control": "no-store" }).end(readFileSync(file));
       });
       server.listen(Number(options.port), "127.0.0.1", () => {
         console.log(sizes.map((size) => `${size.padEnd(8)}http://127.0.0.1:${options.port}/${size}/index.html`).join("\n"));

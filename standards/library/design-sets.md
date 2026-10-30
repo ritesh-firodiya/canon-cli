@@ -24,10 +24,9 @@ shows from the HTML itself, and checked against the app it describes.
 
 ```
 <repo>/.context/designs/
-  babul.js          the product: start page, logo and art, sizes, frames, themes, stack, known gaps
+  design.js          the product: start page, logo and art, sizes, frames, themes, stack, known gaps
   tokens.js         colour, typography, spacing, radius, shadow — W3C design tokens
   assets/           source art: icon.svg, adaptive layers, feature graphic
-  shell.js          the one link to the shell, which is canon's — `canon ui` writes it
   <size>/           mobile · tablet · web · email — one folder per size
     index.html            the journey
     styles/<group>.html   icons · colors · typography · spacing · radius · shadows
@@ -46,7 +45,7 @@ architecture are canon's, in `.context/wiki/` (§10); the designs follow them.
 
 ## 2. The HTML is the only source
 
-Two files are written by hand, because nothing draws them: `babul.js` and
+Two files are written by hand, because nothing draws them: `design.js` and
 `tokens.js` (§8), each strict JSON behind `(window.BABUL ||= {}).<key> = ` so a
 `<script>` loads it from disk and Babul reads the JSON.
 
@@ -63,7 +62,7 @@ a page on `file://` cannot read another file, but a frame can describe itself.
 | links | every `href`, with the states it sits in; `overlay` when the target is a modal page |
 | components | each definition and its board |
 | journeys | `data-end` and `data-journeys` on page bodies, in the order pages are reached |
-| icons and art | every icon anything draws; every `<img>` in `assets/`; `babul.js` `logo` and `art` |
+| icons and art | every icon anything draws; every `<img>` in `assets/`; `design.js` `logo` and `art` |
 
 What a drawing cannot show is written on it:
 
@@ -78,7 +77,7 @@ What a drawing cannot show is written on it:
 
 - `data-route` is the app file that renders the page; none means no route does.
   `data-status`: `review`, `built`, `approved`.
-- `babul.js` `start` is one page id, or one per size when the sizes draw
+- `design.js` `start` is one page id, or one per size when the sizes draw
   different pages (`perSize: true`).
 - **A link is a step forward unless it says otherwise:**
 
@@ -104,13 +103,15 @@ not a link between pages.
 <script src="../shell.js" data-view="journey"></script>         <!-- the journey -->
 ```
 
-`shell.js` loads canon's `boot.js`, which writes in the rest: `babul.js`,
+`shell.js` is not in the set: `canon ui` serves it, and loads canon's
+`boot.js`, which writes in the rest: `design.js`,
 `tokens.js`, the shell, Tailwind, lucide, `shell.css` and the size's
 `styles.css`.
 
-- **The shell is canon's; a set never holds a copy.** `shell.js` pins a
-  published canon, so the files open straight from disk; `canon ui` serves the
-  set on localhost with the running canon's shell instead.
+- **The shell is canon's; a set holds none of it** — no `shell.js`, no
+  `_shell/`. Open a set with `canon ui`; a page opened straight from disk has
+  no shell. A site that publishes sets writes each `shell.js` itself, from
+  canon's `shell/loader.js`, pointed at the shell it hosts.
 
 - **Every CDN is pinned**: Tailwind 3.4.17, lucide 0.544.0, React 18.3.1,
   React Flow 11.11.4 (v12's UMD build expects `react/jsx-runtime` as a global).
@@ -235,7 +236,7 @@ shadow**, as W3C design tokens in Babul's groups:
 
 ## 9. The frame
 
-- The size's frame from `babul.js`, the device radius on a normal page, square
+- The size's frame from `design.js`, the device radius on a normal page, square
   and full-bleed under `?bare`.
 - It **clamps to what is left under the shell**:
   `height: min(var(--frame-h), calc(100dvh - var(--chrome-h) - var(--stage-pad)))`.
@@ -274,12 +275,12 @@ shadow**, as W3C design tokens in Babul's groups:
 
 ## 12. Checks
 
-`canon check` runs the design checks for every size folder beside `babul.js`:
+`canon check` runs the design checks for every size folder beside `design.js`:
 
 | Check | Asks |
 |---|---|
 | **scan** | does the crawl from the start reach every page, board and definition; does every instance name a real component, property, variant and state; every link a page or state; every state note a block; is every file in `assets/` drawn or named? |
-| **shell** | is `shell.js` canon's loader, pinned to this canon, with no copied `_shell/`? |
+| **shell** | does the set hold no `shell.js` and no copied `_shell/`? |
 | **well-formed** | is every `<div>` closed exactly once? |
 | **links** | does every local `href` point at a file that exists? |
 | **tokens** | does every class and `var(--…)` resolve? |
@@ -289,7 +290,7 @@ shadow**, as W3C design tokens in Babul's groups:
 | **copy** | is every word a dialog or toast shows drawn somewhere? |
 | **styles** | is every class in `styles.css` drawn? |
 
-A route the set does not draw yet is listed in `babul.js` `missing`, with why.
+A route the set does not draw yet is listed in `design.js` `missing`, with why.
 
 ---
 
@@ -297,9 +298,9 @@ A route the set does not draw yet is listed in `babul.js` `missing`, with why.
 
 | Part | Comes from |
 |---|---|
-| `shell.js` | written by `canon ui` |
+| `shell.js` | served by `canon ui`; never in the set |
 | `<size>/index.html`, `<size>/styles/*.html` | the same in every set but the `<title>`, which names the product |
-| `babul.js`, `tokens.js`, `styles.css` | written for this product |
+| `design.js`, `tokens.js`, `styles.css` | written for this product |
 | pages, components, boards | drawn |
 
 **A formatter is an edit.** Add `.context/designs/` to `.prettierignore`.
@@ -307,7 +308,7 @@ A route the set does not draw yet is listed in `babul.js` `missing`, with why.
 ### Building a set
 
 1. Read the app's routes, components, theme and i18n dictionary.
-2. Write `babul.js` and `tokens.js`, then run `canon ui`.
+2. Write `design.js` and `tokens.js`, then run `canon ui`.
 3. Define each component the app has, with its board.
 4. Draw the pages from the components, states as blocks; mark returns,
    shortcuts and journeys.

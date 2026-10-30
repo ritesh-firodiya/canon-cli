@@ -1,12 +1,12 @@
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { describe, expect, test } from "vitest";
 import { fileFor, findDesigns } from "../src/ui/ui.command.ts";
-import { servedLoader } from "../src/ui/shell.ts";
+import { loaderAt } from "../src/ui/shell.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 describe("canon ui", () => {
   test("finds the design set from anywhere inside the repo", () => {
-    const repo = makeTree({ ".context/designs/babul.js": "", "src/app/page.tsx": "" });
+    const repo = makeTree({ ".context/designs/design.js": "", "src/app/page.tsx": "" });
     expect(findDesigns(join(repo, "src/app"))).toBe(join(repo, ".context/designs"));
     expect(findDesigns(makeTree({ "README.md": "" }))).toBeNull();
   });
@@ -21,7 +21,9 @@ describe("canon ui", () => {
     expect(fileFor(designs, shell, "/_shell/../../secret")).toBeNull();
   });
 
-  test("points the set's loader at the served shell", () => {
-    expect(servedLoader('a\n  var SHELL = "https://cdn/x/";\nb', "/_shell/")).toBe('a\n  var SHELL = "/_shell/";\nb');
+  test("the loader a page gets points at the served shell, with no version in it", () => {
+    const loader = loaderAt(resolve(import.meta.dirname, "../.."), "/_shell/");
+    expect(loader).toContain('var SHELL = "/_shell/";');
+    expect(loader).not.toMatch(/\{shell\}|@freetesh|jsdelivr/);
   });
 });

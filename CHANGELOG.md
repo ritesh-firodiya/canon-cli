@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.22.0 — 2026-10-30
+
+### Changed
+
+- **A design set holds none of canon's shell — no `shell.js` either.** `canon ui`
+  serves `shell.js` from canon, so a set no longer pins a canon version and
+  nothing needs bumping after a release. A site that publishes sets writes
+  each `shell.js` itself from canon's `shell/loader.js`. `canon check` fails on
+  a leftover `shell.js`, as it does on a copied `_shell/`. A page opened
+  straight from disk now has no shell: open sets with `canon ui`.
+- **`babul.js` is now `design.js`.** A design set's product file is
+  `.context/designs/design.js`; its contents are unchanged. `canon ui`, the
+  shell and `canon check` read only `design.js`.
+
 ## 0.21.0 — 2026-10-30
 
 ### Added

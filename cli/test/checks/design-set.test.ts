@@ -14,7 +14,7 @@ const page = (id: string, route: string, body: string) =>
 /** A two-page Babul set, start → next, and the Expo app it draws; `files` overrides any of them. */
 function product(files: Record<string, string> = {}) {
   return makeTree({
-    [`${D}/babul.js`]: '(window.BABUL ||= {}).product = {"format":1,"name":"Demo","start":"home/start","sizes":["mobile"],"frames":{"mobile":{"w":390,"h":844}},"missing":[]};\n',
+    [`${D}/design.js`]: '(window.BABUL ||= {}).product = {"format":1,"name":"Demo","start":"home/start","sizes":["mobile"],"frames":{"mobile":{"w":390,"h":844}},"missing":[]};\n',
     [`${D}/tokens.js`]: '(window.BABUL ||= {}).tokens = {"color":{"ink":{"$value":"#000"}}};\n',
     [`${D}/mobile/index.html`]: '<!doctype html><html><head><script src="../shell.js" data-view="journey"></script></head><body data-shell="journey"></body></html>\n',
     [`${D}/mobile/styles.css`]: ".card { color: var(--ink) }\n",
@@ -65,7 +65,7 @@ describe("design-set checks", () => {
   test("a web surface is read against the Next.js app: a page's folder, redirects, and the site's own toasts", () => {
     const web = (id: string, route: string, body: string) => page(id, route, body);
     const repo = product({
-      [`${D}/babul.js`]: '(window.BABUL ||= {}).product = {"format":1,"name":"Demo","start":"home/start","sizes":["web"],"frames":{"web":{"w":1280,"h":800}},"missing":[]};\n',
+      [`${D}/design.js`]: '(window.BABUL ||= {}).product = {"format":1,"name":"Demo","start":"home/start","sizes":["web"],"frames":{"web":{"w":1280,"h":800}},"missing":[]};\n',
       [`${D}/web/index.html`]: '<!doctype html><html><head><script src="../shell.js" data-view="journey"></script></head><body data-shell="journey"></body></html>\n',
       [`${D}/web/styles.css`]: ".card { color: var(--ink) }\n",
       [`${D}/web/home/start.html`]: web("home/start", "page.tsx", '<div class="card"><a href="next.html">Next</a></div>'),
@@ -90,7 +90,7 @@ describe("design-set checks", () => {
 
   test("a departure written down in `missing` is pending, not a failure", () => {
     const babul = '(window.BABUL ||= {}).product = {"format":1,"name":"Demo","start":"home/start","sizes":["mobile"],"frames":{"mobile":{"w":390,"h":844}},"missing":[{"what":"extra.tsx","why":"not drawn yet"}]};\n';
-    expect(fails({ [`${D}/babul.js`]: babul, "src/app/extra.tsx": "export default function E() { return null }\n" })).toEqual([]);
+    expect(fails({ [`${D}/design.js`]: babul, "src/app/extra.tsx": "export default function E() { return null }\n" })).toEqual([]);
   });
 
   test("canon check reports a failing surface as one error carrying the end of its report", () => {

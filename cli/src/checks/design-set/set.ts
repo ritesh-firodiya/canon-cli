@@ -75,10 +75,10 @@ export interface Surface {
 const DATA_FILE = /^\(window\.BABUL \|\|= \{\}\)\.(\w+) = ([\s\S]*);\s*$/;
 
 /** One data file, as Babul reads it: the fixed prefix, then strict JSON. */
-function babulData(dir: string, name: string, report: Report): Record<string, unknown> | null {
+function dataFile(dir: string, name: string, report: Report): Record<string, unknown> | null {
   const path = join(dir, "..", `${name}.js`);
   if (!existsSync(path)) return null;
-  const key = name === "babul" ? "product" : name;
+  const key = name === "design" ? "product" : name;
   const match = DATA_FILE.exec(read(path));
   if (!match || match[1] !== key) {
     report.bad(`${name}.js is not \`(window.BABUL ||= {}).${key} = <JSON>;\``);
@@ -119,7 +119,7 @@ export function loadSurface(repo: string, surface: string, shell: string): Surfa
   const report = new Report();
 
   const scan = scanned(dir, shell, report);
-  const product = babulData(dir, "babul", report) ?? {};
+  const product = dataFile(dir, "design", report) ?? {};
   // One file holds every state of a page, so a frame's file is its page's.
   const html = (frame: string) => `${frame.split(".")[0]}.html`;
   const pages: Screen[] = (scan.pages ?? []).map((p) => ({ file: html(p.id), route: p.route ?? null, screen: p.name }));
@@ -146,7 +146,7 @@ export function loadSurface(repo: string, surface: string, shell: string): Surfa
     // The shell's own style pages are drawn from the data, never declared in it.
     onDisk: new Set(walk(dir).filter((f) => f.includes("/") && f.endsWith(".html") && !f.startsWith("styles/"))),
     missing: (product.missing as Missing[] | undefined) ?? [],
-    tokens: babulData(dir, "tokens", report) ?? {},
+    tokens: dataFile(dir, "tokens", report) ?? {},
   };
 }
 

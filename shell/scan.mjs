@@ -5,9 +5,9 @@
  *     node scan.mjs .context/designs mobile          the problems, one per line; exit 1 on any
  *     node scan.mjs .context/designs mobile --json   the described set, as JSON
  *
- * The size is a folder beside babul.js; with none, the first of babul.js sizes.
+ * The size is a folder beside design.js; with none, the first of design.js sizes.
  *
- * A page or board the crawl cannot reach from babul.js's start is a problem:
+ * A page or board the crawl cannot reach from design.js's start is a problem:
  * the browser would never show it.                                          */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -21,7 +21,7 @@ const ROOT = resolve(dir);
 vm.runInThisContext(readFileSync(join(SHELL, "describe.js"), "utf8"));
 const { parse, Collector, startOf } = globalThis.BABUL_DESCRIBE;
 const data = (name, key = name) => JSON.parse(readFileSync(join(ROOT, `${name}.js`), "utf8").replace(`(window.BABUL ||= {}).${key} = `, "").replace(/;\s*$/, ""));
-const product = data("babul", "product"), tokens = data("tokens");
+const product = data("design", "product"), tokens = data("tokens");
 const SIZE = size ?? product.sizes[0];
 const DIR = join(ROOT, SIZE);
 const read = (path) => readFileSync(join(DIR, path), "utf8");
@@ -49,7 +49,7 @@ for (const d of readdirSync(DIR, { withFileTypes: true })) {
 }
 const model = c.finish();
 const named = [...model.assets.logos, ...model.assets.images].map((a) => a.file);
-for (const f of existsSync(join(ROOT, "assets")) ? readdirSync(join(ROOT, "assets")) : []) if (!named.includes(`assets/${f}`)) model.errors.push(`assets/${f} is drawn by no page and not named in babul.js (logo or art)`);
+for (const f of existsSync(join(ROOT, "assets")) ? readdirSync(join(ROOT, "assets")) : []) if (!named.includes(`assets/${f}`)) model.errors.push(`assets/${f} is drawn by no page and not named in design.js (logo or art)`);
 for (const f of named) if (!existsSync(join(ROOT, f))) model.errors.push(`${f} is drawn or named, and does not exist`);
 if (process.argv.includes("--json")) {
   console.log(JSON.stringify(model, null, 2));
