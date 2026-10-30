@@ -122,7 +122,7 @@ html, body {
 body.shell {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  grid-template-columns: 72px auto minmax(0, 1fr);
+  grid-template-columns: 84px auto minmax(0, 1fr);
   height: 100dvh;
   overflow: hidden;
   background: var(--chrome-canvas);
