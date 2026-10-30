@@ -24,7 +24,6 @@
     "templates",
     "scripts/log-verdict.mjs",
     "shell",
-    "scripts/flow.py",
     ".claude-plugin"
   ],
   "engines": {

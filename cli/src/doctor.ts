@@ -20,7 +20,6 @@ interface Tool extends ToolSpec {
 const CORE_TOOLS: Tool[] = [
   { tool: "node", why: "runs the canon CLI and hooks", hint: "install Node 22+", minimum: [22, 0] },
   { tool: "git", why: "canon works on git repos", hint: "install git" },
-  { tool: "python3", why: "runs canon flow", hint: "brew install python" },
   { tool: "qmd", why: "knowledge search for Claude", hint: "npm i -g @tobilu/qmd (see the canon README)" },
 ];
 

@@ -21,7 +21,7 @@ import { registerWeigh } from "./commands/weigh.ts";
 import { findWorkspace } from "./check.ts";
 import { registerMcp } from "./commands/mcp.ts";
 import { registerSearch } from "./commands/search.ts";
-import { registerScripts } from "./commands/scripts.ts";
+import { registerFlow } from "./commands/flow.ts";
 import { canonVersion } from "./status.ts";
 
 const env: Env = {
@@ -49,7 +49,7 @@ registerLearn(program, env);
 registerApprove(program);
 registerPipeline(program, env);
 registerWeigh(program);
-registerScripts(program, env);
+registerFlow(program, env);
 
 registerSearch(program);
 registerMcp(program);

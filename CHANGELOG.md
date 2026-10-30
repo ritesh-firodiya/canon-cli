@@ -10,6 +10,8 @@
 
 ### Removed
 
+- python3. `canon flow` now runs in TypeScript and reads release.yml with the
+  yaml package instead of Ruby; canon needs only Node, git and qmd.
 - The Python design checker. `canon check` now runs the same checks in
   TypeScript, so checking a design set no longer needs python3. Sets still on
   routes.js are no longer checked; every set is a Babul set.

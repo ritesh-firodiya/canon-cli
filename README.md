@@ -81,7 +81,7 @@ canon standards        # which standards apply here, and where each comes from
 canon sync             # refresh pack docs and the search index, move the pinned version
 canon update           # update the CLI and the Claude plugin to the latest release, then sync
 canon status           # version, kind, modules, config layers, check summary
-canon doctor           # node, git, python3 (canon flow), qmd — plus any tools your config lists
+canon doctor           # node, git, qmd — plus any tools your config lists
 canon learn            # proposals from overridden verdicts
 canon approve <stage>  # a person records a pipeline gate approval
 canon pipeline         # the stages this repo resolves to, and where each stands
@@ -141,7 +141,7 @@ hooks/            session start: constitution titles, qmd refresh
 standards/        default standards
 packs/            vendor doc packs
 templates/        files init writes (dependency-cruiser base and starters)
-scripts/          log-verdict.mjs (the verdict log), flow.py
+scripts/          log-verdict.mjs (the verdict log)
 evals/            plugin evals on a fixture product
 cli/              the canon CLI (TypeScript, vitest); `@freetesh/canon/api` for tools built on it
 ```

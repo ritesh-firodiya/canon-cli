@@ -8,7 +8,7 @@ describe("runDoctor", () => {
     const results = runDoctor(probe({ node: "v24.21.0", qmd: "qmd 2.8.3 (facd35e)", git: "git version 2.50.0" }));
     const qmd = results.find((r) => r.tool === "qmd");
     expect(qmd).toEqual(expect.objectContaining({ ok: true, version: "2.8.3" }));
-    expect(results.map((r) => r.tool)).toEqual(["node", "git", "python3", "qmd"]);
+    expect(results.map((r) => r.tool)).toEqual(["node", "git", "qmd"]);
   });
 
   test("tools declared in canon.yaml are checked after the core ones", () => {
