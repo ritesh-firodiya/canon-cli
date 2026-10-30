@@ -519,7 +519,7 @@ def strip_guards(src):
     — it is what a screen does when the thing it was opened to edit has gone.
     The chart describes the product, and a guard is not part of it; demanding an
     edge for one would demand a LINK for it, and a "go to Today" control on the
-    cooking-fat screen is not a thing any of these wireframes should grow.
+    screen it guards is not a thing any of these wireframes should grow.
     """
     return re.sub(r'if\s*\(\s*\(?\s*![^;{]*?\)\s*\{?[^;}]*?router\.replace\([^;]*?\);',
                   '', src, flags=re.S)
@@ -578,15 +578,15 @@ def screen_source(path):
     if not WEB:
         # A route is thin: it reads params and mounts one screen component, and
         # that component is where router.push lives. Reading the route alone
-        # found 0 navigations in chess and imposter. So in Expo a screen is its
+        # found 0 navigations in two real apps. So in Expo a screen is its
         # route file and the components that file mounts.
         #
         # One step further, and only inside the feature: a screen keeps its
         # state and navigation in a hook and its sections in the same folder,
-        # so those are read too. Splitting aakalan's screens that way took it
+        # so those are read too. Splitting one app's screens that way took it
         # from 33 navigations to 15. A component from ANOTHER folder is not
         # followed — a shared back button is not this screen's navigation —
-        # and neither is a hook two files use: imposter's useHomeActions
+        # and neither is a hook two files use: one app's useHomeActions
         # serves Home and History, and reading it into History charged that
         # screen with every route Home can reach.
         def resolve(spec):
@@ -781,7 +781,7 @@ STR = re.compile(r'"((?:[^"\\]|\\.)*)"|\'((?:[^\'\\]|\\.)*)\'')
 # is one bare word, which is otherwise exactly what a button label looks like.
 CODE = re.compile(r'[a-z0-9]+(?:-[a-z0-9]+)+|[a-z]+(?:[A-Z][a-z0-9]*)+')
 
-# AN APP THAT TRANSLATES RAISES NO LITERALS. charades writes
+# AN APP THAT TRANSLATES RAISES NO LITERALS. One app writes
 # `Alert.alert(t("history.clearTitle"), t("history.clearBody"))`, and a key has
 # a dot in it and no space, so it was never copy: "0 dialog and toast strings
 # checked, all drawn" for an app with a confirm on an irreversible delete. The

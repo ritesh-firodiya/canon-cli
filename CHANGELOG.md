@@ -92,7 +92,7 @@
 ### Changed
 
 - Copy sets live in the source repo's own `canon.yaml` (`copies.sets`); a
-  product names the source (`copies.source: ../charades`) and the sets it uses.
+  product names the source (`copies.source: ../source-app`) and the sets it uses.
 - Commands that span products (`check --all`, `hooks --all`, `ui`, `learn`,
   `flow`) use the folder holding the repo you are in, or `CANON_WORKSPACE`
   (was `CANON_ESTATE`). The `canon learn` decisions log moves to

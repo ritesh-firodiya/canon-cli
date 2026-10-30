@@ -18,11 +18,11 @@ const SOURCE = `copies:
 function workspace(use: string[], files: Record<string, string>) {
   const root = makeTree({
     "source/.claude/canon.yaml": SOURCE,
-    "source/.context/README.md": "# .context — Charades\n",
+    "source/.context/README.md": "# .context — Alpha\n",
     "source/scripts/upload.mjs": "upload v2\n",
-    "source/designs/mobile/shell.html": "<title>Charades</title>\n",
-    "source/designs/mobile/shared.css": "core v2\nPALETTE — Charades\nred\n",
-    "app/.context/README.md": "# .context — Imposter\n",
+    "source/designs/mobile/shell.html": "<title>Alpha</title>\n",
+    "source/designs/mobile/shared.css": "core v2\nPALETTE — Alpha\nred\n",
+    "app/.context/README.md": "# .context — Beta\n",
     ...Object.fromEntries(Object.entries(files).map(([path, text]) => [`app/${path}`, text])),
   });
   mkdirSync(join(root, "app", ".claude"), { recursive: true });
@@ -31,7 +31,7 @@ function workspace(use: string[], files: Record<string, string>) {
 }
 
 const run = (repo: string) => sharedFiles.run(contextFor(repo, { config: loadConfig(repo).config }));
-const SHELL = { "designs/web/shell.html": "<title>Imposter</title>\n", "designs/web/shared.css": "core v2\nPALETTE — Imposter\nviolet\n" };
+const SHELL = { "designs/web/shell.html": "<title>Beta</title>\n", "designs/web/shared.css": "core v2\nPALETTE — Beta\nviolet\n" };
 
 describe("shared-files", () => {
   test("the sets a product uses match: same bytes, the name swapped, the shared block above the marker", () => {
@@ -53,15 +53,15 @@ describe("shared-files", () => {
   });
 
   test("below the until marker is the product's own", () => {
-    const drifted = { ...SHELL, "designs/web/shared.css": "core v1\nPALETTE — Imposter\nviolet\n" };
+    const drifted = { ...SHELL, "designs/web/shared.css": "core v1\nPALETTE — Beta\nviolet\n" };
     expect(run(workspace(["shell-web"], drifted))).toEqual([expect.objectContaining({ file: "designs/web/shared.css" })]);
   });
 
   test("--sync rewrites drifted copies, keeps the product's own block and name, and adds nothing", () => {
-    const repo = workspace(["upload", "shell-web"], { "scripts/upload.mjs": "upload v1\n", "designs/web/shell.html": "<title>old</title>\n", "designs/web/shared.css": "core v1\nPALETTE — Imposter\nviolet\n" });
+    const repo = workspace(["upload", "shell-web"], { "scripts/upload.mjs": "upload v1\n", "designs/web/shell.html": "<title>old</title>\n", "designs/web/shared.css": "core v1\nPALETTE — Beta\nviolet\n" });
     expect(syncCopies(repo, loadConfig(repo).config).sort()).toEqual(["designs/web/shared.css", "designs/web/shell.html", "scripts/upload.mjs"]);
-    expect(readFileSync(join(repo, "designs/web/shell.html"), "utf8")).toBe("<title>Imposter</title>\n");
-    expect(readFileSync(join(repo, "designs/web/shared.css"), "utf8")).toBe("core v2\nPALETTE — Imposter\nviolet\n");
+    expect(readFileSync(join(repo, "designs/web/shell.html"), "utf8")).toBe("<title>Beta</title>\n");
+    expect(readFileSync(join(repo, "designs/web/shared.css"), "utf8")).toBe("core v2\nPALETTE — Beta\nviolet\n");
     expect(run(repo)).toEqual([]);
   });
 

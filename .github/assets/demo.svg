@@ -6,7 +6,7 @@
   </style>
   <rect width="920" height="640" rx="14" fill="#11151b"/>
   <circle cx="26" cy="24" r="6" fill="#f28b82"/><circle cx="46" cy="24" r="6" fill="#f0b75c"/><circle cx="66" cy="24" r="6" fill="#6fd08f"/>
-  <text x="460" y="29" text-anchor="middle" class="dim">claude — chitragupt</text>
+  <text x="460" y="29" text-anchor="middle" class="dim">claude — myapp</text>
 
   <text x="28" y="72"><tspan class="you">&gt; </tspan>Add an "Add expense" button so users can type in cash spends.</text>
   <text x="28" y="94">  Users keep asking for it, and it will improve retention.</text>
@@ -31,5 +31,5 @@
   <text x="28" y="530">  <tspan class="canon">B</tspan>  Change the rule. I list the terms; nothing starts until you agree.</text>
   <text x="28" y="552">  <tspan class="canon">C</tspan>  Drop it.</text>
 
-  <text x="28" y="606" class="dim">Real repo facts from products/chitragupt, 2026-10-25.</text>
+  <text x="28" y="606" class="dim">Real repo facts, 2026-10-25.</text>
 </svg>

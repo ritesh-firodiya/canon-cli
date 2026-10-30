@@ -3,8 +3,8 @@
 product's own stages (`canon pipeline`), and how long each step took. Counts
 and times only; no prompt text leaves this machine.
 
-    canon flow askcal            print the numbers
-    canon flow askcal --write    also write <product>/.context/metrics/flow.json
+    canon flow myapp            print the numbers
+    canon flow myapp --write    also write <product>/.context/metrics/flow.json
 
 `canon flow` runs this with CANON_WORKSPACE (the folder holding the products) and
 CANON_FLOW_FORMERLY (each product's older folder names, from `formerly:` in its canon.yaml).
@@ -53,7 +53,7 @@ RELEASE_TAG = re.compile(r"^(?:[a-z]+-)?v(\d+\.\d+(?:\.\d+)?)")
 WEB_TOOLS = {"WebSearch", "WebFetch"}
 # A renamed product's conversations under its old folder name are still about it.
 ALIASES = json.loads(os.environ.get("CANON_FLOW_FORMERLY") or "{}")
-# A product folder named in full or from ~ ("~/git/products/chess").
+# A product folder named in full or from ~ ("~/products/myapp").
 PRODUCT_PATH = re.compile(r"(?:" + re.escape(PRODUCTS) + "|" + re.escape(PRODUCTS.replace(os.path.expanduser("~"), "~", 1)) + r")/([A-Za-z0-9._-]+)")
 KNOWN = ["idea", "research", "plan", "design", "code", "review", "release", "store-review", "deployed", "live"]
 TOUCH = {
@@ -301,12 +301,12 @@ def flow(product, sessions):
 def self_check():
     assert RELEASE_TAG.match("v1.4.1") and RELEASE_TAG.match("mobile-v0.1.1")
     assert not RELEASE_TAG.match("stash-bak-0")
-    assert COMMIT_CALL.search('git -C askcal commit -m "x"') and COMMIT_CALL.search("git commit -q -F -")
+    assert COMMIT_CALL.search('git -C myapp commit -m "x"') and COMMIT_CALL.search("git commit -q -F -")
     assert not COMMIT_CALL.search("git status; echo commit")
     assert day("2026-10-27").hour == 0 and day("2026-09-30T17:43:43+00:00").hour == 17
-    assert belongs({"chess", "CLAUDE.md"}, {"chess"}, {"chess", "babul"}) and belongs({"CLAUDE.md"}, {"chess"}, {"chess", "babul"})
-    assert not belongs({"babul", "bin"}, {"chess"}, {"chess", "babul"})
-    assert PRODUCT_PATH.findall(f"cd {PRODUCTS}/chess && git -C ~/git/products/babul status".replace("~/git/products", PRODUCTS.replace(os.path.expanduser("~"), "~", 1))) == ["chess", "babul"]
+    assert belongs({"myapp", "CLAUDE.md"}, {"myapp"}, {"myapp", "shared"}) and belongs({"CLAUDE.md"}, {"myapp"}, {"myapp", "shared"})
+    assert not belongs({"shared", "bin"}, {"myapp"}, {"myapp", "shared"})
+    assert PRODUCT_PATH.findall(f"cd {PRODUCTS}/myapp && git -C ~/git/products/shared status".replace("~/git/products", PRODUCTS.replace(os.path.expanduser("~"), "~", 1))) == ["myapp", "shared"]
     assert version_of("2.0.1 (15)") == "2.0.1" and version_of({"version": "1.4.3"}) == "1.4.3" and version_of(None) is None
 
 
