@@ -1,7 +1,8 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { kindCovers } from "../config/schema.ts";
+import { packageVersion, pinnedVersion } from "../shell.ts";
 import type { Check, Finding } from "./types.ts";
 
 const DESIGNS = ".context/designs";
@@ -21,6 +22,26 @@ export function designSurfaces(repo: string): string[] {
     .sort();
 }
 
+/** A Babul set holds one file of its shell, shell.js, pinned to a published canon; the shell itself lives in canon. */
+function shellFindings(repo: string, canonRoot: string): Finding[] {
+  const root = join(repo, DESIGNS);
+  if (!existsSync(join(root, "babul.js"))) return [];
+  const found: Finding[] = [];
+  const error = (file: string, message: string) => found.push({ check: "designs", level: "error", file, message });
+  if (existsSync(join(root, "_shell"))) error(`${DESIGNS}/_shell`, "the shell lives in canon — delete this copy");
+  const loader = join(root, "shell.js");
+  if (!existsSync(loader)) {
+    error(`${DESIGNS}/shell.js`, "missing — `canon ui` writes it");
+    return found;
+  }
+  const pinned = pinnedVersion(canonRoot, readFileSync(loader, "utf8"));
+  const current = packageVersion(canonRoot);
+  if (!pinned) error(`${DESIGNS}/shell.js`, "is not canon's loader — delete it and run `canon ui`");
+  else if (pinned !== current)
+    found.push({ check: "designs", level: "warn", file: `${DESIGNS}/shell.js`, message: `pins canon ${pinned}; this canon is ${current} — change the version in it` });
+  return found;
+}
+
 /** Runs canon's design-set checker (scripts/check-designs.py) once per drawn surface. */
 export const designs: Check = {
   id: "designs",
@@ -28,13 +49,13 @@ export const designs: Check = {
   description: "every drawn surface follows the design-sets standard (scripts/check-designs.py)",
   run({ repo, canonRoot }) {
     const script = join(canonRoot, "scripts", "check-designs.py");
-    return designSurfaces(repo).flatMap((surface): Finding[] => {
+    return shellFindings(repo, canonRoot).concat(designSurfaces(repo).flatMap((surface): Finding[] => {
       const result = spawnSync("python3", [script, surface], { cwd: repo, encoding: "utf8" });
       if (result.error) return [{ check: "designs", level: "error", file: surface, message: `could not run python3: ${result.error.message}` }];
       if (result.status === 0) return [];
       const output = `${result.stdout}\n${result.stderr}`.trim().split("\n").slice(-MAX_OUTPUT_LINES).join("\n");
       return [{ check: "designs", level: "error", file: surface, message: output }];
-    });
+    }));
   },
 };
 

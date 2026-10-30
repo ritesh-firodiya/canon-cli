@@ -17,7 +17,6 @@ describe("designs", () => {
     const repo = makeTree({
       ".context/designs/babul.js": "",
       ".context/designs/mobile/index.html": "",
-      ".context/designs/_shell/boot.js": "",
       ".context/designs/assets/icon.svg": "",
     });
     expect(designSurfaces(repo)).toEqual([".context/designs/mobile"]);
@@ -27,6 +26,30 @@ describe("designs", () => {
     const repo = makeTree({ ".context/designs/mobile/routes.js": "", ".context/designs/web/routes.js": "" });
     const findings = designs.run({ ...contextFor(repo), canonRoot: makeTree(CANON) });
     expect(findings).toEqual([{ check: "designs", level: "error", file: ".context/designs/web", message: "FAIL screen.html: no routes entry" }]);
+  });
+
+  describe("the set's link to canon's shell", () => {
+    const LOADER = 'var SHELL = "https://cdn.jsdelivr.net/npm/@freetesh/canon@{version}/shell/";\n';
+    const canon = (version: string) => makeTree({ ...CANON, "package.json": JSON.stringify({ version }), "shell/loader.js": LOADER });
+    const set = (files: Record<string, string>) => makeTree({ ".context/designs/babul.js": "", ...files });
+    const loader = (version: string) => ({ ".context/designs/shell.js": LOADER.replace("{version}", version) });
+
+    test("a set pinned to this canon, with no copy of the shell, passes", () => {
+      expect(designs.run({ ...contextFor(set(loader("1.2.0"))), canonRoot: canon("1.2.0") })).toEqual([]);
+    });
+
+    test("a copied _shell, a missing loader or a hand-written one is an error", () => {
+      const run = (files: Record<string, string>) => designs.run({ ...contextFor(set(files)), canonRoot: canon("1.2.0") }).map((f) => f.message);
+      expect(run({ ...loader("1.2.0"), ".context/designs/_shell/boot.js": "" })).toEqual(["the shell lives in canon — delete this copy"]);
+      expect(run({})).toEqual(["missing — `canon ui` writes it"]);
+      expect(run({ ".context/designs/shell.js": "document.write('x')" })).toEqual(["is not canon's loader — delete it and run `canon ui`"]);
+    });
+
+    test("a set pinned to another canon is a warning naming both versions", () => {
+      expect(designs.run({ ...contextFor(set(loader("1.1.0"))), canonRoot: canon("1.2.0") })).toEqual([
+        expect.objectContaining({ level: "warn", message: "pins canon 1.1.0; this canon is 1.2.0 — change the version in it" }),
+      ]);
+    });
   });
 
   test("a repo with no drawn surface has nothing to check", () => {

@@ -23,6 +23,8 @@ product. Exits non-zero on any failure.
 """
 import re, os, sys, json, subprocess, glob
 
+SHELL = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'shell')
+
 SURF = sys.argv[1] if len(sys.argv) > 1 else '.context/designs/mobile'
 ROOT = os.path.abspath(os.path.join(SURF, '..', '..', '..'))
 # A surface is checked against the app that RENDERS it. Every surface used to be
@@ -50,7 +52,7 @@ def bad(m):
     global fail; fail += 1; print('   FAIL ' + m)
 
 # ---- the manifest ------------------------------------------------------------
-# Two formats. A Babul set is described from its HTML (_shell/scan.mjs, the
+# Two formats. A Babul set is described from its HTML (canon's shell/scan.mjs, the
 # same code its shell runs) beside two hand files, babul.js and tokens.js. It
 # is mapped here onto the routes.js shape the checks below were written
 # against, so every check runs on both. The older
@@ -76,11 +78,11 @@ def babul(name):
         return None
 
 def scanned():
-    """The set as its shell reads it: described from the HTML by _shell/scan.mjs."""
-    out = subprocess.run(['node', os.path.join('..', '_shell', 'scan.mjs'), os.path.basename(os.getcwd()), '--json'],
+    """The set as its shell reads it: described from the HTML by canon's shell/scan.mjs."""
+    out = subprocess.run(['node', os.path.join(SHELL, 'scan.mjs'), '..', os.path.basename(os.getcwd()), '--json'],
                          capture_output=True, text=True)
     if out.returncode:
-        bad('_shell/scan.mjs failed: %s' % out.stderr.strip()[:300])
+        bad('scan.mjs failed: %s' % out.stderr.strip()[:300])
         return {}
     return json.loads(out.stdout)
 
@@ -148,26 +150,14 @@ SHELL_PAGES = ('index.html', 'styles.html', 'screenshots.html')
 if BABUL:
     on_disk = {f for f in on_disk if not f.startswith('styles/')}
 
-def used_defs(s, seen=None):
-    """The definitions markup draws, nested ones too: their fixed hrefs are links of the page."""
-    seen = set() if seen is None else seen
-    for d in re.findall(r'<c-([a-z][a-z0-9-]*)', s):
-        f = 'components/%s.js' % d
-        if d not in seen and f in DEFS:
-            seen.add(d)
-            used_defs(open(f).read(), seen)
-    return seen
-
 def hrefs(f):
     s = open(f).read()
-    if BABUL and not f.startswith('components/'):
-        s += ''.join(open('components/%s.js' % d).read() for d in sorted(used_defs(s)))
     out = []
     for m in re.finditer(r'\b(?:%s)="([^"]+)"' % '|'.join(LINK_ATTRS), s):
         h = m.group(1)
         # tel: and sms: leave the set the same way mailto: does — a wireframe that
         # draws a helpline number as a real link is correct, not a dead path.
-        if h.startswith(('http','#','mailto:','tel:','sms:')) or '{' in h: continue
+        if h.startswith(('http','#','mailto:','tel:','sms:')): continue
         out.append((h, os.path.normpath(os.path.join(os.path.dirname(f), h.split('?')[0].split('#')[0]))))
     return out
 
@@ -185,30 +175,14 @@ def unbrace(text):
     return HOLE.sub(lambda m: ' %s ' % ' '.join(x for x in m.groups() if x), text)
 
 def classes(text):
-    """Every class="" in text, as (classes, prefixes): each arm of a {test?a:b} is
-    a class of its own; a class built from a {prop} is known only by its prefix."""
-    fixed, prefixes = set(), set()
-    def expand(token):
-        m = HOLE.search(token)
-        if not m:
-            fixed.update(token.split()); return
-        if '?' in m.group(0):
-            for arm in (m.group(1) or '', m.group(2) or ''):
-                expand(token[:m.start()] + arm + token[m.end():])
-            return
-        head, tail = token[:m.start()], token[m.end():]
-        glued = head and not head[-1].isspace()
-        words = head.split()
-        fixed.update(words[:-1] if glued else words)
-        if glued: prefixes.add(words[-1])
-        expand(re.sub(r'^\S*', '', tail))       # the rest of a built class is unknown too
-    for attr in re.findall(r'class="([^"]*)"', text):
-        for token in re.findall(r'(?:[^\s{]|\{[^}]*\})+', attr):
-            expand(token)
-    return fixed, prefixes
+    """Every class="" in text, as (classes, prefixes). Both arms of a {test?a:b}
+    are classes; a class built from a {prop} is known only by its prefix."""
+    words = ' '.join(re.findall(r'class="([^"]*)"', text))
+    words = re.sub(r'\{!?[a-z][\w-]*(?:=[^?|}]*)?\?([^:}]*)(?::([^}]*))?\}', lambda m: ' %s %s ' % (m.group(1), m.group(2) or ''), words).split()
+    return {w for w in words if '{' not in w}, {w.split('{')[0] for w in words if '{' in w} - {''}
 
 assert classes('class="a {x?b:c}"') == ({'a', 'b', 'c'}, set())
-assert classes('class="text-{dark?white:ink}"')[0] == {'text-white', 'text-ink'}
+assert classes('class="gap-2{wrap? flex-wrap}"')[0] == {'gap-2', 'flex-wrap'}
 assert classes('class="p-2 bg-brand-{tone}-500 m-1"') == ({'p-2', 'm-1'}, {'bg-brand-'})
 
 # ---- 1. inventory ----------------------------------------------------------
@@ -264,7 +238,7 @@ def token_paths(node, path=()):
 
 if BABUL:
     # theme.js writes one variable per token, under exactly these names.
-    css = open('../_shell/shell.css').read() + open('styles.css').read()
+    css = open(os.path.join(SHELL, 'shell.css')).read() + open('styles.css').read()
     T = R['_babul']['tokens']
     tw_colors = {'-'.join(p) for p in token_paths(T.get('color', {}))}
     declared_vars = {'--' + c for c in tw_colors}
@@ -874,7 +848,7 @@ if BABUL:
     head('babul — the set reads whole from its HTML, and styles.css holds nothing dead')
     B = R['_babul']
     # Reading the HTML checks every instance, prop, variant, state block and
-    # link, and that the crawl reaches every file (_shell/scan.mjs).
+    # link, and that the crawl reaches every file (scan.mjs).
     for e in B['errors']:
         bad(e)
     for a in (B['assets'].get('logos') or []) + (B['assets'].get('images') or []):

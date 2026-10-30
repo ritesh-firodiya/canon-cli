@@ -85,7 +85,8 @@ canon learn            # proposals from overridden verdicts
 canon approve <stage>  # a person records a pipeline gate approval
 canon pipeline         # the stages this repo resolves to, and where each stands
 canon weigh "<ask>"    # the decision gate from the terminal
-canon ui               # every wiki and design gallery on localhost
+canon ui               # this repo's design set on localhost, with canon's shell
+canon wiki             # every product wiki on localhost
 canon search "<q>"     # search the knowledge index
 canon flow <product>   # how far each local Claude conversation got against the pipeline (--write: metrics/flow.json)
 canon arch-set <spec>  # give a design set its architecture screens

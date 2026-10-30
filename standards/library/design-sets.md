@@ -27,7 +27,7 @@ shows from the HTML itself, and checked against the app it describes.
   babul.js          the product: start page, logo and art, sizes, frames, themes, stack, known gaps
   tokens.js         colour, typography, spacing, radius, shadow — W3C design tokens
   assets/           source art: icon.svg, adaptive layers, feature graphic
-  _shell/           the shell — copied byte for byte, never edited per product
+  shell.js          the one link to the shell, which is canon's — `canon ui` writes it
   <size>/           mobile · tablet · web · email — one folder per size
     index.html            the journey
     styles/<group>.html   icons · colors · typography · spacing · radius · shadows
@@ -51,11 +51,11 @@ Two files are written by hand, because nothing draws them: `babul.js` and
 `<script>` loads it from disk and Babul reads the JSON.
 
 Everything else the shell **reads from the HTML each time it opens**
-(`_shell/crawl.js`). From the start page it follows every link and component,
+(`crawl.js`). From the start page it follows every link and component,
 loading each page and board in a hidden frame that posts its own markup back —
 a page on `file://` cannot read another file, but a frame can describe itself.
-`_shell/describe.js` builds the model; `canon check` runs the same code on the
-files (`_shell/scan.mjs <size>`) and fails on anything the crawl cannot reach.
+`describe.js` builds the model; `canon check` runs the same code on the files
+(`scan.mjs`) and fails on anything the crawl cannot reach.
 
 | Read | From |
 |---|---|
@@ -98,14 +98,19 @@ not a link between pages.
 ## 3. One script per page
 
 ```html
-<script src="../../_shell/boot.js"></script>                          <!-- a page -->
-<script src="../../_shell/boot.js" data-view="components"></script>   <!-- a board -->
-<script src="../../_shell/boot.js" data-view="styles"></script>       <!-- a styles page -->
-<script src="../_shell/boot.js" data-view="journey"></script>         <!-- the journey -->
+<script src="../../shell.js"></script>                          <!-- a page -->
+<script src="../../shell.js" data-view="components"></script>   <!-- a board -->
+<script src="../../shell.js" data-view="styles"></script>       <!-- a styles page -->
+<script src="../shell.js" data-view="journey"></script>         <!-- the journey -->
 ```
 
-`boot.js` writes in the rest: `babul.js`, `tokens.js`, the shell, Tailwind,
-lucide, `shell.css` and the size's `styles.css`.
+`shell.js` loads canon's `boot.js`, which writes in the rest: `babul.js`,
+`tokens.js`, the shell, Tailwind, lucide, `shell.css` and the size's
+`styles.css`.
+
+- **The shell is canon's; a set never holds a copy.** `shell.js` pins a
+  published canon, so the files open straight from disk; `canon ui` serves the
+  set on localhost with the running canon's shell instead.
 
 - **Every CDN is pinned**: Tailwind 3.4.17, lucide 0.544.0, React 18.3.1,
   React Flow 11.11.4 (v12's UMD build expects `react/jsx-runtime` as a global).
@@ -118,7 +123,7 @@ lucide, `shell.css` and the size's `styles.css`.
 ## 4. The shell
 
 **One frame, identical in every product**, as Babul lays out View mode: a bar
-(logo · product / size · theme), a rail (Journey · Pages · Components ·
+(logo · product / size, a switch when there are several · theme), a rail (Journey · Pages · Components ·
 Styles), a list, the canvas, and on a page an island (‹ name › · states ·
 sizes). It shows only the drawing.
 
@@ -273,7 +278,8 @@ shadow**, as W3C design tokens in Babul's groups:
 
 | Check | Asks |
 |---|---|
-| **scan** | does the crawl from the start reach every page, board and definition; does every instance name a real component, property, variant and state; every link a page or state; every state note a block; is every file in `assets/` named? |
+| **scan** | does the crawl from the start reach every page, board and definition; does every instance name a real component, property, variant and state; every link a page or state; every state note a block; is every file in `assets/` drawn or named? |
+| **shell** | is `shell.js` canon's loader, pinned to this canon, with no copied `_shell/`? |
 | **well-formed** | is every `<div>` closed exactly once? |
 | **links** | does every local `href` point at a file that exists? |
 | **tokens** | does every class and `var(--…)` resolve? |
@@ -289,14 +295,10 @@ A route the set does not draw yet is listed in `babul.js` `missing`, with why.
 
 ## 13. Where each part comes from
 
-**The canonical set lives in the repo named in `copies.source`.** Copy from it
-and from nothing else; `canon check` holds the copies equal and
-`canon copies --sync` repairs one.
-
 | Part | Comes from |
 |---|---|
-| `_shell/*` | copied byte for byte (`design-shell`) |
-| `<size>/index.html`, `<size>/styles/*.html` | copied; the `<title>` names the product |
+| `shell.js` | written by `canon ui` |
+| `<size>/index.html`, `<size>/styles/*.html` | the same in every set but the `<title>`, which names the product |
 | `babul.js`, `tokens.js`, `styles.css` | written for this product |
 | pages, components, boards | drawn |
 
@@ -305,7 +307,7 @@ and from nothing else; `canon check` holds the copies equal and
 ### Building a set
 
 1. Read the app's routes, components, theme and i18n dictionary.
-2. Copy the shell parts; write `babul.js` and `tokens.js`.
+2. Write `babul.js` and `tokens.js`, then run `canon ui`.
 3. Define each component the app has, with its board.
 4. Draw the pages from the components, states as blocks; mark returns,
    shortcuts and journeys.

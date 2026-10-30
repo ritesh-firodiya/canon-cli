@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.20.0 — 2026-10-30
+
+### Changed
+
+- **The design shell is canon's.** It ships in `shell/`; a design set holds
+  only `shell.js`, a loader pinned to a published canon, so its files still
+  open from disk. `canon check` fails on a copied `_shell/` or a missing or
+  hand-written `shell.js`, and warns when it pins another canon.
+- **`canon ui` serves this repo's design set** on localhost with the running
+  canon's shell. A set drawn for several sizes switches between them in the
+  bar. The wiki site moved to `canon wiki`, without the old design galleries.
+- `.claude-plugin` versions caught up with the package (they stopped at 0.18.2).
+
+### Removed
+
+- Links inside a component's definition are journey links no more (0.19.2):
+  they drew a nav bar's links from every page, hidden by default.
+
 ## 0.19.2 — 2026-10-30
 
 ### Fixed

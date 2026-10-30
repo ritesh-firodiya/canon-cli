@@ -1,68 +1,70 @@
-import { spawn, spawnSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { createServer } from "node:http";
+import { dirname, extname, join, resolve, sep } from "node:path";
 import type { Command } from "commander";
-import { architectureGraph } from "../checks/architecture.ts";
-import { formatReports } from "../format.ts";
-import { CACHE_DIR } from "../lib/system.ts";
-import { findProducts, runChecks } from "../check.ts";
-import { buildSite, quartzConfig } from "../ui.ts";
-import { requireWorkspace, type Env } from "../lib/env.ts";
+import type { Env } from "../lib/env.ts";
+import { loaderFor, packageVersion, servedLoader } from "../shell.ts";
 
-// Quartz v5 has no tagged release yet, so pin the exact commit: an unpinned
-// clone could change the site under us on the next fresh install.
-const QUARTZ_REPO = "https://github.com/jackyzha0/quartz";
-const QUARTZ_COMMIT = "97a2d05f80c4c50534959b1d0d41cc4b3895625e";
-const QUARTZ_DIR = join(CACHE_DIR, "quartz");
+const DESIGNS = ".context/designs";
+const SERVED_SHELL = "/_shell/";
+const TYPES: Record<string, string> = {
+  ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css", ".json": "application/json",
+  ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".gif": "image/gif",
+  ".woff2": "font/woff2", ".mp4": "video/mp4",
+};
 
-function must(command: string, args: string[], cwd?: string): void {
-  const result = spawnSync(command, args, { cwd, stdio: "inherit" });
-  if (result.status !== 0) throw new Error(`${command} ${args.join(" ")} failed`);
+/** The design set at or above `start`: the folder holding babul.js. */
+export function findDesigns(start: string): string | null {
+  for (let folder = resolve(start); ; folder = dirname(folder)) {
+    if (existsSync(join(folder, DESIGNS, "babul.js"))) return join(folder, DESIGNS);
+    if (dirname(folder) === folder) return null;
+  }
 }
 
-function ensureQuartz(): void {
-  if (!existsSync(join(QUARTZ_DIR, "node_modules"))) {
-    if (!existsSync(QUARTZ_DIR)) must("git", ["clone", "--quiet", "--filter=blob:none", QUARTZ_REPO, QUARTZ_DIR]);
-    must("git", ["checkout", "--quiet", QUARTZ_COMMIT], QUARTZ_DIR);
-    must("npm", ["ci", "--silent"], QUARTZ_DIR);
-  }
-  const defaults = readFileSync(join(QUARTZ_DIR, "quartz.config.default.yaml"), "utf8");
-  writeFileSync(join(QUARTZ_DIR, "quartz.config.yaml"), quartzConfig(defaults));
+/** The file a request names: canon's shell under /_shell/, the set otherwise; null outside both. */
+export function fileFor(designs: string, shell: string, url: string): string | null {
+  const path = decodeURIComponent(url.split(/[?#]/)[0]);
+  const [base, rest] = path.startsWith(SERVED_SHELL) ? [shell, path.slice(SERVED_SHELL.length)] : [designs, path.slice(1)];
+  const file = resolve(base, rest);
+  if (file !== base && !file.startsWith(base + sep)) return null;
+  return existsSync(file) && statSync(file).isDirectory() ? join(file, "index.html") : file;
 }
 
 export function registerUi(program: Command, env: Env): void {
   program
     .command("ui")
-    .description("serve every product wiki (search, backlinks, graph) and the design galleries on localhost")
-    // Uncommon defaults: 8080 and 3001 are usually taken by Docker or a dev server.
-    .option("--port <port>", "wiki site port", "4610")
-    .option("--designs-port <port>", "design gallery port", "4611")
-    .option("--ws-port <port>", "live-reload socket port", "4612")
-    .action((options: { port: string; designsPort: string; wsPort: string }) => {
-      ensureQuartz();
-      const products = findProducts(requireWorkspace(env));
-      const siteDir = join(CACHE_DIR, "site");
-      const designsDir = join(CACHE_DIR, "designs");
-      const designsUrl = `http://127.0.0.1:${options.designsPort}`;
-      const report = formatReports(products.map((repo) => runChecks(repo, { canonRoot: env.canonRoot })));
-      buildSite(products, { siteDir, designsDir, designsUrl, report, graph: architectureGraph });
+    .description("serve this repo's design set on localhost, with the shell from this canon")
+    // Uncommon default: 8080 and 3001 are usually taken by Docker or a dev server.
+    .option("--port <port>", "port", "4611")
+    .action((options: { port: string }) => {
+      const designs = findDesigns(process.cwd());
+      if (!designs) throw new Error(`no ${DESIGNS}/babul.js here or above — not a design set`);
+      const loader = join(designs, "shell.js");
+      if (!existsSync(loader)) {
+        writeFileSync(loader, loaderFor(env.canonRoot, packageVersion(env.canonRoot)));
+        console.log(`wrote ${DESIGNS}/shell.js, the set's link to canon's shell`);
+      }
+      const shell = join(env.canonRoot, "shell");
+      const sizes: string[] = JSON.parse(
+        readFileSync(join(designs, "babul.js"), "utf8").replace("(window.BABUL ||= {}).product = ", "").replace(/;\s*$/, ""),
+      ).sizes;
 
-      const designs = spawn("python3", ["-m", "http.server", options.designsPort, "--bind", "127.0.0.1", "--directory", designsDir], {
-        stdio: "ignore",
+      const server = createServer((request, response) => {
+        const url = request.url ?? "/";
+        if (url === "/") {
+          response.writeHead(302, { location: `/${sizes[0]}/index.html` }).end();
+          return;
+        }
+        const file = fileFor(designs, shell, url);
+        if (!file || !existsSync(file)) {
+          response.writeHead(404).end("not found");
+          return;
+        }
+        const body = file === loader ? servedLoader(readFileSync(file, "utf8"), SERVED_SHELL) : readFileSync(file);
+        response.writeHead(200, { "content-type": TYPES[extname(file)] ?? "application/octet-stream", "cache-control": "no-store" }).end(body);
       });
-      const site = spawn("npx", ["quartz", "build", "-d", siteDir, "-o", join(CACHE_DIR, "public"), "--serve", "--port", options.port, "--wsPort", options.wsPort], {
-        cwd: QUARTZ_DIR,
-        stdio: "inherit",
-      });
-      console.log(`wiki    http://localhost:${options.port}\ndesigns ${designsUrl}`);
-      const stop = () => {
-        designs.kill();
-        site.kill();
-      };
-      process.on("SIGINT", stop);
-      site.on("exit", (code) => {
-        designs.kill();
-        process.exitCode = code ?? 0;
+      server.listen(Number(options.port), "127.0.0.1", () => {
+        console.log(sizes.map((size) => `${size.padEnd(8)}http://127.0.0.1:${options.port}/${size}/index.html`).join("\n"));
       });
     });
 }

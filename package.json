@@ -1,6 +1,6 @@
 {
   "name": "@freetesh/canon",
-  "version": "0.19.2",
+  "version": "0.20.0",
   "description": "canon CLI: keep your domain knowledge and AI rules in your repo, and enforce them.",
   "license": "MIT",
   "author": "Ritesh Firodiya",
@@ -24,6 +24,7 @@
     "templates",
     "scripts/log-verdict.mjs",
     "scripts/check-designs.py",
+    "shell",
     "scripts/flow.py",
     "scripts/arch-set.py",
     ".claude-plugin"
