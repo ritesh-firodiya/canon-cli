@@ -52,3 +52,6 @@ On top of the repo's lint, typecheck and tests:
 2. If a native dependency changed, it ships as a release
    (`npm version patch && git push --follow-tags`), not an OTA update.
    `scripts/check-ota-safe.mjs` blocks the OTA otherwise.
+3. An OTA never ships on a push to `main`. `ota.yml` runs only from an
+   `ota-v<version>-<n>` tag on `main`, or a manual run. A push is not a decision
+   to ship to users.
