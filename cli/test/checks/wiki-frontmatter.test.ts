@@ -50,15 +50,15 @@ describe("wiki-frontmatter", () => {
   test("a type added under wiki.types lives in its configured folder", () => {
     const yaml = "wiki:\n  types:\n    - { type: bug, folder: bugs, reason: postmortems, sections: [Summary] }\n";
     const bug = wikiPage({ ...good, id: "BUG.LOST-STREAK", type: "bug" });
-    expect(run({ ".claude/canon.yaml": yaml, ".context/wiki/bugs/lost-streak.md": bug })).toEqual([]);
-    expect(run({ ".claude/canon.yaml": yaml, ".context/wiki/concepts/lost-streak.md": bug })[0].message).toMatch(/bug.*concepts/);
+    expect(run({ ".context/context.yaml": yaml, ".context/wiki/bugs/lost-streak.md": bug })).toEqual([]);
+    expect(run({ ".context/context.yaml": yaml, ".context/wiki/concepts/lost-streak.md": bug })[0].message).toMatch(/bug.*concepts/);
   });
 
   test("a page of an added type needs every section its config lists", () => {
     const yaml = "wiki:\n  types:\n    - { type: postmortem, folder: postmortems, reason: incidents, sections: [Summary, Timeline, Fix] }\n";
     const page = (body: string) => wikiPage({ ...good, id: "POSTMORTEM.RESET", type: "postmortem" }, body);
-    expect(run({ ".claude/canon.yaml": yaml, ".context/wiki/postmortems/reset.md": page("## Summary\nx\n## Timeline\nx\n## Fix\nx\n") })).toEqual([]);
-    const findings = run({ ".claude/canon.yaml": yaml, ".context/wiki/postmortems/reset.md": page("## Summary\nx\n## Fixes\nx\n") });
+    expect(run({ ".context/context.yaml": yaml, ".context/wiki/postmortems/reset.md": page("## Summary\nx\n## Timeline\nx\n## Fix\nx\n") })).toEqual([]);
+    const findings = run({ ".context/context.yaml": yaml, ".context/wiki/postmortems/reset.md": page("## Summary\nx\n## Fixes\nx\n") });
     expect(findings).toEqual([expect.objectContaining({ level: "error", message: "missing sections: Timeline, Fix" })]);
   });
 

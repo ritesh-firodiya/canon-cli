@@ -3,3 +3,5 @@
 {"at":"2026-10-30T12:17:53.561Z","verdict":"do-it-differently","principles":["C-04","C-06","C-14"],"request":"Replace Quartz canon wiki with the apps/web app and delete the Quartz code","reason":"","outcome":"stopped"}
 {"at":"2026-10-30T12:34:58.477Z","verdict":"do-it-differently","principles":["C-04","C-06","C-14"],"request":"Keep the faster Quartz canon wiki; do not replace it with the private app","reason":"","outcome":"proceeded"}
 {"at":"2026-10-30T14:14:34.481Z","verdict":"do-it","principles":["C-02","C-04","C-06"],"request":"Diagrams become JSON in .context/architecture, drawn under Architecture in the design shell's top bar","reason":"","outcome":"proceeded"}
+{"at":"2026-10-31T16:35:15.239Z","verdict":"do-it-differently","principles":["C-04","C-08","C-09","C-11"],"request":"Move .claude/canon.yaml to .context/context.yaml in canon-cli and all product repos","reason":"","outcome":"stopped"}
+{"at":"2026-10-31T16:54:15.347Z","verdict":"do-it-differently","principles":["C-04","C-08","C-09","C-11"],"request":"Move .claude/canon.yaml to .context/context.yaml in canon-cli and all product repos","reason":"agree , lets move it to .context","outcome":"proceeded"}

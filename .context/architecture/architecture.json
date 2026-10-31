@@ -16,7 +16,7 @@
     {
       "label": "Biggest risk",
       "value": "Config runs shell",
-      "note": "canon check runs any commands: a repo's canon.yaml declares, through sh -c. Run it only on repos you trust."
+      "note": "canon check runs any commands: a repo's context.yaml declares, through sh -c. Run it only on repos you trust."
     },
     {
       "label": "Release trigger",
@@ -194,7 +194,7 @@
         "cli"
       ],
       "steps": [
-        "The CLI reads .claude/canon.yaml and the repo's .context.",
+        "The CLI reads .context/context.yaml and the repo's .context.",
         "It runs each built-in check, then each command the config declares, through sh -c in the repo.",
         "Any error exits with code 1."
       ]
@@ -282,7 +282,7 @@
   ],
   "unknowns": [
     "The real monthly bill: nothing records npm or Claude usage cost. GitHub Actions was $0 net for October 2026.",
-    "RISK: the commands: list in canon.yaml runs through sh -c on every canon check, including the pre-push hook and --all. A repo you did not write can run code on your machine.",
+    "RISK: the commands: list in context.yaml runs through sh -c on every canon check, including the pre-push hook and --all. A repo you did not write can run code on your machine.",
     "RISK: the release only tags and makes the GitHub release when it publishes. If npm publish works and the tag step fails, a rerun sees the version on npm, skips both, and the tag is never made.",
     "RISK: the session hook starts a detached qmd update at every session start, with no check for one already running. The load from many sessions is not measured.",
     "How the release signs in to npm: it passes the NPM_TOKEN secret and also asks for provenance. Whether a long-lived token is still needed is not read.",

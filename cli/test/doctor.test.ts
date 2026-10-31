@@ -11,7 +11,7 @@ describe("runDoctor", () => {
     expect(results.map((r) => r.tool)).toEqual(["node", "git", "qmd"]);
   });
 
-  test("tools declared in canon.yaml are checked after the core ones", () => {
+  test("tools declared in context.yaml are checked after the core ones", () => {
     const extra = [{ tool: "rtk", why: "short output", hint: "brew install rtk" }];
     const results = runDoctor(probe({ node: "v24.0.0" }), extra);
     const rtk = results.find((r) => r.tool === "rtk");

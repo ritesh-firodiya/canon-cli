@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.26.0 — 2026-10-31
+
+### Changed
+
+- **BREAKING: the config moved.** `.claude/canon.yaml` is now `.context/context.yaml`,
+  and `canon.local.yaml` is `.context/context.local.yaml`. A repo still holding the old
+  file gets an error that says where to move it. `context-layout` allows both files at
+  the `.context/` root.
+
 ## 0.25.1 — 2026-10-30
 
 ### Fixed

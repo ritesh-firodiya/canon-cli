@@ -6,7 +6,7 @@ Code rules for the `.tsx` files are in `frontend`.
 ## Read the versioned docs
 
 This project is on **Expo SDK {{expo.sdk}}** (from `expo.sdk` in
-`.claude/canon.yaml`). Read <https://docs.expo.dev/versions/v{{expo.sdk}}.0.0/>
+`.context/context.yaml`). Read <https://docs.expo.dev/versions/v{{expo.sdk}}.0.0/>
 before writing any Expo or React Native code. APIs move between SDKs, and
 recalled shapes are often wrong.
 

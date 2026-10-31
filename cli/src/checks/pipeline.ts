@@ -4,7 +4,7 @@ import { readApprovals } from "../pipeline/pipeline.ts";
 import type { Check, Finding } from "./types.ts";
 
 /**
- * Stages run in the order canon.yaml lists them. A stage has started once one
+ * Stages run in the order context.yaml lists them. A stage has started once one
  * of its `done` paths exists; a gated stage must be approved before any later
  * stage starts. Each unapproved gate is reported once, at the first later
  * stage that started.

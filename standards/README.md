@@ -14,7 +14,7 @@ canon's standards. `canon standards` lists the ones that apply to a repo.
 
 ## Library — a repo opts in by name
 
-A repo lists the ones it wants in `.claude/canon.yaml`:
+A repo lists the ones it wants in `.context/context.yaml`:
 `standards: [design-sets, pipeline, expo]`.
 
 | Name | What it holds |

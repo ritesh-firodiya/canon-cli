@@ -46,7 +46,7 @@ describe("designs-first", () => {
     return designsFirst.run(contextFor(repo, { config: loadConfig(repo).config }));
   };
 
-  const onDesignSets = (yaml = "") => ({ ".claude/canon.yaml": `${yaml}standards: [design-sets]\n` });
+  const onDesignSets = (yaml = "") => ({ ".context/context.yaml": `${yaml}standards: [design-sets]\n` });
 
   test("a mobile or web repo on design-sets with no .context/designs is an error", () => {
     expect(run({ ...onDesignSets(), "app.config.ts": "" })).toEqual([expect.objectContaining({ check: "designs-first", level: "error" })]);
@@ -61,6 +61,6 @@ describe("designs-first", () => {
 
   test("a repo that does not import design-sets designs elsewhere and is not asked for .context/designs", () => {
     expect(run({ "app.config.ts": "" })).toEqual([]);
-    expect(run({ ".claude/canon.yaml": "kind: mobile-and-web\nstandards: [pipeline]\n" })).toEqual([]);
+    expect(run({ ".context/context.yaml": "kind: mobile-and-web\nstandards: [pipeline]\n" })).toEqual([]);
   });
 });

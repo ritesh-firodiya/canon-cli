@@ -9,6 +9,7 @@ folder.
 <repo>/.context/
 ├── README.md        what this is, and where to start
 ├── tasks.md         the ordered queue. The top item is the next action.
+├── context.yaml     the repo's canon config.
 ├── raw/             sources you didn't write. Immutable.
 ├── wiki/            everything you concluded. Schema: wiki-schema.md
 ├── features/        what's next.
@@ -28,11 +29,11 @@ folder.
    `decisions/` or `email-templates/` folder: a research brief
    is a wiki synthesis page, why a part was chosen is a wiki concept, an ADR is
    `wiki/decisions/`, a transactional email is HTML in `designs/`.
-   A product that truly needs another folder adds it in `.claude/canon.yaml`,
+   A product that truly needs another folder adds it in `.context/context.yaml`,
    with the reason: `context: { folders: [{ folder: research, reason: … }] }`.
    The ten cannot be removed.
-2. **`README.md` and `tasks.md` are the only files at `.context/` root.**
-   A repo names only what it uses. Its README, its `canon.yaml` and its docs never
+2. **`README.md`, `tasks.md`, `context.yaml` and the uncommitted `context.local.yaml` are the only files at `.context/` root.**
+   A repo names only what it uses. Its README, its `context.yaml` and its docs never
    list a folder, file or tool it does without; absence is shown by absence.
 3. **Nothing is created empty.** A folder appears with its first file — git does
    not track empty folders, so a placeholder disappears on clone. `raw/` is the
@@ -47,7 +48,7 @@ folder.
 
 | Stage | Expected |
 |---|---|
-| any repo | `README.md` · `tasks.md` |
+| any repo | `README.md` · `tasks.md` · `context.yaml` |
 | uses the `docs` or `knowledge` module | + `raw/` · `wiki/` · `features/` |
 | draws its UI | + `designs/` (required for a mobile or web repo: designs come first) |
 | has a store presence | + `listing/` |
@@ -86,7 +87,7 @@ separate folder per name.
 | Dated engineering narrative | `CHANGELOG.md` at the repo root |
 
 If a document fits none of these for a real product, add a wiki type or a
-folder in `.claude/canon.yaml` with its reason — not a new convention by hand.
+folder in `.context/context.yaml` with its reason — not a new convention by hand.
 
 ## Inside the folders
 

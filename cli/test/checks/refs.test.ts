@@ -50,20 +50,20 @@ describe("refs", () => {
         "notes.md": "git show abc:.context/old/a.md\nbuilt to .context/listing/out/\n",
         ".gitignore": ".context/listing/out/\n",
         "scripts/shared.py": "default .context/designs/mobile\n",
-        ".claude/canon.yaml": "copies:\n  source: ../src\n  sets:\n    designs: [scripts/shared.py]\n  use: [designs]\n",
+        ".context/context.yaml": "copies:\n  source: ../src\n  sets:\n    designs: [scripts/shared.py]\n  use: [designs]\n",
       }),
     ).toEqual([]);
   });
 
   test("a copy set's to: path lands in other repos; only its from: path must exist here", () => {
-    const set = ".claude/canon.yaml";
+    const set = ".context/context.yaml";
     const yaml = "copies:\n  sets:\n    shell:\n      - { from: .context/designs/mobile/a.js, to: .context/designs/web/a.js }\n";
     expect(run({ [set]: yaml, ".context/designs/mobile/a.js": "" })).toEqual([]);
     expect(run({ [set]: yaml })).toEqual([expect.objectContaining({ message: ".context/designs/mobile/a.js does not exist" })]);
   });
 
-  test("a pipeline stage's done paths in canon.yaml name what will exist later", () => {
-    expect(run({ ".claude/canon.yaml": "pipeline:\n  - { id: live, done: [.context/support] }\n" })).toEqual([]);
+  test("a pipeline stage's done paths in context.yaml name what will exist later", () => {
+    expect(run({ ".context/context.yaml": "pipeline:\n  - { id: live, done: [.context/support] }\n" })).toEqual([]);
   });
 
   test("a folder that is not a git repo has nothing to check", () => {

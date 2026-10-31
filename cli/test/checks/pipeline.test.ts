@@ -18,7 +18,7 @@ const PIPELINE = [
 const DESIGNS = { ".context/designs/mobile/index.html": "" };
 
 function run(files: Record<string, string>) {
-  return pipeline.run(contextFor(makeTree({ ".claude/canon.yaml": PIPELINE, ...files })));
+  return pipeline.run(contextFor(makeTree({ ".context/context.yaml": PIPELINE, ...files })));
 }
 
 describe("pipeline", () => {
@@ -50,7 +50,7 @@ describe("pipeline", () => {
   });
 
   test("an approved gate lets later stages start", () => {
-    const repo = makeTree({ ".claude/canon.yaml": PIPELINE, ...DESIGNS, "app.config.ts": "" });
+    const repo = makeTree({ ".context/context.yaml": PIPELINE, ...DESIGNS, "app.config.ts": "" });
     recordApproval(repo, "designs", "reviewed all screens");
     expect(pipeline.run(contextFor(repo))).toEqual([]);
   });
@@ -68,7 +68,7 @@ describe("approvals", () => {
     expect(readFileSync(join(repo, GATES_LOG), "utf8").trim().split("\n")).toHaveLength(2);
   });
   test("stagesOf lists every stage in order with where it started and its gate", () => {
-    const repo = makeTree({ ".claude/canon.yaml": PIPELINE, ...DESIGNS, src: "" });
+    const repo = makeTree({ ".context/context.yaml": PIPELINE, ...DESIGNS, src: "" });
     recordApproval(repo, "designs", "");
     const stages = stagesOf(repo, loadConfig(repo).config.pipeline);
     expect(stages.map((s) => [s.id, s.startedAt, s.approved])).toEqual([

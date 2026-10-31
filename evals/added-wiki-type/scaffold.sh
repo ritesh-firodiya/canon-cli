@@ -2,8 +2,8 @@
 set -euo pipefail
 "$(dirname "$0")/../_scaffold/fixture.sh" streaks
 # This product adds a page type, so incident write-ups get their own shape and folder.
-mkdir -p .claude
-cat > .claude/canon.yaml <<'YAML'
+mkdir -p .context
+cat > .context/context.yaml <<'YAML'
 wiki:
   types:
     - type: postmortem

@@ -19,6 +19,10 @@ export const WIKI_FOLDER_BY_TYPE: Record<string, string> = {
 export const REMOVED_WIKI_FOLDERS: Record<string, string> = {
   flows: "fold a journey worth keeping into a concept page",
 };
+/** Where a repo keeps its config, and the uncommitted override beside it. */
+export const CONFIG_FILE = ".context/context.yaml";
+export const LOCAL_CONFIG_FILE = ".context/context.local.yaml";
+
 /** The `.context/` folders every repo may have. A repo adds more under `context.folders`. */
 export const CONTEXT_FOLDERS = ["raw", "wiki", "features", "designs", "listing", "marketing", "metrics", "support", "legal", "ops", "architecture"];
 
@@ -92,7 +96,7 @@ const stage = z
 
 const tool = z.object({ tool: z.string(), why: z.string(), hint: z.string() }).strict();
 
-/** One layer of `.claude/canon.yaml` as written: every field optional. */
+/** One layer of `.context/context.yaml` as written: every field optional. */
 export const layerSchema = z
   .object({
     canon: z.string(),
@@ -119,7 +123,7 @@ export const layerSchema = z
      */
     space: kebab,
     /**
-     * Files copied from one source repo. The source names sets of them in its own canon.yaml; a
+     * Files copied from one source repo. The source names sets of them in its own context.yaml; a
      * product names the source and lists the sets it uses, and only those are held equal to it.
      */
     copies: z.object({ source: z.string().min(1), sets: z.record(kebab, z.array(copyFile).min(1)), use: z.array(kebab) }).partial().strict(),

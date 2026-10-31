@@ -18,7 +18,7 @@ export function registerPipeline(program: Command, env: Env): void {
         return;
       }
       if (stages.length === 0) {
-        console.log("no pipeline: in canon.yaml");
+        console.log("no pipeline: in context.yaml");
         return;
       }
       for (const s of stages) {

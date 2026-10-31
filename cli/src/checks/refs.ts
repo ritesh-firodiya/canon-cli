@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, dirname, join, normalize } from "node:path";
+import { CONFIG_FILE } from "../config/schema.ts";
 import { usedCopies } from "./shared-files.ts";
 import type { Check, Finding } from "./types.ts";
 
@@ -71,7 +72,7 @@ export const refs: Check = {
       const links = file.startsWith(".context/") && file.endsWith(".md");
       text.split("\n").forEach((line, index) => {
         const at = `${file}:${index + 1}`;
-        const inConfig = file === ".claude/canon.yaml";
+        const inConfig = file === CONFIG_FILE;
         const future = inConfig && STAGE_DONE.test(line);
         const own = inConfig ? line.replace(COPY_TO, "") : line;
         if (!dated && !future && own.includes(".context/") && !FROM_HISTORY.test(own)) {

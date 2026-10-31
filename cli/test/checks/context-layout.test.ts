@@ -19,13 +19,13 @@ describe("context-layout", () => {
 
   test("designs/ is never required, even with the design module on", () => {
     const { ".context/designs/mobile/routes.js": _, ...noDesigns } = VALID_CONTEXT;
-    expect(contextLayout.run(contextFor(makeTree({ ...noDesigns, ".claude/canon.yaml": "modules: [docs, design]\n" })))).toEqual([]);
+    expect(contextLayout.run(contextFor(makeTree({ ...noDesigns, ".context/context.yaml": "modules: [docs, design]\n" })))).toEqual([]);
   });
 
   test("without docs or knowledge only README.md and tasks.md are required", () => {
-    const tree = makeTree({ ".context/README.md": "# c\n", ".context/tasks.md": "# T\n", ".claude/canon.yaml": "modules: [code]\n" });
+    const tree = makeTree({ ".context/README.md": "# c\n", ".context/tasks.md": "# T\n", ".context/context.yaml": "modules: [code]\n" });
     expect(contextLayout.run(contextFor(tree))).toEqual([]);
-    const findings = contextLayout.run(contextFor(makeTree({ ".context/README.md": "# c\n", ".claude/canon.yaml": "modules: []\n" })));
+    const findings = contextLayout.run(contextFor(makeTree({ ".context/README.md": "# c\n", ".context/context.yaml": "modules: []\n" })));
     expect(findings).toEqual([expect.objectContaining({ level: "error", file: ".context/tasks.md" })]);
   });
 
@@ -39,9 +39,15 @@ describe("context-layout", () => {
     expect(findings).toEqual([expect.objectContaining({ file: ".context/documents" })]);
   });
 
+  test("context.yaml and context.local.yaml may sit at the root; other files may not", () => {
+    const files = { ...VALID_CONTEXT, ".context/context.yaml": "kind: content\n", ".context/context.local.yaml": "{}\n" };
+    expect(contextLayout.run(contextFor(makeTree(files)))).toEqual([]);
+    expect(contextLayout.run(contextFor(makeTree({ ...files, ".context/other.yaml": "" })))).toEqual([expect.objectContaining({ file: ".context/other.yaml" })]);
+  });
+
   test("a folder added under context.folders is allowed", () => {
     const yaml = "context:\n  folders:\n    - { folder: research, reason: interviews }\n";
-    expect(contextLayout.run(contextFor(makeTree({ ...VALID_CONTEXT, ".context/research/a.md": "x", ".claude/canon.yaml": yaml })))).toEqual([]);
+    expect(contextLayout.run(contextFor(makeTree({ ...VALID_CONTEXT, ".context/research/a.md": "x", ".context/context.yaml": yaml })))).toEqual([]);
   });
 
   test("a repo with no .context at all gets one error, not one per folder", () => {

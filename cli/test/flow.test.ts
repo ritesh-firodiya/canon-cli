@@ -70,7 +70,7 @@ describe("canon flow", () => {
     mkdirSync(repo);
     git({}, "init", "-q");
     git({}, "remote", "add", "origin", "git@github.com:me/myapp.git");
-    commit("2026-10-01T10:00:00Z", ".claude/canon.yaml", "pipeline:\n  - { id: idea, done: [x] }\n  - { id: plan, done: [x] }\n  - { id: code, done: [x] }\n  - { id: review, done: [x] }\n  - { id: live, done: [x] }\n");
+    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipeline:\n  - { id: idea, done: [x] }\n  - { id: plan, done: [x] }\n  - { id: code, done: [x] }\n  - { id: review, done: [x] }\n  - { id: live, done: [x] }\n");
     commit("2026-10-01T11:00:00Z", ".context/features/stats.md");
     commit("2026-10-01T13:00:00Z", "src/stats.ts");
     commit("2026-10-02T09:00:00Z", ".context/ops/release.yml", "surfaces:\n  ios: { live: '1.0.0' }\n");
@@ -96,7 +96,7 @@ describe("canon flow", () => {
   });
 
   test("a stage with no evidence rule is an error naming the ones there are", () => {
-    const workspace = makeTree({ "myapp/.claude/canon.yaml": "pipeline:\n  - { id: idea, done: [x] }\n  - { id: vibes, done: [x] }\n" });
+    const workspace = makeTree({ "myapp/.context/context.yaml": "pipeline:\n  - { id: idea, done: [x] }\n  - { id: vibes, done: [x] }\n" });
     execFileSync("git", ["-C", join(workspace, "myapp"), "init", "-q"]);
     expect(() => flow(workspace, "myapp", [], [], () => [])).toThrow(/no evidence rule for stage\(s\) vibes/);
   });

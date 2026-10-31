@@ -4,6 +4,6 @@ dist/
 .env
 .DS_Store
 .claude/settings.local.json
-canon.local.yaml
+context.local.yaml
 evals/results/
 coverage/

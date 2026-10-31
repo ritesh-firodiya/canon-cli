@@ -9,7 +9,7 @@ import { contextFor } from "../helpers/context.ts";
 const ROOT = resolve(import.meta.dirname, "..", "..", "..");
 // dependency-cruiser is canon's own devDependency.
 const PACKAGE = ROOT;
-const ON = { ".claude/canon.yaml": "modules: [architecture]\n" };
+const ON = { ".context/context.yaml": "modules: [architecture]\n" };
 
 /** A repo laid out with the starters `canon init` writes, with canon's own dependency-cruiser linked in as if it were a devDependency. */
 function repoWith(files: Record<string, string>): string {

@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
-import type { Config, CopyFileSpec } from "../config/schema.ts";
+import { CONFIG_FILE, type Config, type CopyFileSpec } from "../config/schema.ts";
 import { loadConfig } from "../config/load.ts";
 import type { Check, Finding } from "./types.ts";
 
@@ -89,11 +89,11 @@ export const sharedFiles: Check = {
     const source = config.copies.source ? basename(config.copies.source) : "copies.source";
     return compareCopies(repo, config).flatMap(({ pair, state }): Finding[] => {
       const finding = (file: string, message: string): Finding[] => [{ check: "shared-files", level: "error", file, message }];
-      if (state === "no-checkout") return [{ check: "shared-files", level: "warn", file: ".claude/canon.yaml", message: `${source} is not checked out at ${pair.to}; sets ${pair.set} were not compared` }];
-      if (state === "unknown-set") return finding(".claude/canon.yaml", `copies.use names ${pair.set}, which no copies.sets defines`);
+      if (state === "no-checkout") return [{ check: "shared-files", level: "warn", file: CONFIG_FILE, message: `${source} is not checked out at ${pair.to}; sets ${pair.set} were not compared` }];
+      if (state === "unknown-set") return finding(CONFIG_FILE, `copies.use names ${pair.set}, which no copies.sets defines`);
       if (state === "no-source") return finding(pair.to, `${source} has no ${pair.from} (set ${pair.set})`);
       if (state === "missing") return finding(pair.to, `missing — set ${pair.set} is in use; copy it from ${source}`);
-      if (state === "unnamed") return finding(pair.to, "no product name to compare with — set name: in canon.yaml");
+      if (state === "unnamed") return finding(pair.to, "no product name to compare with — set name: in context.yaml");
       if (state === "drift") return finding(pair.to, `differs from ${source}${pair.until ? " above the shared block's end" : ""} — \`canon copies --sync\` copies it`);
       return [];
     });

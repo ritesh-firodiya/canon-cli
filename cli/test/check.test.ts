@@ -26,7 +26,7 @@ const exploding: Check = {
 
 describe("runChecks", () => {
   test("runs checks whose module is enabled and skips the rest", () => {
-    const repo = makeTree({ ".claude/canon.yaml": "modules: [docs]\n" });
+    const repo = makeTree({ ".context/context.yaml": "modules: [docs]\n" });
     const report = runChecks(repo, { checks: [always, designOnly], canonRoot: repo });
     expect(report.findings.map((f) => f.check)).toEqual(["always"]);
     expect(report.skipped).toEqual([{ check: "design-only", why: "module design is off" }]);
@@ -47,8 +47,8 @@ describe("runChecks", () => {
     expect(report.findings).toEqual([expect.objectContaining({ check: "repo", message: "no folder at /no/such/repo" })]);
   });
 
-  test("an invalid canon.yaml is reported as one error", () => {
-    const repo = makeTree({ ".claude/canon.yaml": "kind: desktop\n" });
+  test("an invalid context.yaml is reported as one error", () => {
+    const repo = makeTree({ ".context/context.yaml": "kind: desktop\n" });
     const report = runChecks(repo, { checks: [always], canonRoot: repo });
     expect(report.findings).toEqual([expect.objectContaining({ check: "config", level: "error" })]);
   });

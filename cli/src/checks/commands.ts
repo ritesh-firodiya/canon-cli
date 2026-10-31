@@ -12,13 +12,13 @@ function tail(text: string): string {
 
 /**
  * Runs each checker a repo declares under `commands:` in
- * canon.yaml. canon does not know what they check; a non-zero exit is an error
+ * context.yaml. canon does not know what they check; a non-zero exit is an error
  * reported under the command's own id.
  */
 export const commandChecks: Check = {
   id: "commands",
   module: null,
-  description: "every checker declared under `commands:` in canon.yaml passes",
+  description: "every checker declared under `commands:` in context.yaml passes",
   run({ repo, config }) {
     return config.commands
       .filter((command) => !command.if || existsSync(join(repo, command.if)))

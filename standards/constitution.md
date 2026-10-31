@@ -98,7 +98,7 @@ Say what was checked, what was found and what happens next.
 
 ## Weights
 
-A repo's `.claude/canon.yaml` may raise or lower the weight of a principle under
+A repo's `.context/context.yaml` may raise or lower the weight of a principle under
 `weigh.weights` (a game might weigh C-05 higher; a finance product C-13). It may
 not remove one without a written reason, and every override shows up in
 `canon check`.

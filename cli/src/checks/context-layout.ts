@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join, relative } from "node:path";
-import { CONTEXT_FOLDERS, type Module } from "../config/schema.ts";
+import { basename, join, relative } from "node:path";
+import { CONFIG_FILE, CONTEXT_FOLDERS, LOCAL_CONFIG_FILE, type Module } from "../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 
 const KNOWLEDGE_CONTEXT = ["raw", "wiki", "features"];
@@ -11,7 +11,7 @@ export function requiredContext(modules: Module[]): string[] {
   const knowledge = modules.includes("docs") || modules.includes("knowledge");
   return ["README.md", "tasks.md", ...(knowledge ? KNOWLEDGE_CONTEXT : [])];
 }
-const ROOT_FILES = ["README.md", "tasks.md"];
+const ROOT_FILES = ["README.md", "tasks.md", basename(CONFIG_FILE), basename(LOCAL_CONFIG_FILE)];
 const LIVE_FOLDERS = ["marketing", "metrics", "support", "legal"];
 const ROOT_STRAYS = ["TODO.md", "STATUS.md", "SETUP.md"];
 
@@ -28,7 +28,7 @@ function ignored(repo: string, path: string): boolean {
 export const contextLayout: Check = {
   id: "context-layout",
   module: null,
-  description: ".context/ has the required folders, only the allowed ones (the eleven plus context.folders), and only README.md + tasks.md at its root",
+  description: ".context/ has the required folders, only the allowed ones (the eleven plus context.folders), and only README.md, tasks.md and the config at its root",
   run({ repo, config }) {
     const context = join(repo, ".context");
     const finding = (level: Finding["level"], file: string, message: string): Finding => ({
@@ -46,10 +46,10 @@ export const contextLayout: Check = {
     for (const entry of readdirSync(context, { withFileTypes: true })) {
       if (entry.name === ".DS_Store") continue;
       if (entry.isDirectory() && !allowed.includes(entry.name)) {
-        findings.push(finding("error", `.context/${entry.name}`, `${entry.name}/ is not an allowed folder — move it, or add it under context.folders in canon.yaml`));
+        findings.push(finding("error", `.context/${entry.name}`, `${entry.name}/ is not an allowed folder — move it, or add it under context.folders in context.yaml`));
       }
       if (entry.isFile() && !ROOT_FILES.includes(entry.name)) {
-        findings.push(finding("error", `.context/${entry.name}`, "only README.md and tasks.md may sit at .context/ root"));
+        findings.push(finding("error", `.context/${entry.name}`, "only README.md, tasks.md, context.yaml and context.local.yaml may sit at .context/ root"));
       }
     }
     if (existsSync(join(context, "raw")) && !existsSync(join(context, "raw", ".gitkeep"))) {

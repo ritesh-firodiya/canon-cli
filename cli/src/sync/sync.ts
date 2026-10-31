@@ -2,6 +2,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { parseDocument } from "yaml";
 import { loadConfig } from "../config/load.ts";
+import { CONFIG_FILE } from "../config/schema.ts";
 import { indexKnowledge, refreshArchitectureBase } from "../init/init.ts";
 import { fetchPackDocs, findPack, type CommandRunner } from "../packs/packs.ts";
 import { canonVersion } from "../status/status.ts";
@@ -22,8 +23,8 @@ export interface SyncResult {
 
 /** Refreshes a product's pack docs and search index, and moves its pinned canon version to the current one. */
 export async function syncRepo(repo: string, options: SyncOptions): Promise<SyncResult> {
-  const file = join(repo, ".claude", "canon.yaml");
-  if (!existsSync(file)) throw new Error(`${repo} has no .claude/canon.yaml — run \`canon init\` first`);
+  const file = join(repo, CONFIG_FILE);
+  if (!existsSync(file)) throw new Error(`${repo} has no .context/context.yaml — run \`canon init\` first`);
   const { config } = loadConfig(repo);
 
   const packs = config.packs;

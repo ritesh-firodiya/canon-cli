@@ -13,7 +13,7 @@ Request: `$ARGUMENTS` (empty = the user's latest request in this conversation).
 Answer and act directly, with no verdict block, when **all** are true: one file,
 no new dependency, no schema / money / store / release / delete, and the change is
 fully specified (a typo, a spacing fix, a copy edit the user dictated). A
-product's `.claude/canon.yaml` may tighten this under `weigh.trivial`.
+product's `.context/context.yaml` may tighten this under `weigh.trivial`.
 
 ## Steps
 
@@ -43,7 +43,7 @@ product's `.claude/canon.yaml` may tighten this under `weigh.trivial`.
    how canon works. A match is PUSH BACK citing that decision, unless its
    `Revisit:` condition is now met and backed by a fact (step 4).
    If qmd is unavailable, read `.context/wiki/index.md` and `decisions/`.
-   **Architecture:** if `.claude/canon.yaml` lists the `architecture` module, read
+   **Architecture:** if `.context/context.yaml` lists the `architecture` module, read
    the repo's `.dependency-cruiser.cjs` and its wiki architecture concept page.
    A request whose code would need an import a rule forbids is DO IT
    DIFFERENTLY (name the allowed path) or PUSH BACK; one that changes a rule

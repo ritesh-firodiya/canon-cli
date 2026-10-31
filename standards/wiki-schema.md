@@ -22,7 +22,7 @@ history is git's job.
 There is no page per screen: the HTML design is the screen spec. A screen gets a
 `surfaces/<slug>.md` only when it has a constraint or decision invisible in its pixels.
 A user journey worth keeping is a concept.
-A product may add a folder in `.claude/canon.yaml` under `wiki.types`, with a reason.
+A product may add a folder in `.context/context.yaml` under `wiki.types`, with a reason.
 
 ## Pages
 

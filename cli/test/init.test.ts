@@ -72,21 +72,21 @@ describe("planInit", () => {
     expect(plan.config.modules).toEqual(["docs"]);
   });
 
-  test("an existing canon.yaml blocks init unless forced", () => {
-    const repo = makeTree({ ".claude/canon.yaml": "kind: web\n" });
+  test("an existing context.yaml blocks init unless forced", () => {
+    const repo = makeTree({ ".context/context.yaml": "kind: web\n" });
     expect(() => planInit(repo, { canonVersion: "1" })).toThrow(/already set up/);
     expect(() => planInit(repo, { canonVersion: "1", force: true })).not.toThrow();
   });
 });
 
 describe("applyInit", () => {
-  test("writes canon.yaml, creates missing files without touching existing ones, and indexes knowledge", () => {
+  test("writes context.yaml, creates missing files without touching existing ones, and indexes knowledge", () => {
     const repo = makeTree({ ".context/README.md": "mine", ".context/wiki/index.md": "mine" });
     const plan = planInit(repo, { canonVersion: "0.4.0", kind: "content", modules: ["docs", "knowledge"] });
     const { calls, run } = recorder();
     applyInit(repo, plan, { run, name: "demo", canonRoot: repo });
 
-    expect(parse(readFileSync(join(repo, ".claude/canon.yaml"), "utf8"))).toEqual(plan.config);
+    expect(parse(readFileSync(join(repo, ".context/context.yaml"), "utf8"))).toEqual(plan.config);
     expect(readFileSync(join(repo, ".context/README.md"), "utf8")).toBe("mine");
     expect(readFileSync(join(repo, ".context/tasks.md"), "utf8")).toMatch(/^# Tasks\n\n## Now\n/);
     expect(existsSync(join(repo, ".context/raw/.gitkeep"))).toBe(true);

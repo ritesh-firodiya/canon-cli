@@ -72,7 +72,7 @@ argument captures what a session taught.
 ## CLI
 
 ```bash
-canon init             # write .claude/canon.yaml and the missing .context files
+canon init             # write .context/context.yaml and the missing .context files
 canon add              # list packs; `canon add expo` adds one and indexes its docs
 canon check            # this repo against the standards (exit 1 on any error); --all for every repo beside it
 canon copies --sync    # repair drifted shared files from copies.source (never adds one)
@@ -95,13 +95,13 @@ canon mcp              # the search MCP server, for any MCP client
 
 ## Config
 
-Every repo carries its own rules in `.claude/canon.yaml`; nothing above the repo
-is read. An uncommitted `canon.local.yaml` beside it overrides it on one machine.
+Every repo carries its own rules in `.context/context.yaml`; nothing above the repo
+is read. An uncommitted `context.local.yaml` beside it overrides it on one machine.
 Commands that span products (`--all`, `ui`, `learn`, `flow`) use the folder that
 holds the repo you are in, or `CANON_WORKSPACE`.
 
 ```yaml
-# <repo>/.claude/canon.yaml — written by `canon init`
+# <repo>/.context/context.yaml — written by `canon init`
 canon: 0.18.0
 kind: mobile                        # mobile | web | mobile-and-web | package | content
 standards: [design-sets, pipeline, expo]   # canon's library standards this repo follows; ./rules adds a folder of its own
@@ -117,7 +117,7 @@ copies:                             # files copied from one source repo, kept eq
 ```
 
 ```yaml
-# ../design-system/.claude/canon.yaml — the source names its sets
+# ../design-system/.context/context.yaml — the source names its sets
 copies:
   sets:
     upload: [scripts/upload.mjs]
@@ -156,7 +156,7 @@ api.ts            what other tools import (`@freetesh/canon/api`)
                   doctor, pipeline, standards, learn, wiki, ui, flow, search, weigh
 checks/           one file per check, named by its id; index.ts lists them
                   (design-set/ is the design checks, one file per group)
-config/           .claude/canon.yaml: schema and loading
+config/           .context/context.yaml: schema and loading
 lib/              shared helpers: files, frontmatter, env, qmd, system calls
 ```
 

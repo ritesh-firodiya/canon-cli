@@ -54,13 +54,13 @@ interface InitOptions {
 export function registerInit(program: Command, env: Env): void {
   program
     .command("init")
-    .description("set canon up for a product: write .claude/canon.yaml and the missing .context files")
+    .description("set canon up for a product: write .context/context.yaml and the missing .context files")
     .argument("[repo]", "product repo", ".")
     .option("-y, --yes", "accept what canon infers (and any flags below), no questions")
     .addOption(new Option("--kind <kind>", "product kind").choices(KINDS))
     .option("--modules <list>", `comma list, empty for none: ${MODULES.join(", ")}`)
     .option("--packs <list>", "comma list of vendor doc packs (see `canon add`)")
-    .option("--force", "redo a repo that already has canon.yaml")
+    .option("--force", "redo a repo that already has context.yaml")
     .action(async (repo: string, options: InitOptions) => {
       const path = resolve(repo);
       const packs = listPacks(env.canonRoot);
@@ -77,7 +77,7 @@ export function registerInit(program: Command, env: Env): void {
       const plan = answers ? planInit(path, { ...flags, ...answers }) : inferred;
 
       applyInit(path, plan, { name: basename(path), canonRoot: env.canonRoot, run: (command, args) => void runCommand(command, args) });
-      console.log(`wrote .claude/canon.yaml (${plan.config.kind}: ${plan.config.modules.join(", ")})`);
+      console.log(`wrote .context/context.yaml (${plan.config.kind}: ${plan.config.modules.join(", ")})`);
       for (const file of plan.create) console.log(`created ${file}`);
       if (plan.create.some((file) => file.endsWith(RULES_FILES[0]))) console.log("architecture: add the checker with `pnpm add -D dependency-cruiser`, then edit the .dependency-cruiser.cjs files to this repo's layers");
       console.log(plan.config.packs ? "next: canon sync (fetches the packs), then canon check" : "next: canon check");

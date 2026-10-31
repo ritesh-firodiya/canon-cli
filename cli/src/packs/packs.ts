@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { dirname, join } from "node:path";
 import { parse, parseDocument } from "yaml";
 import { z } from "zod";
-import { KINDS } from "../config/schema.ts";
+import { CONFIG_FILE, KINDS } from "../config/schema.ts";
 
 const packSchema = z
   .object({
@@ -46,11 +46,11 @@ interface AddOptions {
   canonRoot: string;
 }
 
-/** Records a pack in the repo's canon.yaml, keeping the file's comments and other keys. */
+/** Records a pack in the repo's context.yaml, keeping the file's comments and other keys. */
 export function addPack(repo: string, name: string, options: AddOptions): { file: string; added: boolean } {
   findPack(options.canonRoot, name);
-  const file = join(repo, ".claude", "canon.yaml");
-  if (!existsSync(file)) throw new Error(`${repo} has no .claude/canon.yaml — run \`canon init\` first`);
+  const file = join(repo, CONFIG_FILE);
+  if (!existsSync(file)) throw new Error(`${repo} has no .context/context.yaml — run \`canon init\` first`);
 
   const document = parseDocument(readFileSync(file, "utf8"));
   const current = (document.get("packs") as { toJSON(): string[] } | undefined)?.toJSON() ?? [];

@@ -4,7 +4,7 @@ import { kindCovers } from "../src/config/schema.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 describe("loadConfig", () => {
-  test("infers kind mobile from app.config.ts when there is no canon.yaml", () => {
+  test("infers kind mobile from app.config.ts when there is no context.yaml", () => {
     const repo = makeTree({ "app.config.ts": "export default {}" });
     const { config } = loadConfig(repo);
     expect(config.kind).toBe("mobile");
@@ -40,10 +40,10 @@ describe("loadConfig", () => {
     expect(config.modules).toContain("design");
   });
 
-  test("product canon.yaml overrides the inferred defaults", () => {
+  test("product context.yaml overrides the inferred defaults", () => {
     const repo = makeTree({
       "app.config.ts": "",
-      ".claude/canon.yaml": "kind: web\nmodules: [docs]\nexpo:\n  sdk: 57\n",
+      ".context/context.yaml": "kind: web\nmodules: [docs]\nexpo:\n  sdk: 57\n",
     });
     const { config, sources } = loadConfig(repo);
     expect(config.kind).toBe("web");
@@ -53,15 +53,20 @@ describe("loadConfig", () => {
   });
 
   test("a repo names the space (product) it is part of; a bad name is refused", () => {
-    expect(loadConfig(makeTree({ ".claude/canon.yaml": "kind: package\nspace: canon\n" })).config.space).toBe("canon");
-    expect(loadConfig(makeTree({ ".claude/canon.yaml": "kind: package\n" })).config.space).toBeUndefined();
-    expect(() => loadConfig(makeTree({ ".claude/canon.yaml": "kind: package\nspace: Not Kebab\n" }))).toThrow();
+    expect(loadConfig(makeTree({ ".context/context.yaml": "kind: package\nspace: canon\n" })).config.space).toBe("canon");
+    expect(loadConfig(makeTree({ ".context/context.yaml": "kind: package\n" })).config.space).toBeUndefined();
+    expect(() => loadConfig(makeTree({ ".context/context.yaml": "kind: package\nspace: Not Kebab\n" }))).toThrow();
   });
 
-  test("the local layer wins over the repo's canon.yaml", () => {
+  test("a repo still on the old .claude/canon.yaml is told to move it, not silently given defaults", () => {
+    const repo = makeTree({ ".claude/canon.yaml": "kind: web\n", "app.config.ts": "" });
+    expect(() => loadConfig(repo)).toThrow(/move it to \.context\/context\.yaml/);
+  });
+
+  test("the local layer wins over the repo's context.yaml", () => {
     const repo = makeTree({
-      ".claude/canon.yaml": "weigh:\n  weights:\n    C-07: 2\n    C-15: 3\n",
-      ".claude/canon.local.yaml": "weigh:\n  weights:\n    C-07: 0.5\n",
+      ".context/context.yaml": "weigh:\n  weights:\n    C-07: 2\n    C-15: 3\n",
+      ".context/context.local.yaml": "weigh:\n  weights:\n    C-07: 0.5\n",
       "app.config.ts": "",
     });
     const { config, sources } = loadConfig(repo);
@@ -69,40 +74,40 @@ describe("loadConfig", () => {
     expect(sources.map((s) => s.layer)).toEqual(["product", "local"]);
   });
 
-  test("a canon.yaml above the repo is never read: each repo carries its own rules", () => {
-    const root = makeTree({ ".claude/canon.yaml": "packs: [react]\n", "app/.claude/canon.yaml": "packs: [expo]\n" });
+  test("a context.yaml above the repo is never read: each repo carries its own rules", () => {
+    const root = makeTree({ ".context/context.yaml": "packs: [react]\n", "app/.context/context.yaml": "packs: [expo]\n" });
     const { config, sources } = loadConfig(`${root}/app`);
     expect(config.packs).toEqual(["expo"]);
     expect(sources.map((s) => s.layer)).toEqual(["product"]);
   });
 
   test("a repo that draws its screens gets the design checks even when its modules list leaves them out", () => {
-    const repo = makeTree({ ".claude/canon.yaml": "kind: web\nmodules: [docs, code]\n", ".context/designs/web/routes.js": "" });
+    const repo = makeTree({ ".context/context.yaml": "kind: web\nmodules: [docs, code]\n", ".context/designs/web/routes.js": "" });
     expect(loadConfig(repo).config.modules).toEqual(["docs", "code", "design"]);
   });
 
-  test("copy sets come from the source repo's canon.yaml", () => {
+  test("copy sets come from the source repo's context.yaml", () => {
     const root = makeTree({
-      "source/.claude/canon.yaml": "copies:\n  sets:\n    upload: [scripts/upload.mjs]\n",
-      "app/.claude/canon.yaml": "copies:\n  source: ../source\n  use: [upload]\n",
+      "source/.context/context.yaml": "copies:\n  sets:\n    upload: [scripts/upload.mjs]\n",
+      "app/.context/context.yaml": "copies:\n  source: ../source\n  use: [upload]\n",
     });
     expect(loadConfig(`${root}/app`).config.copies).toEqual({ source: `${root}/source`, sets: { upload: ["scripts/upload.mjs"] }, use: ["upload"] });
   });
 
   test("an unknown kind is a clear error naming the file", () => {
-    const repo = makeTree({ ".claude/canon.yaml": "kind: desktop\n" });
-    expect(() => loadConfig(repo)).toThrow(/canon\.yaml.*kind/s);
+    const repo = makeTree({ ".context/context.yaml": "kind: desktop\n" });
+    expect(() => loadConfig(repo)).toThrow(/context\.yaml.*kind/s);
   });
 
   test("standards resolve from the repo: a bare name is canon's, a path is the repo's own folder", () => {
-    const repo = makeTree({ ".claude/canon.yaml": "standards: [docs/rules, design-sets]\n" });
+    const repo = makeTree({ ".context/context.yaml": "standards: [docs/rules, design-sets]\n" });
     expect(loadConfig(repo).config.standards).toEqual([`${repo}/docs/rules`, "design-sets"]);
   });
 
   test("commands merge by id — the local layer replaces a command of the same id", () => {
     const repo = makeTree({
-      ".claude/canon.yaml": "commands:\n  - { id: designs, run: a }\n  - { id: lint, run: b }\n",
-      ".claude/canon.local.yaml": "commands:\n  - { id: designs, run: c, if: x }\n",
+      ".context/context.yaml": "commands:\n  - { id: designs, run: a }\n  - { id: lint, run: b }\n",
+      ".context/context.local.yaml": "commands:\n  - { id: designs, run: c, if: x }\n",
     });
     expect(loadConfig(repo).config.commands).toEqual([
       { id: "designs", run: "c", if: "x" },
@@ -111,11 +116,11 @@ describe("loadConfig", () => {
   });
 
   test("the specs module is gone", () => {
-    expect(() => loadConfig(makeTree({ ".claude/canon.yaml": "modules: [specs]\n" }))).toThrow(/modules/);
+    expect(() => loadConfig(makeTree({ ".context/context.yaml": "modules: [specs]\n" }))).toThrow(/modules/);
   });
 
   test("a wiki type or context folder needs a reason, and cannot redefine a built-in", () => {
-    const load = (yaml: string) => () => loadConfig(makeTree({ ".claude/canon.yaml": yaml }));
+    const load = (yaml: string) => () => loadConfig(makeTree({ ".context/context.yaml": yaml }));
     expect(load("wiki:\n  types:\n    - { type: bug, folder: bugs, sections: [Summary] }\n")).toThrow(/reason/);
     expect(load("wiki:\n  types:\n    - { type: bug, folder: bugs, reason: x }\n")).toThrow(/sections/);
     expect(load("wiki:\n  types:\n    - { type: bug, folder: bugs, reason: x, sections: [] }\n")).toThrow(/sections/);
@@ -125,7 +130,7 @@ describe("loadConfig", () => {
   });
 
   test("doctor tools merge by tool name", () => {
-    const repo = makeTree({ ".claude/canon.yaml": "doctor:\n  tools:\n    - { tool: rtk, why: short output, hint: brew install rtk }\n" });
+    const repo = makeTree({ ".context/context.yaml": "doctor:\n  tools:\n    - { tool: rtk, why: short output, hint: brew install rtk }\n" });
     expect(loadConfig(repo).config.doctor.tools).toEqual([{ tool: "rtk", why: "short output", hint: "brew install rtk" }]);
   });
 });

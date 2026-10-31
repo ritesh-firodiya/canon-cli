@@ -17,7 +17,7 @@ const SOURCE = `copies:
 /** A source repo naming the sets, and one product using `use`; `files` are the product's files. */
 function workspace(use: string[], files: Record<string, string>) {
   const root = makeTree({
-    "source/.claude/canon.yaml": SOURCE,
+    "source/.context/context.yaml": SOURCE,
     "source/.context/README.md": "# .context — Alpha\n",
     "source/scripts/upload.mjs": "upload v2\n",
     "source/designs/mobile/shell.html": "<title>Alpha</title>\n",
@@ -26,7 +26,7 @@ function workspace(use: string[], files: Record<string, string>) {
     ...Object.fromEntries(Object.entries(files).map(([path, text]) => [`app/${path}`, text])),
   });
   mkdirSync(join(root, "app", ".claude"), { recursive: true });
-  writeFileSync(join(root, "app", ".claude", "canon.yaml"), use.length ? `copies:\n  source: ../source\n  use: [${use.join(", ")}]\n` : "{}\n");
+  writeFileSync(join(root, "app", ".context", "context.yaml"), use.length ? `copies:\n  source: ../source\n  use: [${use.join(", ")}]\n` : "{}\n");
   return join(root, "app");
 }
 

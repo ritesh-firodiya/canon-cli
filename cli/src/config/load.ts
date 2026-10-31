@@ -1,18 +1,19 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { parse } from "yaml";
-import { isStandardName, MODULES_BY_KIND, layerSchema, type Config, type CopyFileSpec, type Kind, type Layer, type Module } from "./schema.ts";
+import { CONFIG_FILE, isStandardName, LOCAL_CONFIG_FILE, MODULES_BY_KIND, layerSchema, type Config, type CopyFileSpec, type Kind, type Layer, type Module } from "./schema.ts";
 
 export interface ConfigSource {
   layer: "product" | "local";
   path: string;
 }
 
+const LEGACY_CONFIG_FILE = ".claude/canon.yaml";
 const EXPO_MARKERS = ["app.config.ts", "app.config.js", "app.json"];
 const WEB_MARKERS = ["next.config.ts", "next.config.js", "next.config.mjs", "vite.config.ts"];
 
 function configPath(folder: string): string {
-  return join(folder, ".claude", "canon.yaml");
+  return join(folder, CONFIG_FILE);
 }
 
 function readLayer(path: string): Layer {
@@ -78,15 +79,17 @@ function mergeBy<T>(lists: T[][], key: (item: T) => string): T[] {
 }
 
 /**
- * Reads the repo's canon.yaml and its uncommitted canon.local.yaml over defaults
+ * Reads the repo's context.yaml and its uncommitted context.local.yaml over defaults
  * inferred from the repo. Scalars: the local layer wins. Lists of names add up
  * (packs, standards); lists of records merge by their key (commands, tools,
- * wiki types, context folders). Copy sets come from the source repo's canon.yaml.
+ * wiki types, context folders). Copy sets come from the source repo's context.yaml.
  */
 export function loadConfig(repo: string): { config: Config; sources: ConfigSource[] } {
+  // Without this a repo not yet moved would silently run on inferred defaults.
+  if (existsSync(join(repo, LEGACY_CONFIG_FILE))) throw new Error(`${repo} still has ${LEGACY_CONFIG_FILE} — move it to ${CONFIG_FILE}`);
   const candidates: ConfigSource[] = [
     { layer: "product", path: configPath(repo) },
-    { layer: "local", path: join(repo, ".claude", "canon.local.yaml") },
+    { layer: "local", path: join(repo, LOCAL_CONFIG_FILE) },
   ];
   const sources = candidates.filter((source) => existsSync(source.path));
   const layers = sources.map((source) => ({ data: readLayer(source.path), base: dirname(dirname(source.path)) }));

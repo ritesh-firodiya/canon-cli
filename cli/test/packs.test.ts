@@ -22,17 +22,17 @@ describe("listPacks", () => {
 });
 
 describe("addPack", () => {
-  test("adds the pack to the product canon.yaml, keeping its other keys and comments", () => {
-    const repo = makeTree({ ".claude/canon.yaml": "# mine\nkind: mobile\n" });
+  test("adds the pack to the product context.yaml, keeping its other keys and comments", () => {
+    const repo = makeTree({ ".context/context.yaml": "# mine\nkind: mobile\n" });
     const result = addPack(repo, "expo", { canonRoot: canon() });
-    expect(result).toEqual({ file: join(repo, ".claude/canon.yaml"), added: true });
-    const text = readFileSync(join(repo, ".claude/canon.yaml"), "utf8");
+    expect(result).toEqual({ file: join(repo, ".context/context.yaml"), added: true });
+    const text = readFileSync(join(repo, ".context/context.yaml"), "utf8");
     expect(text).toContain("# mine");
     expect(text).toMatch(/packs:\n\s+- expo/);
   });
 
   test("adding a pack twice changes nothing", () => {
-    const repo = makeTree({ ".claude/canon.yaml": "packs: [expo]\n" });
+    const repo = makeTree({ ".context/context.yaml": "packs: [expo]\n" });
     expect(addPack(repo, "expo", { canonRoot: canon() }).added).toBe(false);
   });
 
@@ -40,7 +40,7 @@ describe("addPack", () => {
     expect(() => addPack(makeTree({}), "vue", { canonRoot: canon() })).toThrow(/vue.*expo, react/);
   });
 
-  test("a product with no canon.yaml is told to run init", () => {
+  test("a product with no context.yaml is told to run init", () => {
     expect(() => addPack(makeTree({}), "expo", { canonRoot: canon() })).toThrow(/canon init/);
   });
 });

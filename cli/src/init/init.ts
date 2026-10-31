@@ -4,7 +4,7 @@ import { stringify } from "yaml";
 import { RULES_FILES } from "../checks/architecture.ts";
 import { requiredContext } from "../checks/context-layout.ts";
 import { inferKind, inferModules } from "../config/load.ts";
-import { kindCovers, MODULES_BY_KIND, type Kind, type Module } from "../config/schema.ts";
+import { CONFIG_FILE, kindCovers, MODULES_BY_KIND, type Kind, type Module } from "../config/schema.ts";
 
 export type Runner = (command: string, args: string[]) => void;
 
@@ -109,8 +109,8 @@ function template(file: string): string {
 }
 
 export function planInit(repo: string, answers: InitAnswers): InitPlan {
-  if (existsSync(join(repo, ".claude", "canon.yaml")) && !answers.force) {
-    throw new Error(`${repo} is already set up (.claude/canon.yaml exists) — use --force to redo it`);
+  if (existsSync(join(repo, CONFIG_FILE)) && !answers.force) {
+    throw new Error(`${repo} is already set up (.context/context.yaml exists) — use --force to redo it`);
   }
   const kind = answers.kind ?? inferKind(repo);
   const modules = answers.modules ?? (answers.kind ? MODULES_BY_KIND[kind] : inferModules(repo, kind));
@@ -133,7 +133,7 @@ export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; 
     mkdirSync(dirname(join(repo, file)), { recursive: true });
     writeFileSync(join(repo, file), content);
   };
-  write(".claude/canon.yaml", stringify(plan.config));
+  write(CONFIG_FILE, stringify(plan.config));
   const starters = new Map(architectureStarters(repo).map((s) => [s.file, s.template]));
   for (const file of plan.create) {
     const starter = starters.get(file);
