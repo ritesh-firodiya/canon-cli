@@ -106,7 +106,10 @@ export function repoFacts(repo: string, github: GitHub = gh): Facts {
     const dep = s.deployed as Surface | undefined;
     if (key === "web" && dep && typeof dep === "object" && dep.commit) {
       const when = dep.since ? day(dep.since) : null;
-      for (const sha of reachable(repo, String(dep.commit))) setDefault(deployed, sha, when);
+      const held = reachable(repo, String(dep.commit));
+      for (const sha of held) setDefault(deployed, sha, when);
+      // A live site serves what is deployed, which is often newer than its last tag.
+      if (liveVersion) held.forEach((sha) => live.add(sha));
     }
   }
 

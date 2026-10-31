@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- `canon flow`: a live web surface counts every commit it has deployed, not only what its last tag holds.
+
 ## 0.26.0 — 2026-10-31
 
 ### Changed

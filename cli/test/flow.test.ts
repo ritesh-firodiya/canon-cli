@@ -95,6 +95,37 @@ describe("canon flow", () => {
     expect(result.medianHours).toEqual({ "idea→plan": 0.5, "plan→code": 2, "code→review": null, "review→live": null });
   });
 
+  test("a live web surface counts everything deployed, not only what its tag holds", () => {
+    const workspace = makeTree({});
+    const repo = join(workspace, "site");
+    const at = (iso: string) => ({ GIT_COMMITTER_DATE: iso, GIT_AUTHOR_DATE: iso });
+    const git = (env: object, ...args: string[]) => execFileSync("git", ["-C", repo, ...args], { env: { ...process.env, ...env } });
+    const commit = (iso: string, file: string, text = "x") => {
+      mkdirSync(dirname(join(repo, file)), { recursive: true });
+      writeFileSync(join(repo, file), text);
+      git({}, "add", "-A");
+      git(at(iso), "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", file);
+    };
+    mkdirSync(repo);
+    git({}, "init", "-q");
+    git({}, "remote", "add", "origin", "git@github.com:me/site.git");
+    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipeline:\n  - { id: idea, done: [x] }\n  - { id: code, done: [x] }\n  - { id: live, done: [x] }\n");
+    git(at("2026-10-01T10:00:00Z"), "tag", "v0.1.0");
+    commit("2026-10-02T10:00:00Z", "src/page.ts");
+    const deployed = git({}, "rev-parse", "HEAD").toString().trim();
+    commit("2026-10-03T10:00:00Z", ".context/ops/release.yml", `surfaces:\n  web: { live: { version: "0.1.0" }, deployed: { commit: ${deployed}, since: "2026-10-02" } }\n`);
+    const projects = makeTree({
+      "p/one.jsonl": [
+        line({ timestamp: "2026-10-02T09:30:00Z", type: "user", cwd: repo, message: { content: "change the page" } }),
+        line({ timestamp: "2026-10-02T10:00:30Z", type: "assistant", message: { content: [{ type: "tool_use", name: "Bash", input: { command: "git commit -m page" } }] } }),
+      ].join("\n"),
+    });
+
+    const result = flow(workspace, "site", allSessions(workspace, projects), [], () => []);
+
+    expect(result.stages).toContainEqual({ id: "live", count: 1 });
+  });
+
   test("a stage with no evidence rule is an error naming the ones there are", () => {
     const workspace = makeTree({ "myapp/.context/context.yaml": "pipeline:\n  - { id: idea, done: [x] }\n  - { id: vibes, done: [x] }\n" });
     execFileSync("git", ["-C", join(workspace, "myapp"), "init", "-q"]);
