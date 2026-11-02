@@ -1,10 +1,10 @@
 ---
 id: FEAT-0023
 type: feature
-status: building
+status: shipped
 priority: p2
 last-verified: 2026-11-02
-release: null
+release: 0.30.0
 superseded-by: null
 surfaces: []
 plan: PLAN-0001

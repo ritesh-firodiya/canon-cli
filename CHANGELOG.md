@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.30.0 — 2026-11-02
+
+See what your Claude sessions cost, and keep the state of the work above the prompt.
+
+### Added
+
+- **Band:** a Claude Code mod in the plugin shows the product, stage, what waits on you, live runs, checks, tests, task cost, usage left and the prompt cache. Clicking an item opens its detail. Nothing on it approves anything.
+- **Extend:** a button on the band restarts the cache hour with one tiny message, and shows its estimated cost. It appears only when the cache is warm and no reply is running.
+- **`canon usage`:** skills, tools, models and products at list prices, with `--skill`, `--unused`, `--json` and `--save`. It keeps counts only, never message text.
+- **`canon band`:** the facts the band shows, as JSON.
+- **Output styles:** `/output-style canon:short` and `canon:detail` set how long answers are.
+- **`/canon:wildcard`:** 2 of every 10 ideas deliberately break the repo's patterns.
+
+### Changed
+
+- `canon run` marks itself live under `~/.canon/running/` while it works.
+
 ## 0.29.0 — 2026-11-02
 
 The flow is a default each product changes, and what it decides stays enforced.
