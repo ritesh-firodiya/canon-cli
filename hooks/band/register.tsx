@@ -11,8 +11,10 @@ import {
   duration,
   extendLabel,
   isNarrow,
+  isInside,
   isTestCommand,
   money,
+  movedTo,
   panelLines,
   stageWord,
   testsLabel,
@@ -34,6 +36,7 @@ const BLUE = '#8cc4ff'
 
 const facts = atom({ plugin: 'canon', key: 'facts' } as const, null as BandFacts | null)
 const isLoaded = atom({ plugin: 'canon', key: 'isLoaded' } as const, false)
+const workPath = atom({ plugin: 'canon', key: 'workPath' } as const, null as string | null)
 const windows = atom({ plugin: 'canon', key: 'windows' } as const, [] as UsageWindow[])
 const cache = atom({ plugin: 'canon', key: 'cache' } as const, null as CacheFacts | null)
 const taskUsd = atom({ plugin: 'canon', key: 'taskUsd' } as const, 0)
@@ -42,8 +45,8 @@ const panel = atom({ plugin: 'canon', key: 'panel' } as const, null as Panel | n
 const isExtending = atom({ plugin: 'canon', key: 'isExtending' } as const, false)
 
 async function refreshFacts($: EngineInterface): Promise<void> {
-  const cwd = await $.session.cwd()
-  const run = await $.process.run(['canon', 'band', cwd]).catch(() => undefined)
+  const path = (await read($, workPath)) ?? (await $.session.cwd())
+  const run = await $.process.run(['canon', 'band', path]).catch(() => undefined)
   await update($, isLoaded, () => true)
   if (run?.exitCode !== 0) return void update($, facts, () => null)
   try {
@@ -51,6 +54,19 @@ async function refreshFacts($: EngineInterface): Promise<void> {
     await update($, facts, () => parsed)
   } catch {
     await update($, facts, () => null)
+  }
+}
+
+// The band follows the work, so a session in a parent folder, or one moving between products, shows the right one.
+async function followWork($: EngineInterface, path: string | null): Promise<void> {
+  if (!path || isInside(path, (await read($, facts))?.product)) return
+  const previous = await read($, workPath)
+  await update($, workPath, () => path)
+  await refreshFacts($)
+  // A path in no product, like a temp file, is not a move: keep showing the product it was on.
+  if (!(await read($, facts))?.product) {
+    await update($, workPath, () => previous)
+    await refreshFacts($)
   }
 }
 
@@ -83,6 +99,7 @@ export const register: Register = on => {
     if (e.source === 'clear' || e.source === 'compact') {
       await update($, cache, () => null)
       if (e.source === 'clear') {
+        await update($, workPath, () => null)
         await update($, tests, () => 'none' as Tests)
         await update($, panel, () => null)
       }
@@ -110,6 +127,10 @@ export const register: Register = on => {
   on('tool.call', async ($, e, next) => {
     const result = await next(e)
     if (result.deny !== undefined) return result
+    if (e.agentId === undefined) {
+      if (e.tool === 'Bash') await followWork($, movedTo(e.command, await $.session.cwd()))
+      if (e.tool === 'Edit' || e.tool === 'Write') await followWork($, e.file_path)
+    }
     if (e.tool === 'Bash' && isTestCommand(e.command)) await update($, tests, () => afterTestRun(Boolean(result.isError)))
     if ((e.tool === 'Edit' || e.tool === 'Write') && !result.isError) await update($, tests, value => afterEdit(value, e.file_path))
     return result

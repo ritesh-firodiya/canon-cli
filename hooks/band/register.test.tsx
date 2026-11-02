@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { afterEdit, afterTestRun, cacheView, canExtend, coldLabel, extendLabel, isNarrow, isTestCommand, panelLines, windowViews } from './facts'
+import { isInside, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, extendLabel, isNarrow, isTestCommand, panelLines, windowViews } from './facts'
 import type { BandFacts } from './types'
 
 const FACTS: BandFacts = {
@@ -163,5 +163,59 @@ test('no extend button on a cold cache, which shows its price', async ($, on) =>
   const ui = await $.ui.mount(render('terminal'))
   expect(await ui.find({ key: 'extend' })).toBeUndefined()
   expect(await ui.find({ type: 'Text', text: /cold · next ~\$8\.00/ })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a Bash command moves the band when it changes folder', () => {
+  expect(movedTo('cd shop && pnpm test', '/w')).toBe('/w/shop')
+  expect(movedTo('cd /w/a && cd /w/b', '/w')).toBe('/w/b')
+  expect(movedTo('git -C /w/shop status', '/w')).toBe('/w/shop')
+  expect(movedTo('ls /w/shop', '/w')).toBeNull()
+  expect(movedTo('cd ~/shop', '/w')).toBeNull()
+  expect(movedTo('echo cd shop', '/w')).toBeNull()
+})
+
+test('a path inside the shown product needs no new read, and a similar name is not inside', () => {
+  expect(isInside('/w/shop/a.ts', 'shop')).toBe(true)
+  expect(isInside('/w/shop', 'shop')).toBe(true)
+  expect(isInside('/w/shop-two/a.ts', 'shop')).toBe(false)
+  expect(isInside('/w/a.ts', null)).toBe(false)
+})
+
+function following(on: any) {
+  const paths: string[] = []
+  on('session.start', (_: unknown, e: any) => ({ cwd: e.cwd }))
+  on('session.cwd', () => ({ value: '/w' }))
+  on('session.model', () => ({ value: OPUS }))
+  mock.clock(on)
+  mock.store(on)
+  on('tool.call', () => ({ result: {} }))
+  on('process.run', (_: unknown, e: any) => {
+    const path = e.argv[2]
+    paths.push(path)
+    const product = path.startsWith('/w/one') ? 'one' : path.startsWith('/w/two') ? 'two' : null
+    return { value: { exitCode: 0, stdout: JSON.stringify({ ...FACTS, product, waiting: null, errors: [] }), stderr: '' } }
+  })
+  return paths
+}
+
+test('from a parent folder the band follows edits between products, and ignores a path in no product', async ($, on) => {
+  const paths = following(on)
+  await $.session.start({ cwd: '/w', surface: 'terminal', isInteractive: true })
+  const ui = await $.ui.mount(render('terminal'))
+  expect(await ui.find({ type: 'Text', text: /no product here/ })).toBeDefined()
+
+  await $.tool.call({ tool: 'Edit', file_path: '/w/one/a.ts', old_string: 'a', new_string: 'b' })
+  expect(await ui.find({ type: 'Text', text: /^one/ })).toBeDefined()
+
+  const reads = paths.length
+  await $.tool.call({ tool: 'Edit', file_path: '/w/one/b.ts', old_string: 'a', new_string: 'b' })
+  expect(paths.length).toBe(reads)
+
+  await $.tool.call({ tool: 'Bash', command: 'cd /tmp/x && ls' })
+  expect(await ui.find({ type: 'Text', text: /^one/ })).toBeDefined()
+
+  await $.tool.call({ tool: 'Bash', command: 'cd two && ls' })
+  expect(await ui.find({ type: 'Text', text: /^two/ })).toBeDefined()
   await ui.unmount()
 })

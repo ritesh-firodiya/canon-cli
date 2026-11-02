@@ -25,6 +25,7 @@ The state of the work and its cost should be visible without asking, and colour 
 - Given a cold cache or a running reply, then no extend button shows.
 - Given a click anywhere on the band, then nothing is approved. Only extend spends anything.
 - Given a folder that is not a product, then only usage and cache show.
+- Given a session in a parent folder or moving between products, when it edits a file in a product or changes folder into one, then the band shows that product, with nothing to link.
 
 ## Out of scope
 - Automatic cache pings ([[PLAN-0001]]).

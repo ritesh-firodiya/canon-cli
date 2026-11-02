@@ -25,6 +25,7 @@ declare module 'claude-code' {
     canon: {
       facts: BandFacts | null
       isLoaded: boolean
+      workPath: string | null
       windows: UsageWindow[]
       cache: CacheFacts | null
       taskUsd: number

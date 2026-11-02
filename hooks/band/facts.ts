@@ -99,3 +99,16 @@ export function panelLines(panel: Panel, facts: BandFacts): string[] {
 const WORDS: Record<string, string> = { ok: ' ok', waiting: ' waiting on you', running: ' running', here: ' in progress', todo: '' }
 export const stageWord = (id: string, state: string): string => `${id[0]?.toUpperCase() ?? ''}${id.slice(1)}${WORDS[state] ?? ''}`
 export const capitalise = (word: string): string => `${word[0]?.toUpperCase() ?? ''}${word.slice(1)}`
+
+const MOVES = /(?:^|&&|;|\|\|)\s*cd\s+([^\s;&|]+)|\bgit\s+-C\s+([^\s;&|]+)/g
+
+/** The last place a Bash command moved to, absolute. A path starting with ~ or $ cannot be read here. */
+export function movedTo(command: string, cwd: string): string | null {
+  const last = [...command.matchAll(MOVES)].at(-1)
+  const path = (last?.[1] ?? last?.[2])?.replace(/^['"]|['"]$/g, '')
+  if (!path || /^[~$]/.test(path)) return null
+  return path.startsWith('/') ? path : `${cwd}/${path}`
+}
+
+/** Whether a path is already inside the product the band shows, so nothing needs reading again. */
+export const isInside = (path: string, product: string | null | undefined): boolean => Boolean(product) && `${path}/`.includes(`/${product}/`)
