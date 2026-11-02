@@ -1,3 +1,15 @@
 canon: 0.26.0
 kind: package
 product: canon
+pipelines:
+  default:
+    - { id: problem }
+    - { id: idea }
+    - { id: research }
+    - { id: plan }
+    - { id: feature }
+    - { id: code }
+    - { id: review }
+    - { id: release }
+    - { id: marketing, by: agent, optional: true, done: [.context/marketing], prompt: "Read the context file in the marketing folder under .context, if there is one. Draft what this work needs in that folder. Claim only what the product does today. A person publishes it." }
+    - { id: result }
