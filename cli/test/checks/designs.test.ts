@@ -28,6 +28,13 @@ describe("designs", () => {
       expect(run({})).toEqual([]);
     });
 
+    test("a shell.js pinned to a published version is an error: a pin stops at that major for good", () => {
+      expect(run({ ".context/designs/shell.js": 'var SHELL = "https://unpkg.com/@freetesh/canon@0/shell/";' })).toEqual([
+        '.context/designs/shell.js: points at a pinned canon — use https://unpkg.com/@freetesh/canon/shell/',
+      ]);
+      expect(run({ ".context/designs/shell.js": 'var SHELL = "https://unpkg.com/@freetesh/canon/shell/";' })).toEqual([]);
+    });
+
     test("a copied _shell is an error; the set's one shell.js loader is not", () => {
       expect(run({ ".context/designs/shell.js": "", ".context/designs/_shell/boot.js": "" })).toEqual([
         ".context/designs/_shell: the shell lives in canon — delete this copy",

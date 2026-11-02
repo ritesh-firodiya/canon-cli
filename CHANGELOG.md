@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.2 — 2026-11-02
+
+### Fixed
+
+- **Design sets opened from `file:///` get the current shell.** A set's `shell.js` pointed at `@freetesh/canon@0`, which stopped at 0.30.0 when canon reached 1.0, so no shell fix since then reached them. It now names no version, and `canon check` fails on a pinned one. Change `@freetesh/canon@0` to `@freetesh/canon` in your set's `shell.js`.
+- `canon update` changes only the `canon:` line of `context.yaml`, instead of reformatting the file.
+
 ## 2.1.1 — 2026-11-02
 
 ### Fixed

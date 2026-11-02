@@ -7,25 +7,25 @@
     {
       "name": "canon",
       "source": "./",
-      "version": "2.1.1",
+      "version": "2.1.2",
       "description": "A band above the prompt: usage left and the prompt cache, with a button to extend it. Everything else is off until you turn it on."
     },
     {
       "name": "canon-process",
       "source": "./plugins/canon-process",
-      "version": "2.1.1",
+      "version": "2.1.2",
       "description": "Weigh, decisions, standards and the constitution at session start."
     },
     {
       "name": "canon-knowledge",
       "source": "./plugins/canon-knowledge",
-      "version": "2.1.1",
+      "version": "2.1.2",
       "description": "Search and answers from your repo's knowledge."
     },
     {
       "name": "canon-styles",
       "source": "./plugins/canon-styles",
-      "version": "2.1.1",
+      "version": "2.1.2",
       "description": "Short and detail output styles."
     }
   ],

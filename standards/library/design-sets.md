@@ -110,9 +110,9 @@ not a link between pages.
 `styles.css`.
 
 - **The shell is canon's; a set holds only the link to it.** Its `shell.js` is
-  canon's `shell/loader.js`, pointed at `@freetesh/canon@0` on unpkg, so a page
-  opened straight from disk (`file:///`) works and a release needs no edit in any
-  set. No `_shell/`. `canon ui` serves its own shell at `/shell.js` instead, and
+  canon's `shell/loader.js`, pointed at `@freetesh/canon` on unpkg with no version, so a
+  page opened straight from disk (`file:///`) works and a release needs no edit in
+  any set. A pin stops at its major for good, so `canon check` refuses one. No `_shell/`. `canon ui` serves its own shell at `/shell.js` instead, and
   a site that publishes sets writes each `shell.js` from the same loader, pointed
   at the shell it hosts.
 

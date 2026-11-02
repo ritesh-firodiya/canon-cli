@@ -46,6 +46,21 @@ describe("syncRepo", () => {
     expect(yaml).toContain("canon: 0.4.0");
   });
 
+  test("moving the version changes only that line", async () => {
+    const text = 'canon: 0.3.0\npipelines:\n  default:\n    - { id: a, prompt: "' + "long words ".repeat(12).trim() + '" }\n';
+    const repo = makeTree({ ".context/context.yaml": text });
+    const h = harness();
+    await syncRepo(repo, { canonRoot: canonWith("0.4.0"), cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
+    expect(readFileSync(join(repo, ".context/context.yaml"), "utf8")).toBe(text.replace("0.3.0", "0.4.0"));
+  });
+
+  test("a repo with no pinned version gets one", async () => {
+    const repo = makeTree({ ".context/context.yaml": "kind: content\n" });
+    const h = harness();
+    await syncRepo(repo, { canonRoot: canonWith("0.4.0"), cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
+    expect(readFileSync(join(repo, ".context/context.yaml"), "utf8")).toBe("kind: content\ncanon: 0.4.0\n");
+  });
+
   test("a repo already on the current version is left alone", async () => {
     const repo = makeTree({ ".context/context.yaml": "canon: 0.4.0\n" });
     const h = harness();

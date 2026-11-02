@@ -1,6 +1,6 @@
 ---
 id: BUG-0006
-status: open
+status: fixed
 severity: high
 priority: p1
 last-verified: 2026-11-02
@@ -19,3 +19,5 @@ A release needs no edit in any set, as the standard promises.
 
 ## Evidence
 - Scratch copy of the Canon set with the pin changed to 2.1.1: the fixes from BUG-0003 work on `file:///`. With `@0` they do not.
+- `cli/test/checks/designs.test.ts`: a pinned `shell.js` is now an error. It failed before the change.
+- Every set now points at `@freetesh/canon` with no version.

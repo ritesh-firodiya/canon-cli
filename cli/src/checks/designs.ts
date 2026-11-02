@@ -6,6 +6,8 @@ import type { Check, Finding } from "./types.ts";
 
 const DESIGNS = ".context/designs";
 const MAX_OUTPUT_LINES = 15;
+// A pin stops at its major for good: `@0` still serves 0.30.0, with no fix since.
+const PINNED_SHELL = /@freetesh\/canon@/;
 
 /**
  * Every drawn surface: in a Babul set (design.js beside the sizes), each size folder with its journey (index.html).
@@ -20,11 +22,16 @@ export function designSurfaces(repo: string): string[] {
     .sort();
 }
 
-/** A Babul set holds no copy of the shell: only its shell.js, a loader that points at canon's. */
+/** A Babul set holds no copy of the shell: only its shell.js, a loader that points at canon's latest. */
 function shellFindings(repo: string): Finding[] {
   const root = join(repo, DESIGNS);
   if (!existsSync(join(root, "design.js"))) return [];
-  return existsSync(join(root, "_shell")) ? [{ check: "designs", level: "error", file: `${DESIGNS}/_shell`, message: "the shell lives in canon — delete this copy" }] : [];
+  const copied: Finding[] = existsSync(join(root, "_shell")) ? [{ check: "designs", level: "error", file: `${DESIGNS}/_shell`, message: "the shell lives in canon — delete this copy" }] : [];
+  const loader = join(root, "shell.js");
+  const pinned: Finding[] = existsSync(loader) && PINNED_SHELL.test(readFileSync(loader, "utf8"))
+    ? [{ check: "designs", level: "error", file: `${DESIGNS}/shell.js`, message: "points at a pinned canon — use https://unpkg.com/@freetesh/canon/shell/" }]
+    : [];
+  return [...copied, ...pinned];
 }
 
 /** Runs the design-set checks (./design-set) once per drawn surface. */

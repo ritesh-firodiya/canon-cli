@@ -1,6 +1,5 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { parseDocument } from "yaml";
 import { loadConfig } from "../config/load.ts";
 import { CONFIG_FILE } from "../config/schema.ts";
 import { indexKnowledge, refreshArchitectureBase } from "../init/init.ts";
@@ -21,6 +20,12 @@ export interface SyncResult {
   version: { from: string | undefined; to: string } | null;
 }
 
+/** Changes only the version line: a person's formatting elsewhere in the file is theirs. */
+function withVersion(text: string, version: string): string {
+  const line = `canon: ${version}`;
+  return /^canon:.*$/m.test(text) ? text.replace(/^canon:.*$/m, line) : `${text.replace(/\n?$/, "\n")}${line}\n`;
+}
+
 /** Refreshes a product's pack docs and search index, and moves its pinned canon version to the current one. */
 export async function syncRepo(repo: string, options: SyncOptions): Promise<SyncResult> {
   const file = join(repo, CONFIG_FILE);
@@ -38,8 +43,6 @@ export async function syncRepo(repo: string, options: SyncOptions): Promise<Sync
   const base = refreshArchitectureBase(repo, options.canonRoot);
   const current = canonVersion(options.canonRoot);
   if (config.canon === current) return { packs, base, version: null };
-  const document = parseDocument(readFileSync(file, "utf8"));
-  document.set("canon", current);
-  writeFileSync(file, document.toString());
+  writeFileSync(file, withVersion(readFileSync(file, "utf8"), current));
   return { packs, base, version: { from: config.canon, to: current } };
 }

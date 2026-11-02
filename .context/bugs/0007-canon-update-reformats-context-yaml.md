@@ -1,6 +1,6 @@
 ---
 id: BUG-0007
-status: open
+status: fixed
 severity: low
 priority: p3
 last-verified: 2026-11-02
@@ -19,3 +19,4 @@ The `marketing` stage entry grew from one line to nine.
 
 ## Evidence
 - Seen running `canon update` in this repo on 2.1.1.
+- `cli/test/sync.test.ts`: moving the version changes only that line. It failed before the change.
