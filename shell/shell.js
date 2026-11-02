@@ -176,7 +176,7 @@
      as it loads, so changing it reloads them rather than reaching inside. */
   function setTheme(t, seg) {
     document.documentElement.dataset.theme = t;
-    try { localStorage.setItem("babul-theme", t); } catch (e) {}
+    try { localStorage.setItem(S.themeKey, t); } catch (e) {}
     [].forEach.call(seg.children, function (c) { c.classList.toggle("is-on", c.dataset.theme === t); });
     document.querySelectorAll("iframe").forEach(function (fr) {
       try { fr.contentDocument.documentElement.dataset.theme = t; } catch (e) { fr.src = fr.src; }

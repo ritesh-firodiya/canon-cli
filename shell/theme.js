@@ -110,6 +110,9 @@
      journey's thumbnails, and applied before first paint. */
   var themes = ((window.BABUL || {}).product || {}).themes || ["light"];
   var theme = themes[0];
-  try { var saved = localStorage.getItem("babul-theme"); if (themes.indexOf(saved) >= 0) theme = saved; } catch (e) {}
+  // Per product: one origin (file:// or localhost) serves every product, and one product's choice must not set another's.
+  var themeKey = "babul-theme:" + (((window.BABUL || {}).product || {}).name || "");
+  (window.BABUL_SHELL || {}).themeKey = themeKey;
+  try { var saved = localStorage.getItem(themeKey); if (themes.indexOf(saved) >= 0) theme = saved; } catch (e) {}
   document.documentElement.dataset.theme = theme;
 })();

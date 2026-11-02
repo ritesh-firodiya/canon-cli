@@ -50,8 +50,9 @@ Two data files are written by hand, because nothing draws them: `design.js` and
 `tokens.js` (§8), each strict JSON behind `(window.BABUL ||= {}).<key> = ` so a
 `<script>` loads it from disk and Babul reads the JSON.
 
-Everything else the shell **reads from the HTML each time it opens**
-(`crawl.js`). From the start page it follows every link and component,
+Everything else the shell **reads from the HTML** (`crawl.js`). The Journey reads it
+again each time it opens; every other view reuses that read for the tab's session, so a
+click between pages does not crawl the set again. From the start page it follows every link and component,
 loading each page and board in a hidden frame that posts its own markup back —
 a page on `file://` cannot read another file, but a frame can describe itself.
 `describe.js` builds the model; `canon check` runs the same code on the files
@@ -152,7 +153,8 @@ sizes). It shows only the drawing.
   ```html
   <c-banner data-state="error" variant="danger" icon="circle-alert">The purchase did not go through.</c-banner>
   ```
-- **A theme is not a state.** It is the toggle.
+- **A theme is not a state.** It is the toggle. A set starts from the first entry of
+  `themes` in `design.js`; the viewer's choice is kept per product, never shared between them.
 - **No prose inside a page.** Comments in the markup are fine.
 - **Group names** are lowercase kebab-case folders. These recur and mean the
   same everywhere: `launch` (splash, app-wide pages), `auth`, `onboarding`
