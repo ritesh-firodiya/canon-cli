@@ -1,0 +1,9 @@
+metric,period,value
+turned_down_plan,2026-11,1
+versions_total,2026-11,39
+ios_versions_approved,2026-11,0
+store_rejections_min,2026-11,0
+reverted_total,2026-11,3
+ideas_dropped,2026-11,5
+experiments_discarded,2026-11,4
+features_shelved,2026-11,0

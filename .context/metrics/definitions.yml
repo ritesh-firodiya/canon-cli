@@ -1,0 +1,46 @@
+metrics:
+  # Written once from chat, git and the stores on 2026-11-02. Counts only.
+  - name: versions_total
+    label: Versions cut
+    type: simple
+    source: CHANGELOG.md and git tags
+    grain: snapshot
+    notes: Includes builds no public user received.
+  - name: ios_versions_approved
+    label: iOS versions approved
+    type: simple
+    source: App Store Connect
+    grain: snapshot
+    notes: Only versions Apple still lists.
+  - name: store_rejections_min
+    label: Store rejections, at least
+    type: simple
+    source: changelog, release.yml and chat
+    grain: snapshot
+    notes: A minimum. The store APIs do not expose past rejections.
+  - name: reverted_total
+    label: Decisions reverted
+    type: simple
+    source: git revert commits and chat, read by hand
+    grain: snapshot
+  - name: ideas_dropped
+    label: Ideas dropped
+    type: simple
+    source: ideas/ status
+    grain: snapshot
+  - name: experiments_discarded
+    label: Experiments discarded
+    type: simple
+    source: experiments/ outcome
+    grain: snapshot
+  - name: features_shelved
+    label: Features shelved or superseded
+    type: simple
+    source: features/ status
+    grain: snapshot
+  - name: turned_down_<phase>
+    label: Turned down at a stage
+    type: simple
+    source: the owner's chat messages, classified and sampled by hand
+    grain: month
+    notes: Approximate and a floor. Older chats are gone, so it starts on 2026-10-02.
