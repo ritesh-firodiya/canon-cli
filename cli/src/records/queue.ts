@@ -16,6 +16,8 @@ export interface QueueRow {
 function waitingStage(config: Config, data: Record<string, unknown>): string | null {
   if (!data.stage || !config.pipelines[String(data.pipeline ?? "default")]) return null;
   const stage = pipelineOf(config, String(data.pipeline ?? "default")).find((entry) => entry.id === data.stage);
+  // A gate someone is still working inside is not waiting for its review yet.
+  if (data.drafting === data.stage) return null;
   return stage && (stage.gate || stage.by === "person") && !isApproved(stage, data) ? stage.id : null;
 }
 

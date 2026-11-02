@@ -15,6 +15,8 @@ plan: PLAN-0001
 ## Summary
 A Claude Code mod in the canon plugin draws one band above the prompt: product, stage, what waits on you, checks, cost, usage left and the prompt cache, with a button to extend the cache.
 
+The band shows a stage only for a record: the one you selected, one waiting on you, or one a run has moved. Click the record ID to list open work, select a record or open its page. An edit in a later stage's folder moves the selected record there, an unapproved gate in the way holds it, and only `canon approve` passes a gate. Click a stage to set it by hand.
+
 ## Motivation
 The state of the work and its cost should be visible without asking, and colour should appear only when something needs the owner.
 

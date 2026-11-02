@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { isInside, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, extendLabel, isNarrow, isTestCommand, panelLines, windowViews } from './facts'
+import { fileLink, isInside, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, extendLabel, isNarrow, isTestCommand, panelLines, windowViews } from './facts'
 import { classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
 import type { BandFacts } from './types'
 
@@ -198,6 +198,7 @@ function following(on: any) {
   on('tool.call', () => ({ result: {} }))
   on('process.run', (_: unknown, e: any) => {
     const path = e.argv[2]
+    if (e.argv[1] !== 'band') return { value: { exitCode: 0, stdout: '', stderr: '' } }
     paths.push(path)
     const product = path.startsWith('/w/one') ? 'one' : path.startsWith('/w/two') ? 'two' : null
     return { value: { exitCode: 0, stdout: JSON.stringify({ ...FACTS, product, waiting: null, errors: [], features: ['process'] }), stderr: '' } }
@@ -223,6 +224,65 @@ test('from a parent folder the band follows edits between products, and ignores 
   await $.tool.call({ tool: 'Bash', command: 'cd two && ls' })
   expect(await ui.find({ type: 'Text', text: /^two/ })).toBeDefined()
   await ui.unmount()
+})
+
+const PICKING: BandFacts = {
+  ...FACTS,
+  root: '/w/shop',
+  selected: 'PROB-0012',
+  work: [
+    { id: 'PROB-0012', title: 'Ads too frequent', stage: 'design', waiting: 'design', file: '.context/problems/0012.md' },
+    { id: 'PLAN-0003', title: 'Fewer ads', stage: 'plan', waiting: null, file: '.context/plans/0003 a#b.md' },
+  ],
+}
+
+function picking(on: any, band: BandFacts = PICKING) {
+  const calls: string[][] = []
+  on('env.get', () => ({ value: undefined }))
+  on('session.start', (_: unknown, e: any) => ({ cwd: e.cwd }))
+  on('session.cwd', () => ({ value: '/w/shop' }))
+  on('session.model', () => ({ value: OPUS }))
+  mock.clock(on)
+  mock.store(on)
+  on('process.run', (_: unknown, e: any) => {
+    calls.push(e.argv)
+    return { value: { exitCode: 0, stdout: JSON.stringify(band), stderr: '' } }
+  })
+  on('tool.call', () => ({ result: {} }))
+  return calls
+}
+
+test('a click on a record selects it, and a click on a stage moves it', async ($, on) => {
+  const calls = picking(on)
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  const ui = await $.ui.mount(render('terminal'))
+  await ui.press({ key: 'problem' })
+  await ui.press({ key: 'pick-PLAN-0003' })
+  expect(calls).toContainEqual(['canon', 'work', 'PLAN-0003', '--repo', '/w/shop'])
+  await ui.press({ key: 'problem' })
+  await ui.press({ key: 'problem' })
+  await ui.press({ key: 'stage' })
+  await ui.press({ key: 'stage-design' })
+  expect(calls).toContainEqual(['canon', 'work', '--stage', 'design', '--repo', '/w/shop'])
+  await ui.unmount()
+})
+
+test('a file link opens the page, even with odd characters in its name', () => {
+  expect(fileLink('/w/shop', '.context/plans/0003 a#b.md')).toBe('file:///w/shop/.context/plans/0003%20a%23b.md')
+})
+
+test('an edit tells canon where process is on', async ($, on) => {
+  const calls = picking(on)
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  await $.tool.call({ tool: 'Edit', file_path: '/w/shop/src/a.ts', old_string: 'a', new_string: 'b' })
+  expect(calls).toContainEqual(['canon', 'work', '--edit', '/w/shop/src/a.ts'])
+})
+
+test('an edit tells canon nothing where process is off', async ($, on) => {
+  const calls = picking(on, { ...PICKING, features: [] })
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  await $.tool.call({ tool: 'Edit', file_path: '/w/shop/src/a.ts', old_string: 'a', new_string: 'b' })
+  expect(calls.some(argv => argv[1] === 'work')).toBe(false)
 })
 
 const NONE = { model: null, effort: null }

@@ -4,11 +4,11 @@ import { runChecks } from "../checks/check.ts";
 import type { Config, Feature } from "../config/schema.ts";
 import { loadConfig } from "../config/load.ts";
 import { readUserFeatures } from "../features/features.ts";
-import { stagesOf } from "../pipeline/pipeline.ts";
-import { queueOf, type QueueRow } from "../records/queue.ts";
-import { allRecords } from "../records/records.ts";
+import { queueOf } from "../records/queue.ts";
+import { allRecords, type WorkRecord } from "../records/records.ts";
 import { DEFAULT_CAP_USD } from "../run/run.ts";
 import { readRunning } from "../run/running.ts";
+import { readWork, stageOfRecord } from "../work/work.ts";
 
 export type StageMark = "ok" | "here" | "waiting" | "running" | "todo";
 
@@ -20,8 +20,19 @@ export interface BandProblem {
   file: string;
 }
 
+export interface BandWork {
+  id: string;
+  title: string;
+  stage: string | null;
+  waiting: string | null;
+  file: string;
+}
+
 export interface BandFacts {
   product: string | null;
+  root: string | null;
+  selected: string | null;
+  work: BandWork[];
   stage: string | null;
   stages: { id: string; state: StageMark }[];
   waiting: { record: string; stage: string } | null;
@@ -32,9 +43,9 @@ export interface BandFacts {
   features: Feature[];
 }
 
-const NOTHING: Omit<BandFacts, "product"> = { stage: null, stages: [], waiting: null, running: null, problem: null, errors: [], warnings: [], features: [] };
+const NOTHING: Omit<BandFacts, "product"> = { root: null, selected: null, work: [], stage: null, stages: [], waiting: null, running: null, problem: null, errors: [], warnings: [], features: [] };
 
-function productRoot(start: string): string | null {
+export function productRoot(start: string): string | null {
   let folder = resolve(start);
   while (!existsSync(join(folder, ".context"))) {
     if (dirname(folder) === folder) return null;
@@ -45,8 +56,7 @@ function productRoot(start: string): string | null {
 
 const titleOf = (body: string, id: string): string => /^# (.+)$/m.exec(body)?.[1]?.trim() ?? id;
 
-function problemOf(repo: string, config: Config, id: string | undefined): BandProblem | null {
-  const record = id ? allRecords(repo, config).find((entry) => entry.id === id) : undefined;
+function problemOf(record: WorkRecord | undefined): BandProblem | null {
   if (!record) return null;
   const text = (value: unknown) => (value === undefined || value === null ? null : String(value));
   return { id: record.id, title: titleOf(record.body, record.id), source: text(record.data.source), priority: text(record.data.priority), file: record.file };
@@ -59,12 +69,11 @@ function runningFacts(repo: string, config: Config): BandFacts["running"] {
   return { record: mark.record, stage: data.stage ? String(data.stage) : null, startedAt: mark.startedAt, spendUsd: Number(data.cost ?? 0), capUsd: config.cap ?? DEFAULT_CAP_USD };
 }
 
-function markStages(repo: string, config: Config, current: QueueRow | undefined, running: BandFacts["running"]): Pick<BandFacts, "stage" | "stages"> {
-  const stages = stagesOf(repo, config);
-  const started = stages.filter((stage) => stage.startedAt).at(-1)?.id ?? null;
-  const stage = running?.stage ?? current?.stage ?? started;
+/** Where the record in focus stands. A folder that exists says nothing about the work, so no record means no stage. */
+function markStages(config: Config, record: WorkRecord | undefined, here: StageMark): Pick<BandFacts, "stage" | "stages"> {
+  const stages = config.pipelines[String(record?.data.pipeline ?? "default")] ?? [];
+  const stage = record ? stageOfRecord(config, record) : null;
   const at = stages.findIndex((entry) => entry.id === stage);
-  const here: StageMark = running ? "running" : current?.waiting ? "waiting" : "here";
   return {
     stage,
     stages: stages.map((entry, index) => ({ id: entry.id, state: index === at ? here : index < at ? "ok" : "todo" })),
@@ -89,14 +98,25 @@ export function buildBand(start: string, options: { canonRoot: string }): BandFa
     return { product, ...NOTHING, errors: errors.length ? errors : [{ message: (error as Error).message }], warnings, features: onMachine };
   }
   const queue = queueOf(repo, config);
-  const current = queue.find((row) => row.waiting) ?? queue.find((row) => row.stage);
+  const records = allRecords(repo, config);
+  const selectedId = readWork(repo);
+  const selected = queue.find((row) => row.id === selectedId);
+  const current = selected ?? queue.find((row) => row.waiting) ?? queue.find((row) => row.stage);
   const running = runningFacts(repo, config);
+  const focus = records.find((record) => record.id === (running?.record ?? current?.id));
+  const here: StageMark = running ? "running" : current?.waiting ? "waiting" : "here";
   return {
     product,
-    ...markStages(repo, config, current, running),
+    root: repo,
+    selected: selected?.id ?? null,
+    work: queue.map(({ id, waiting, file }) => {
+      const record = records.find((entry) => entry.id === id) as WorkRecord;
+      return { id, title: titleOf(record.body, id), stage: stageOfRecord(config, record), waiting, file };
+    }),
+    ...markStages(config, focus, here),
     waiting: current?.waiting ? { record: current.id, stage: current.waiting } : null,
     running,
-    problem: problemOf(repo, config, running?.record ?? current?.id),
+    problem: problemOf(focus),
     errors,
     warnings,
     features: [...new Set([...config.features, ...onMachine])],

@@ -121,6 +121,7 @@ canon learn            # proposals from overridden verdicts
 canon new <kind> <t>   # start a page from its template: problem, idea, plan, finding, ...
 canon records          # what each kind, status and priority means here
 canon queue            # open work, most urgent first, and what it waits for
+canon work <record>    # select what you are working on; the band follows it (--stage <id>, --clear)
 canon reject <stage> --record <id> --note <why>   # a person sends any stage back; it and later stages run again
 canon set <record> field=value   # change a field, checked against the rules
 canon done <record>    # mark it complete

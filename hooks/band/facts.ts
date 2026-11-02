@@ -125,4 +125,7 @@ export function callUsd(model: string, inputTokens: number, outputTokens: number
   return price ? (inputTokens * price.input + outputTokens * price.output) / PER_MILLION : 0
 }
 
+/** A link to a record's page, for the terminal or surface to open. */
+export const fileLink = (root: string, file: string): string => `file://${encodeURI(`${root}/${file}`).replace(/[?#]/g, encodeURIComponent)}`
+
 export const usdLabel = (usd: number): string => `about $${usd.toFixed(usd < CENT ? 4 : 2)}`

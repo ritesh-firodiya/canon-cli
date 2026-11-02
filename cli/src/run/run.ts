@@ -262,7 +262,7 @@ function moveRecord(repo: string, config: Config, recordId: string, agent: Agent
     const completed = (record.data.completed ?? []) as string[];
     const skippedEarlier = ((record.data.skipped ?? []) as { stage: string }[]).some((entry) => entry.stage === stage.id);
     if (skippedEarlier) continue;
-    setFields(repo, record.file, { stage: stage.id });
+    setFields(repo, record.file, { stage: stage.id, drafting: null });
 
     if (!completed.includes(stage.id)) {
       if (stage.optional && !options.with?.includes(stage.id)) {

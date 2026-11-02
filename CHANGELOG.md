@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.2.0 — 2026-11-03
+
+### Added
+
+- **Choose your work from the band.** Click the record ID to list open work, select a record, or open its page. Click a stage to set it. `canon work <record>` does the same, with `--stage <id>` and `--clear`.
+- **The stage follows your edits.** An edit in a later stage's folder moves the selected record there. An unapproved gate in the way holds it, waiting on you, and only `canon approve` passes a gate. Editing a record's page selects it if nothing is selected.
+- `canon reject` works on any stage and reruns the later ones. Each stage's final message is saved on the record.
+
+### Changed
+
+- Research comes before ideas in the default pipeline.
+- The optional-stage check judges the work instead of searching for its words.
+
+### Fixed
+
+- **The band no longer guesses the stage from folders.** A repo with `.context/marketing` showed Marketing whatever you were doing. With no selected, waiting or running record, the band now shows no stage.
+- A gate you are still working in no longer shows WAITING ON YOU.
+- The band uses the record's own pipeline, not always the default one.
+- A code stage that changes no files and gives no reason now stops instead of passing.
+
+### Removed
+
+- `canon mcp`. Connectors can still use `via: mcp`.
+
 ## 2.1.2 — 2026-11-02
 
 ### Fixed

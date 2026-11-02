@@ -11,6 +11,7 @@ import {
   coldLabel,
   duration,
   extendLabel,
+  fileLink,
   isNarrow,
   isInside,
   isTestCommand,
@@ -34,6 +35,7 @@ const EXTEND_MESSAGE = 'Reply with only: ok'
 const CLASSIFIER_MODEL = 'claude-haiku-5-5'
 const CLASSIFIER_TIMEOUT_MS = 3000
 const CLASSIFIER_MAX_TOKENS = 5
+const WORK_ROWS = 8
 
 const AMBER = '#f0b429'
 const AMBER_INK = '#241a00'
@@ -78,6 +80,13 @@ async function followWork($: EngineInterface, path: string | null): Promise<void
     await update($, workPath, () => previous)
     await refreshFacts($)
   }
+}
+
+/** Runs a `canon work` choice from a click, then redraws. A refusal shows, since the person is looking. */
+async function runWork($: EngineInterface, root: string, args: string[]): Promise<void> {
+  const run = await $.process.run(['canon', 'work', ...args, '--repo', root]).catch(() => undefined)
+  if (run?.exitCode !== 0) await $.ui.toast(run?.stderr.trim() || 'canon could not run')
+  await refreshFacts($)
 }
 
 // shortcut: rewrites the whole log per prompt, since $.fs has no append; use `canon` to log if the file ever grows large.
@@ -205,6 +214,10 @@ export const register: Register = on => {
       if (e.tool === 'Bash') await followWork($, movedTo(e.command, await $.session.cwd()))
       if (e.tool === 'Edit' || e.tool === 'Write') await followWork($, e.file_path)
     }
+    // shortcut: only Edit and Write move the stage, so a file a Bash command writes says nothing; run canon work --stage then.
+    if ((e.tool === 'Edit' || e.tool === 'Write') && !result.isError && (await read($, facts))?.features?.includes('process')) {
+      await $.process.run(['canon', 'work', '--edit', e.file_path]).catch(() => undefined)
+    }
     if (e.tool === 'Bash' && isTestCommand(e.command)) await update($, tests, () => afterTestRun(Boolean(result.isError)))
     if ((e.tool === 'Edit' || e.tool === 'Write') && !result.isError) await update($, tests, value => afterEdit(value, e.file_path))
     return result
@@ -224,7 +237,7 @@ export const register: Register = on => {
     if (e.props.hasSurvey) return next(e)
     // Other mods share this slot: theirs draw below.
     const below = await next(e).catch(() => undefined)
-    const { Box, Button, Text } = $.ui.resolve(e)
+    const { Box, Button, Link, Text } = $.ui.resolve(e)
     const f = await read($, facts)
     const now = await $.clock.now()
     const open = await read($, panel)
@@ -286,7 +299,7 @@ export const register: Register = on => {
           f.waiting ? <Button key="waiting" plain onPress={toggle('review')}><Text backgroundColor={AMBER} color={AMBER_INK} bold> WAITING ON YOU </Text></Button> : null,
           f.errors.length ? <Button key="errors" plain onPress={toggle('errors')}><Text backgroundColor={RED_BG} color={RED} bold> {f.errors.length} ERROR{f.errors.length === 1 ? '' : 'S'} </Text></Button> : null,
           f.running ? <Text key="running" color={BLUE} bold>running {duration(now - Date.parse(f.running.startedAt))}</Text> : null,
-          f.problem && (f.running || f.waiting) ? <Button key="problem" plain dimColor label={f.problem.id} onPress={toggle('problem')} /> : null,
+          <Button key="problem" plain dimColor={!f.selected} label={f.problem?.id ?? 'pick work'} onPress={toggle('work')} />,
           pickButton,
           f.running ? <Text key="spend">{money(f.running.spendUsd)} of {money(f.running.capUsd)}</Text> : null,
           !f.running && !f.waiting && task > 0 ? <Text key="task" dimColor>task {money(task)}</Text> : null,
@@ -325,21 +338,46 @@ export const register: Register = on => {
 
     const stages = open === 'stage' && f ? (
       <Box key="stages" flexDirection="row" flexWrap="wrap">
-        {f.stages.map((s, i) => (
-          <Text key={s.id} color={s.state === 'waiting' || s.state === 'running' || s.state === 'here' ? AMBER : undefined} dimColor={s.state === 'todo'} bold={s.state === 'waiting'}>
-            {i ? ' · ' : ''}{stageWord(s.id, s.state)}
-          </Text>
-        ))}
+        {f.stages.map((s, i) => {
+          const word = (
+            <Text key={s.id} color={s.state === 'waiting' || s.state === 'running' || s.state === 'here' ? AMBER : undefined} dimColor={s.state === 'todo'} bold={s.state === 'waiting'}>
+              {i ? ' · ' : ''}{stageWord(s.id, s.state)}
+            </Text>
+          )
+          return f.selected && f.root ? <Button key={`stage-${s.id}`} plain onPress={() => runWork($, f.root as string, ['--stage', s.id])}>{word}</Button> : word
+        })}
       </Box>
     ) : null
-    const lines = open && open !== 'stage' && open !== 'route' && f ? panelLines(open, f) : []
+    const openLink = (key: string, file: string) => (f?.root ? <Text key={key}><Link href={fileLink(f.root, file)} label="open" /></Text> : null)
+    const allWork = f?.work ?? []
+    const workPanel = open === 'work' && f?.root ? (
+      <Box key="work" flexDirection="column">
+        {f.problem ? <Text key="current">{panelLines('problem', f).join('   ')}</Text> : null}
+        {allWork.length ? null : <Text key="none" dimColor>Nothing open. Start with canon new.</Text>}
+        {allWork.slice(0, WORK_ROWS).map(row => (
+          <Box key={row.id} flexDirection="row" gap={2}>
+            <Button key={`pick-${row.id}`} plain onPress={() => runWork($, f.root as string, [row.id])}>
+              <Text color={row.id === f.selected ? AMBER : undefined}>{row.id}</Text>
+            </Button>
+            <Text key="title">{row.title}</Text>
+            {row.stage ? <Text key="at" dimColor>{row.waiting ? `${row.stage} waiting` : row.stage}</Text> : null}
+            {openLink(`open-${row.id}`, row.file)}
+          </Box>
+        ))}
+        {allWork.length > WORK_ROWS ? <Text key="more" dimColor>{allWork.length - WORK_ROWS} more: canon queue, then canon work ID</Text> : null}
+        {f.selected ? <Button key="clear-work" plain dimColor label="select nothing" onPress={() => runWork($, f.root as string, ['--clear'])} /> : null}
+      </Box>
+    ) : null
+    const lines = open && open !== 'stage' && open !== 'route' && open !== 'work' && f ? panelLines(open, f) : []
 
     const mine = (
       <Box flexDirection="column" width={e.props.bodyColumns}>
         {rows}
         {stages}
         {routePanel}
+        {workPanel}
         {lines.map(line => <Text key={line}>{line}</Text>)}
+        {open === 'review' && f?.problem ? openLink('open-review', f.problem.file) : null}
       </Box>
     )
     return below ? <Box flexDirection="column">{mine}{below}</Box> : mine

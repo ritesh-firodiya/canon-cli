@@ -5,7 +5,7 @@ export type Chosen = { model: Tier | null; effort: Effort | null }
 
 export type StageMark = 'ok' | 'here' | 'waiting' | 'running' | 'todo'
 export type Tests = 'none' | 'ok' | 'stale' | 'failed'
-export type Panel = 'stage' | 'review' | 'errors' | 'warnings' | 'problem' | 'route'
+export type Panel = 'stage' | 'review' | 'errors' | 'warnings' | 'problem' | 'route' | 'work'
 
 export type Finding = { file?: string; message: string }
 
@@ -16,6 +16,10 @@ export type BandFacts = {
   stages: { id: string; state: StageMark }[]
   waiting: { record: string; stage: string } | null
   running: { record: string; stage: string | null; startedAt: string; spendUsd: number; capUsd: number } | null
+  // Optional: a newer band can meet an older canon.
+  root?: string | null
+  selected?: string | null
+  work?: { id: string; title: string; stage: string | null; waiting: string | null; file: string }[]
   problem: { id: string; title: string; source: string | null; priority: string | null; file: string } | null
   errors: Finding[]
   warnings: Finding[]

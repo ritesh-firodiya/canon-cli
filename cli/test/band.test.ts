@@ -50,11 +50,11 @@ describe("canon band", () => {
     expect(buildBand(repoWith(fields), options("/x")).waiting).toBeNull();
   });
 
-  test("with no open work, the stage is the last one started", () => {
+  test("with no open work there is no stage, whatever folders exist", () => {
     const repo = makeTree({ ".context/context.yaml": YAML, ".context/ideas/x.md": "x", ".context/plans/x.md": "x" });
     const band = buildBand(repo, options("/x"));
-    expect(band.stage).toBe("plan");
-    expect(band.stages.map((stage) => stage.state)).toEqual(["ok", "here", "todo"]);
+    expect(band.stage).toBeNull();
+    expect(band.stages.map((stage) => stage.state)).toEqual(["todo", "todo", "todo"]);
     expect(band.problem).toBeNull();
   });
 
