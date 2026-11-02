@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0 — 2026-11-02
+
+### Added
+
+- **`canon enable --user` and `canon disable --user`:** turn a feature on or off across your machine, in every repo and any other folder, including a parent folder. It is kept in `~/.canon/features.json` and adds to what a repo names. New installs stay band-only.
+
 ## 2.0.1 — 2026-11-02
 
 ### Fixed
