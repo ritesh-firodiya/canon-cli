@@ -21,3 +21,11 @@ export function setFeature(repo: string, name: string, isOn: boolean): string[] 
   writeFileSync(file, doc.toString());
   return next;
 }
+
+const PLUGINS: Record<string, string> = { process: "canon-process", knowledge: "canon-knowledge", styles: "canon-styles" };
+
+/** The Claude Code command that adds or removes a feature's plugin for one repo. Null when it has none: routing lives in the band. */
+export function pluginCommand(name: string, isOn: boolean): string[] | null {
+  const plugin = PLUGINS[name];
+  return plugin ? ["plugin", isOn ? "install" : "uninstall", `${plugin}@canon`, "--scope", "project"] : null;
+}

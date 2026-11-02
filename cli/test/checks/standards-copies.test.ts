@@ -6,7 +6,7 @@ import { contextFor } from "../helpers/context.ts";
 describe("standards-copies", () => {
   const canon = makeTree({
     "standards/wiki-schema.md": "<!-- header -->\n\n# Wiki schema\n\nRule one.\nRule two.\nRule three.\n",
-    "skills/ask/SKILL.md": "---\nname: ask\n---\nAsk body.\n",
+    "plugins/canon-knowledge/skills/ask/SKILL.md": "---\nname: ask\n---\nAsk body.\n",
   });
 
   test("a wiki CLAUDE.md that copies the shared schema is a warning", () => {
@@ -23,6 +23,6 @@ describe("standards-copies", () => {
   test("a product skill that canon now provides is a warning", () => {
     const repo = makeTree({ ".claude/skills/ask/SKILL.md": "anything" });
     const findings = standardsCopies.run(contextFor(repo, { canonRoot: canon }));
-    expect(findings).toEqual([expect.objectContaining({ file: ".claude/skills/ask", message: expect.stringMatching(/canon:ask/) })]);
+    expect(findings).toEqual([expect.objectContaining({ file: ".claude/skills/ask", message: expect.stringMatching(/canon-knowledge:ask/) })]);
   });
 });

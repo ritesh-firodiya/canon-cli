@@ -1,6 +1,6 @@
 {
   "name": "canon",
-  "version": "1.0.1",
-  "description": "Keeps your domain knowledge and AI rules in your repos and enforces them, so Claude hallucinates less.",
+  "version": "2.0.0",
+  "description": "A band above the prompt: usage left and the prompt cache, with a button to extend it. Everything else is off until you turn it on.",
   "types": "./hooks/band/types.d.ts"
 }

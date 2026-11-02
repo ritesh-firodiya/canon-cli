@@ -44,17 +44,23 @@ export const standardsCopies: Check = {
       }
     }
 
-    const canonSkills = join(canonRoot, "skills");
+    const plugins = join(canonRoot, "plugins");
     const productSkills = join(repo, ".claude", "skills");
-    if (existsSync(canonSkills) && existsSync(productSkills)) {
-      const provided = new Set(readdirSync(canonSkills));
+    if (existsSync(plugins) && existsSync(productSkills)) {
+      const provided = new Map(
+        readdirSync(plugins).flatMap((plugin) => {
+          const skills = join(plugins, plugin, "skills");
+          return existsSync(skills) ? readdirSync(skills).map((skill): [string, string] => [skill, plugin]) : [];
+        }),
+      );
       for (const skill of readdirSync(productSkills)) {
-        if (!provided.has(skill)) continue;
+        const plugin = provided.get(skill);
+        if (!plugin) continue;
         findings.push({
           check: "standards-copies",
           level: "warn",
           file: `.claude/skills/${skill}`,
-          message: `canon provides this as canon:${skill} — delete the product copy`,
+          message: `canon provides this as ${plugin}:${skill} — delete the product copy`,
         });
       }
     }

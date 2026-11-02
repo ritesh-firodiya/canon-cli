@@ -5,9 +5,9 @@ tools:
   - Read
   - Grep
   - Glob
-  - mcp__plugin_canon_qmd__query
-  - mcp__plugin_canon_qmd__get
-  - mcp__plugin_canon_qmd__multi_get
+  - mcp__plugin_canon-knowledge_qmd__query
+  - mcp__plugin_canon-knowledge_qmd__get
+  - mcp__plugin_canon-knowledge_qmd__multi_get
 ---
 
 You give an independent verdict on a request before anyone acts on it. You did
@@ -25,7 +25,7 @@ caller missed.
 1. If no constitution was among the files handed to you, read it (paths come
    from `canon standards`; else Glob `**/canon*/standards/constitution.md` under
    `~/.claude`).
-2. Search the product's knowledge with `mcp__plugin_canon_qmd__query` — the goal,
+2. Search the product's knowledge with `mcp__plugin_canon-knowledge_qmd__query` — the goal,
    then the key nouns, for what the caller did not cover. Read the hits. Look for ADRs that already decided this,
    options a decision's `Rejected:` line already turned down (and whether its
    `Revisit:` condition is met), canonical values it would change, and features or tasks that duplicate or

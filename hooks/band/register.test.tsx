@@ -13,7 +13,7 @@ const FACTS: BandFacts = {
   problem: { id: 'PROB-0012', title: 'Ads too frequent', source: 'reviews', priority: 'p1', file: '.context/problems/0012.md' },
   errors: [{ file: 'a.md', message: 'missing last-verified' }],
   warnings: [],
-  features: [],
+  features: ['process'],
 }
 
 const OPUS = 'claude-opus-5-5'
@@ -22,7 +22,8 @@ const render = (surface: 'terminal' | 'desktop', columns = 140, isWorking = fals
 
 const NOW = Date.parse('2026-11-02T10:00:00Z')
 
-function engine(on: any, band: BandFacts | null, frozen = false) {
+function engine(on: any, band: BandFacts | null, frozen = false, env: Record<string, string> = {}) {
+  on('env.get', (_: unknown, e: any) => ({ value: env[e.name] }))
   on('session.start', (_: unknown, e: any) => ({ cwd: e.cwd }))
   on('session.cwd', () => ({ value: '/w/shop' }))
   on('session.model', () => ({ value: OPUS }))
@@ -115,19 +116,21 @@ for (const surface of ['terminal', 'desktop'] as const) {
     await ui.unmount()
   })
 
-  test(`on ${surface}, outside a product only that is said`, async ($, on) => {
-    engine(on, { ...FACTS, product: null, stage: null, waiting: null, errors: [] })
-    await $.session.start({ cwd: '/w', surface, isInteractive: true })
+  test(`on ${surface}, without process the band shows no product, stage or checks`, async ($, on) => {
+    engine(on, { ...FACTS, features: [] })
+    await $.session.start({ cwd: '/w/shop', surface, isInteractive: true })
     const ui = await $.ui.mount(render(surface))
-    expect((await ui.find({ type: 'Text', text: /no product here/ }))).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /shop/ })).toBeUndefined()
+    expect(await ui.find({ key: 'waiting' })).toBeUndefined()
+    expect(await ui.find({ type: 'Text', text: /checks ok/ })).toBeUndefined()
     await ui.unmount()
   })
 
-  test(`on ${surface}, when canon cannot run the band says so`, async ($, on) => {
+  test(`on ${surface}, when canon cannot run the band still draws, with no product`, async ($, on) => {
     engine(on, null)
     await $.session.start({ cwd: '/w', surface, isInteractive: true })
     const ui = await $.ui.mount(render(surface))
-    expect((await ui.find({ type: 'Text', text: /canon unavailable/ }))).toBeDefined()
+    expect(await ui.find({ key: 'waiting' })).toBeUndefined()
     await ui.unmount()
   })
 }
@@ -186,6 +189,7 @@ test('a path inside the shown product needs no new read, and a similar name is n
 
 function following(on: any) {
   const paths: string[] = []
+  on('env.get', () => ({ value: undefined }))
   on('session.start', (_: unknown, e: any) => ({ cwd: e.cwd }))
   on('session.cwd', () => ({ value: '/w' }))
   on('session.model', () => ({ value: OPUS }))
@@ -196,7 +200,7 @@ function following(on: any) {
     const path = e.argv[2]
     paths.push(path)
     const product = path.startsWith('/w/one') ? 'one' : path.startsWith('/w/two') ? 'two' : null
-    return { value: { exitCode: 0, stdout: JSON.stringify({ ...FACTS, product, waiting: null, errors: [] }), stderr: '' } }
+    return { value: { exitCode: 0, stdout: JSON.stringify({ ...FACTS, product, waiting: null, errors: [], features: ['process'] }), stderr: '' } }
   })
   return paths
 }
@@ -205,7 +209,6 @@ test('from a parent folder the band follows edits between products, and ignores 
   const paths = following(on)
   await $.session.start({ cwd: '/w', surface: 'terminal', isInteractive: true })
   const ui = await $.ui.mount(render('terminal'))
-  expect(await ui.find({ type: 'Text', text: /no product here/ })).toBeDefined()
 
   await $.tool.call({ tool: 'Edit', file_path: '/w/one/a.ts', old_string: 'a', new_string: 'b' })
   expect(await ui.find({ type: 'Text', text: /^one/ })).toBeDefined()
@@ -275,8 +278,7 @@ test('a model id finds its tier, and the label says who chose', () => {
 
 function routed(on: any, env: Record<string, string> = {}, features: string[] = ['routing']) {
   const asked: string[] = []
-  engine(on, { ...FACTS, features })
-  on('env.get', (_: unknown, e: any) => ({ value: env[e.name] }))
+  engine(on, { ...FACTS, features }, false, env)
   on('fs.read', () => ({ value: '' }))
   on('fs.write', () => ({ value: undefined }))
   on('prompt.submit', (_: unknown, e: any) => ({ text: e.text }))

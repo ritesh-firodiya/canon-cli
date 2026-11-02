@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.0 — 2026-11-02
+
+A new install turns on only the band. Everything else is off until you turn it on for a repo.
+
+### Added
+
+- **`canon enable` and `canon disable`:** turn `process`, `knowledge`, `routing` or `styles` on or off for a repo.
+
+### Changed
+
+- **BREAKING:** the `canon` plugin is now only the band. Skills, the search server, the session-start text and output styles moved to `canon-process`, `canon-knowledge` and `canon-styles`. To keep them, run `canon enable process` and `canon enable knowledge` in each repo, or install them for your user.
+- **BREAKING:** skill names changed, such as `canon:weigh` to `canon-process:weigh`. The search tools are now `mcp__plugin_canon-knowledge_qmd__*`, and the output styles are `canon-styles:short` and `canon-styles:detail`.
+- **BREAKING:** the band shows the product, stage, gates, runs, checks, tests and task cost only with `process` on.
+- The `process` session-start text and the `weigh` and `standards` skills now need the CLI to read the standards.
+
 ## 1.0.1 — 2026-11-02
 
 ### Changed

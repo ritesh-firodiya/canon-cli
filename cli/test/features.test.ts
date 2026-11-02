@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { loadConfig } from "../src/config/load.ts";
-import { setFeature } from "../src/features/features.ts";
+import { pluginCommand, setFeature } from "../src/features/features.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const file = (repo: string) => join(repo, ".context", "context.yaml");
@@ -43,6 +43,13 @@ describe("canon enable and disable", () => {
 
   test("an unknown feature is refused, and names the ones there are", () => {
     expect(() => setFeature(makeTree({}), "search", true)).toThrow(/unknown feature "search" — choose from: routing, process, knowledge, styles/);
+  });
+
+  test("each feature with a plugin changes it for this repo only, and routing has none", () => {
+    expect(pluginCommand("process", true)).toEqual(["plugin", "install", "canon-process@canon", "--scope", "project"]);
+    expect(pluginCommand("knowledge", false)).toEqual(["plugin", "uninstall", "canon-knowledge@canon", "--scope", "project"]);
+    expect(pluginCommand("styles", true)?.[2]).toBe("canon-styles@canon");
+    expect(pluginCommand("routing", true)).toBeNull();
   });
 
   test("a config that does not parse is left alone", () => {

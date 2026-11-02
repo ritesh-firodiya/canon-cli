@@ -26,16 +26,16 @@ product's `.context/context.yaml` may tighten this under `weigh.trivial`.
 
 2. **Rules.** Run `canon standards --constitution` for the principle titles
    (canon's and any the team added), and read the constitution files that
-   `canon standards` lists — or `../../standards/constitution.md` (relative to
-   this skill) if the CLI is not installed. Note every principle the request
+   `canon standards` lists. If the CLI is not installed, say so and install
+   `@freetesh/canon`. Note every principle the request
    touches, by ID. Read a standard from `canon standards` only if the request is
    in its area.
 
-3. **Domain.** Search before you judge. Run `mcp__plugin_canon_qmd__query` with
+3. **Domain.** Search before you judge. Run `mcp__plugin_canon-knowledge_qmd__query` with
    the goal in plain words, then the key nouns, scoped with `collections` to
    this product's `<repo>-wiki` and `<repo>-features` (the names `canon init`
    gives them; add `pack-<name>` when the question is about a vendor's API). Other products' hits are noise here; step 5 is where
-   siblings are searched. Read the top hits with `mcp__plugin_canon_qmd__get`. Look for: an ADR that already
+   siblings are searched. Read the top hits with `mcp__plugin_canon-knowledge_qmd__get`. Look for: an ADR that already
    decided this, a canonical value it would change, a concept it would break,
    and a rule stated on a surface or concept page ("shows merged main only").
    **Rejected before?** Search the `Rejected:` lines of `decisions/` for the

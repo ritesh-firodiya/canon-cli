@@ -4,72 +4,106 @@
 
 <h1 align="center">canon</h1>
 
-<p align="center"><b>Facts, not assumptions.</b> Your rules and knowledge, kept in your repos. Enforced.</p>
+<p align="center"><b>See your usage and prompt cache above the prompt.</b> Turn on the rest only if you want it.</p>
 
-canon keeps domain knowledge, decisions and AI rules in each repo's `.context/`,
-enforces them, and makes them searchable. Claude searches them before it
-answers, weighs each request against them before it acts, and checks every
-claim in a request against facts. `canon check` fails when code or docs break a
-rule. The AI guesses less, and you redo less work.
+A new install of canon does one thing: it adds a band above the Claude Code
+prompt. It adds no skills, no startup text and no search server. In our test it
+added no startup tokens at all.
 
-<p align="center">
-  <img src=".github/assets/demo.svg" alt="canon weighs a request. Two of three claims have no facts and the request breaks a decided rule, so it pushes back and stops until the user brings facts, agrees to terms, or drops it.">
-</p>
+```
+canon                                        7D 41%  5H 96%  cache 53m  extend ~$0.17
+```
 
-Two parts, free and MIT, that read the same config:
+- **Usage left** in your 7-day and 5-hour windows, with the reset time when it runs low.
+- **Prompt cache:** how long it stays warm, and what your next message costs once it goes cold.
+- **Extend:** one click restarts the cache hour, and the button shows its estimated cost first.
 
-- **a Claude Code plugin** — skills, a decision gate, a session hook and a
-  search server, so every session in every repo starts with the same rules;
-- **the `canon` CLI** — set up, check, sync and search your repos.
-
-A hosted knowledge site, with every repo's `.context/` in one place for a team,
-is a separate paid product built on this CLI.
-
-## What it does
-
-- **Weigh before acting.** For a non-trivial request Claude checks the
-  constitution, the wiki and decisions, features and tasks, cost against value,
-  and the write-less ladder, then answers **DO IT**, **DO IT DIFFERENTLY** or
-  **PUSH BACK** with citations. Every verdict is logged; `canon learn` turns
-  repeated overrides into proposals.
-- **No assumptions.** Each claim in a request ("users want this", "it is slow")
-  is checked against the repo and its data sources and marked backed or not.
-- **Your data sources, your tools.** A repo describes each tool that holds its
-  data on a `SOURCE.*` wiki entity that names the MCP server, skill or CLI that
-  reads it. The gate queries it read-only to back or reject a claim.
-- **Knowledge that is found.** Every repo's wiki and feature board is indexed
-  with [QMD](https://github.com/tobi/qmd); Claude searches before answering.
-- **Context stays small.** A line belongs in `.context/` only if an agent would
-  get something wrong without it. Decisions are one file per topic, overwritten
-  when the choice changes; `tasks.md` holds open work only; history is git's.
-- **Hard rules are checks.** `canon check` validates layout, wiki frontmatter,
-  stale pages, placeholders, size caps, blocked tasks, feature pages, the store
-  listing tree, dead `.context/` paths, prices with no canonical home, shared
-  files, the import architecture, pipeline gates, and every checker your config
-  declares. `canon hooks install` makes every push run it.
-- **Standards with one home.** canon ships defaults every repo follows, and a
-  library a repo imports by name (`standards: [design-sets, pipeline]`): design
-  sets, the build pipeline, Expo, frontend, performance, secrets, store listings.
-  A repo's own rules can sit in a folder it adds. `canon standards` shows what
-  applies.
-- **A repo names only what it uses.** Modules, packs and shared-file sets are
-  opt-in; there is no skip list and no setting that turns a check off.
+Everything else is off until you turn it on for a repo. Free and MIT.
 
 ## Install
 
 ```bash
 claude plugin marketplace add ritesh-firodiya/canon-cli
 claude plugin install canon@canon
+```
+
+That is the whole band. To turn on anything else, you also need the CLI:
+
+```bash
 npm install -g @freetesh/canon
+```
+
+## Turn on what you want
+
+Run this in a repo, or add the name to `features:` in `.context/context.yaml`.
+`canon disable <feature>` turns it off again.
+
+```bash
+canon enable process
+```
+
+| Feature | What you get | Startup tokens added |
+|---|---|---|
+| `process` | The decision gate, decisions, standards, ideas with wildcards, and your stage, gates, runs and checks on the band | about 600 |
+| `knowledge` | Search and answers from your repo's knowledge, with a local index | about 1,160 |
+| `routing` | Effort and model picked for each prompt, shown on the band, and you can override it | none |
+| `styles` | `/output-style canon-styles:short` or `canon-styles:detail` to set how long answers are | none |
+
+A feature only affects the repo you enable it in. A session started in a parent
+folder does not load a repo's plugins, so install one for your user if you work
+that way: `claude plugin install canon-process@canon`.
+
+### `process`: facts, not assumptions
+
+<p align="center">
+  <img src=".github/assets/demo.svg" alt="canon weighs a request. Two of three claims have no facts and the request breaks a decided rule, so it pushes back and stops until the user brings facts, agrees to terms, or drops it.">
+</p>
+
+- **Weigh before acting.** For a non-trivial request Claude checks the
+  constitution, the wiki and decisions, features and tasks, cost against value,
+  and the write-less ladder, then answers **DO IT**, **DO IT DIFFERENTLY** or
+  **PUSH BACK** with citations. Try `/canon-process:weigh add a dark mode toggle`.
+- **No assumptions.** Each claim in a request ("users want this", "it is slow")
+  is checked against the repo and its data sources and marked backed or not.
+- **Your data sources, your tools.** A repo describes each tool that holds its
+  data on a `SOURCE.*` wiki entity that names the MCP server, skill or CLI that
+  reads it. The gate queries it read-only to back or reject a claim.
+- **Decisions in one place.** `/canon-process:decision` writes one file per topic,
+  overwritten when the choice changes. `tasks.md` holds open work only, and history is git's.
+- **More ideas.** `/canon-process:wildcard` makes 2 of every 10 ideas break your patterns.
+
+### `knowledge`: found before Claude answers
+
+Every repo's wiki and feature board is indexed with
+[QMD](https://github.com/tobi/qmd), and Claude searches before answering. Ask with
+`/canon-knowledge:ask`; `/canon-knowledge:ingest` with no argument captures what a session taught.
+
+```bash
 npm install -g @tobilu/qmd --allow-scripts=node-llama-cpp,tree-sitter-go,tree-sitter-python,tree-sitter-rust,tree-sitter-typescript,tree-sitter-javascript
 ```
 
-Then in any repo: `canon doctor`, `canon init`, `canon check`, `canon sync`.
-Try `/canon:weigh add a dark mode toggle` in a session; record choices with
-`/canon:decision` and ask about them with `/canon:ask`. `/canon:ingest` with no
-argument captures what a session taught.
+### `routing`: the right effort for each prompt
 
-## CLI
+Haiku sorts each typed prompt as small, medium or large, through your own login.
+Effort follows every prompt, because that keeps the cache. The model is picked at
+the start of a session and then only moves up, because a change reloads the chat.
+Your choice on the band, or `/model`, always wins. `canon usage` shows the counts
+and what deciding cost. Headless sessions and `canon run` agents are never routed.
+
+## Commands you run
+
+A command runs only when you type it. These need no feature turned on:
+
+- **`canon usage`** shows what your sessions used and would cost at list prices, by skill, tool, model and product.
+- **`canon check`** fails when a repo breaks its rules: layout, wiki frontmatter, stale pages, size caps, blocked tasks,
+  feature pages, dead paths, prices with no canonical home, the import architecture, pipeline gates and your own checkers. `canon hooks install` runs it on every push.
+- **`canon run`** moves a record through its pipeline with an agent, stopping at each gate and spend cap.
+- **`canon standards`** shows the defaults and library a repo imports by name (`standards: [design-sets, pipeline]`).
+
+A hosted knowledge site, with every repo's `.context/` in one place for a team,
+is a separate paid product built on this CLI.
+
+## All commands
 
 ```bash
 canon init             # write .context/context.yaml and the missing .context files
@@ -102,9 +136,8 @@ canon search "<q>"     # search the knowledge index
 canon flow <product>   # how far each local Claude conversation got against the pipeline (--write: metrics/flow.json)
 canon usage            # what local Claude sessions used and cost at list prices (--skill <name>, --unused, --json, --save)
 canon band             # the facts the band above the Claude Code prompt shows, as JSON
-canon enable <feature> # turn on routing, process, knowledge or styles for this repo (canon disable turns it off)
+canon enable <feature> # turn on process, knowledge, routing or styles for this repo (canon disable turns it off)
 canon mcp              # the search MCP server, for any MCP client
-/output-style canon:short    # in Claude Code: the answer in a few lines (canon:detail for the reasoning too)
 ```
 
 ## Config
@@ -169,10 +202,8 @@ Lists of names (`packs`, `standards`, `copies.use`) add up across the two files;
 
 ```
 .claude-plugin/   plugin manifest and marketplace
-skills/           weigh, standards, ask, ingest, decision, wiki-lint, wildcard
-output-styles/    short, detail
-agents/           challenger — a second opinion for too-large requests
-hooks/            session start: constitution titles, qmd refresh
+hooks/            the band: the only thing on by default
+plugins/          what `canon enable` adds per repo: canon-process (weigh, decision, standards, wiki-lint, wildcard, challenger, constitution), canon-knowledge (search, ask, ingest), canon-styles (short, detail)
 standards/        default standards
 packs/            vendor doc packs
 templates/        files init writes (dependency-cruiser base and starters)

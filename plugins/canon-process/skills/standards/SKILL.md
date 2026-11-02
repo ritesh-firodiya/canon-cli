@@ -7,8 +7,8 @@ description: Load the standards that cover the work before doing it — the repo
 
 1. List them: run `canon standards` in the repo. It prints every standard that
    applies — canon's defaults, then the team's and the repo's own (a team file
-   with the same name replaces canon's). If the `canon` CLI is not installed, use
-   the files in `../../standards/` (relative to this skill).
+   with the same name replaces canon's). If the `canon` CLI is not installed, say so
+   and install `@freetesh/canon`.
 2. Read only the ones that cover this work: designs, code, `.context/`, wiki,
    listing, secrets — judge from the file names, then their first lines.
 3. Follow them. Where two disagree, the more specific one (the repo's, then the

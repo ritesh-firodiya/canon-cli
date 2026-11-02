@@ -11,7 +11,7 @@ file with its own `agent-contract.md` in a configured standards folder.
   is the next action. After finishing, delete the task. The repo's `AGENTS.md`
   (or `CLAUDE.md`) carries these two lines, because without them an agent that
   was not told about `.context/` never finds it.
-- For a non-trivial request, run the weigh gate first (`/canon:weigh`).
+- For a non-trivial request, run the weigh gate first (`/canon-process:weigh`).
 
 ## Repository rules
 

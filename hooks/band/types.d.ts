@@ -34,7 +34,6 @@ declare module 'claude-code' {
   interface PluginState {
     canon: {
       facts: BandFacts | null
-      isLoaded: boolean
       workPath: string | null
       windows: UsageWindow[]
       cache: CacheFacts | null

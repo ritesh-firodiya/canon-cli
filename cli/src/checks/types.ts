@@ -13,7 +13,7 @@ export interface CheckContext {
   repo: string;
   name: string;
   config: Config;
-  /** Root of the canon repo, where standards/ and skills/ live. */
+  /** Root of the canon repo, where standards/ and plugins/ live. */
   canonRoot: string;
   today: Date;
 }

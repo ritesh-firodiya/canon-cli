@@ -42,7 +42,6 @@ const RED = '#ff7b72'
 const BLUE = '#8cc4ff'
 
 const facts = atom({ plugin: 'canon', key: 'facts' } as const, null as BandFacts | null)
-const isLoaded = atom({ plugin: 'canon', key: 'isLoaded' } as const, false)
 const workPath = atom({ plugin: 'canon', key: 'workPath' } as const, null as string | null)
 const isRouting = atom({ plugin: 'canon', key: 'isRouting' } as const, false)
 const isFresh = atom({ plugin: 'canon', key: 'isFresh' } as const, true)
@@ -59,7 +58,6 @@ const isExtending = atom({ plugin: 'canon', key: 'isExtending' } as const, false
 async function refreshFacts($: EngineInterface): Promise<void> {
   const path = (await read($, workPath)) ?? (await $.session.cwd())
   const run = await $.process.run(['canon', 'band', path]).catch(() => undefined)
-  await update($, isLoaded, () => true)
   if (run?.exitCode !== 0) return void update($, facts, () => null)
   try {
     const parsed = JSON.parse(run.stdout) as BandFacts
@@ -228,7 +226,6 @@ export const register: Register = on => {
     const below = await next(e).catch(() => undefined)
     const { Box, Button, Text } = $.ui.resolve(e)
     const f = await read($, facts)
-    const loaded = await read($, isLoaded)
     const now = await $.clock.now()
     const open = await read($, panel)
     const extending = await read($, isExtending)
@@ -280,7 +277,9 @@ export const register: Register = on => {
       </Box>
     ) : null
 
-    const work = f?.product
+    // Without `process` the band is usage, cache and extend: no product, stage or checks.
+    const hasProcess = Boolean(f?.features?.includes('process'))
+    const work = hasProcess && f?.product
       ? [
           <Text key="product">{f.product}{f.stage ? ' · ' : ''}</Text>,
           f.stage ? <Button key="stage" plain label={capitalise(f.stage)} onPress={toggle('stage')} /> : null,
@@ -292,9 +291,9 @@ export const register: Register = on => {
           f.running ? <Text key="spend">{money(f.running.spendUsd)} of {money(f.running.capUsd)}</Text> : null,
           !f.running && !f.waiting && task > 0 ? <Text key="task" dimColor>task {money(task)}</Text> : null,
         ]
-      : [<Text key="none" dimColor>{f ? 'no product here' : loaded ? 'canon unavailable' : ''}</Text>, pickButton]
+      : [pickButton]
 
-    const health = f?.product
+    const health = hasProcess && f?.product
       ? [
           f.warnings.length ? <Button key="warnings" plain onPress={toggle('warnings')}><Text color={AMBER}>{f.warnings.length} warning{f.warnings.length === 1 ? '' : 's'}</Text></Button> : null,
           !f.errors.length && !f.warnings.length ? <Text key="checks" dimColor>checks ok</Text> : null,
