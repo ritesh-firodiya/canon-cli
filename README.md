@@ -138,7 +138,6 @@ canon flow <product>   # how far each local Claude conversation got against the 
 canon usage            # what local Claude sessions used and cost at list prices (--skill <name>, --unused, --json, --save)
 canon band             # the facts the band above the Claude Code prompt shows, as JSON
 canon enable <feature> # turn on process, knowledge, routing or styles for this repo (canon disable turns it off)
-canon mcp              # the search MCP server, for any MCP client
 ```
 
 ## Config

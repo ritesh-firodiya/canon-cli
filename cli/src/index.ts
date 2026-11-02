@@ -21,7 +21,6 @@ import { registerUi } from "./ui/ui.command.ts";
 import { registerWiki } from "./wiki/wiki.command.ts";
 import { registerWeigh } from "./weigh/weigh.command.ts";
 import { findWorkspace } from "./checks/check.ts";
-import { registerMcp } from "./search/mcp.command.ts";
 import { registerSearch } from "./search/search.command.ts";
 import { registerFlow } from "./flow/flow.command.ts";
 import { registerUsage } from "./usage/usage.command.ts";
@@ -62,7 +61,6 @@ registerBand(program, env);
 registerFeatures(program);
 
 registerSearch(program);
-registerMcp(program);
 
 program.parseAsync().catch((error: Error) => {
   console.error(`canon: ${error.message}`);
