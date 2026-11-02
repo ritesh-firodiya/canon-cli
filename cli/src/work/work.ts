@@ -30,7 +30,9 @@ const stagesFor = (config: Config, record: WorkRecord): StageSpec[] => pipelineO
 export function stageOfRecord(config: Config, record: WorkRecord): string | null {
   const stages = stagesFor(config, record);
   const saved = stages.find((stage) => stage.id === record.data.stage);
-  return (saved ?? stages.find((stage) => stage.done.includes(join(".context", record.kind.folder))))?.id ?? null;
+  // The name comes first: a repo may point a stage's done at another kind's folder.
+  const named = stages.find((stage) => stage.id === record.kind.folder.replace(/s$/, ""));
+  return (saved ?? named ?? stages.find((stage) => stage.done.includes(join(".context", record.kind.folder))))?.id ?? null;
 }
 
 const needsApproval = (stage: StageSpec, record: WorkRecord): boolean => stage.gate && !isApproved(stage, record.data);

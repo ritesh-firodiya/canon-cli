@@ -48,6 +48,15 @@ describe("canon work", () => {
     expect(facts.root).toBe(repo);
   });
 
+  test("a record starts at the stage named for its kind, even when that stage's done folder is another", () => {
+    const yaml = "pipelines:\n  default:\n    - { id: plan, done: [.context/features] }\n    - { id: feature, done: [.context/bugs] }\n";
+    const repo = makeTree({ ".context/context.yaml": yaml, [PLAN]: page("PLAN-0001"), ".context/features/0001-a.md": page("FEAT-0001") });
+    selectWork(repo, config(repo), "PLAN-0001");
+    expect(band(repo).stage).toBe("plan");
+    selectWork(repo, config(repo), "FEAT-0001");
+    expect(band(repo).stage).toBe("feature");
+  });
+
   test("selecting a record that does not exist fails and changes nothing", () => {
     const repo = repoWith();
     expect(() => selectWork(repo, config(repo), "PLAN-0099")).toThrow("no record PLAN-0099");
