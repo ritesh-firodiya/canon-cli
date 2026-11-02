@@ -13,3 +13,6 @@ pipelines:
     - { id: release }
     - { id: marketing, by: agent, optional: true, done: [.context/marketing], prompt: "Read the context file in the marketing folder under .context, if there is one. Draft what this work needs in that folder. Claim only what the product does today. A person publishes it." }
     - { id: result }
+features:
+  - process
+  - knowledge
