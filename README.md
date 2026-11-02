@@ -102,6 +102,7 @@ canon search "<q>"     # search the knowledge index
 canon flow <product>   # how far each local Claude conversation got against the pipeline (--write: metrics/flow.json)
 canon usage            # what local Claude sessions used and cost at list prices (--skill <name>, --unused, --json, --save)
 canon mcp              # the search MCP server, for any MCP client
+/output-style canon:short    # in Claude Code: the answer in a few lines (canon:detail for the reasoning too)
 ```
 
 ## Config
@@ -165,7 +166,8 @@ Lists of names (`packs`, `standards`, `copies.use`) add up across the two files;
 
 ```
 .claude-plugin/   plugin manifest and marketplace
-skills/           weigh, standards, ask, ingest, decision, wiki-lint
+skills/           weigh, standards, ask, ingest, decision, wiki-lint, wildcard
+output-styles/    short, detail
 agents/           challenger — a second opinion for too-large requests
 hooks/            session start: constitution titles, qmd refresh
 standards/        default standards

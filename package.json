@@ -20,6 +20,7 @@
     "cli/dist",
     "standards",
     "skills",
+    "output-styles",
     "packs",
     "templates",
     "shell",

@@ -1,7 +1,7 @@
 ---
 id: FEAT-0023
 type: feature
-status: planned
+status: building
 priority: p2
 last-verified: 2026-11-02
 release: null
@@ -29,7 +29,7 @@ References and `weigh` both pull toward what exists, so new ideas get rarer over
 - Changing the standards, unless the owner says so.
 
 ## Open questions
-- Whether the default flow's `idea` stage calls this skill, or the owner calls it by hand. That depends on FEAT-0020.
+- For now the owner calls it by hand. Add it to the default flow's `idea` stage only if the wildcards prove useful.
 
 ## Store copy
 > Ask for ideas and get some that break your own patterns.

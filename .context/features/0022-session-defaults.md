@@ -1,7 +1,7 @@
 ---
 id: FEAT-0022
 type: feature
-status: planned
+status: building
 priority: p2
 last-verified: 2026-11-02
 release: null
@@ -13,14 +13,14 @@ plan: PLAN-0001
 # Session defaults
 
 ## Summary
-Compact instructions, a smaller startup and three output styles, so each session rereads less and answers at the size asked for.
+Compact instructions, a smaller startup and two output styles, so each session rereads less and answers at the size asked for.
 
 ## Motivation
 Cache rereads are most of the cost, and every reply rereads what loaded at startup.
 
 ## Acceptance scenarios
-- Given a new repo, when `canon init` runs, then its `CLAUDE.md` has a `# Compact instructions` section that keeps decisions, open tasks, file paths and failed attempts.
-- Given the canon plugin, then `short`, `normal` and `detail` output styles are available, and switching keeps the cache.
+- Given the owner's global `CLAUDE.md`, then its `# Compact instructions` section keeps decisions, open tasks, file paths and failed attempts. A hook cannot set this: `PreCompact` can only block.
+- Given the canon plugin, then `short` and `detail` output styles are available beside the default, and switching keeps the cache.
 - Given `/context` and `canon usage`, then the owner sees what could be turned off before anything changes.
 - Given the approved trim, then context at the first reply is lower than the baseline.
 
