@@ -52,18 +52,11 @@
     ]);
   }
 
-  /* The crawl loads every page in a frame, and every click in a page is a new document, so it would
-     run again per click. The journey always reads fresh and stores the result; the other views reuse
-     it for the tab's session. */
-  var CACHE = "babul-crawl:" + S.root + S.size;
-  var cached = null;
-  try { if (S.view !== "journey") cached = JSON.parse(sessionStorage.getItem(CACHE)); } catch (e) {}
-
+  /* Read the set every time. It takes under a second, and a stored copy showed deleted pages and hid new ones. */
   S.ready = new Promise(function (done) {
     document.addEventListener("DOMContentLoaded", function () {
-      Promise.resolve(cached ? null : page(BABUL_DESCRIBE.startOf(B.product || {}, S.size))).then(function () {
-        var m = cached || c.finish();
-        if (!cached) try { sessionStorage.setItem(CACHE, JSON.stringify(m)); } catch (e) {}
+      Promise.resolve(page(BABUL_DESCRIBE.startOf(B.product || {}, S.size))).then(function () {
+        var m = c.finish();
         m.errors.forEach(function (e) { console.warn("[crawl] " + e); });
         B.pages = m.pages;
         B.links = m.links;

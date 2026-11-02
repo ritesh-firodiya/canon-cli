@@ -66,15 +66,9 @@ describe("the shell's crawl", () => {
     return { ...run, built: () => built, shell };
   };
 
-  test("a page reuses the crawl the journey stored, without loading a frame", async () => {
-    const run = crawl("", store({ [CACHE]: JSON.stringify(model) }));
-    await (run.sandbox.BABUL_SHELL as { ready: Promise<void> }).ready;
-    expect(run.built()).toBe(true);
-    expect(run.frames).not.toContain("iframe");
-  });
-
-  test("the journey always reads the set again", () => {
-    const run = crawl("journey", store({ [CACHE]: JSON.stringify(model) }));
-    expect(run.frames).toContain("iframe");
+  test("every view reads the set again, whatever an older shell stored", () => {
+    for (const view of ["", "journey", "components"]) {
+      expect(crawl(view, store({ [CACHE]: JSON.stringify(model) })).frames).toContain("iframe");
+    }
   });
 });
