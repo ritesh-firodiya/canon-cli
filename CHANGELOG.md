@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1 — 2026-11-02
+
+### Fixed
+
+- `canon enable` and `canon disable` no longer reformat `context.yaml`. They now change only the `features:` lines. In 2.0.0 they could fold long lines and split one-line entries, though the values stayed the same.
+
 ## 2.0.0 — 2026-11-02
 
 A new install turns on only the band. Everything else is off until you turn it on for a repo.

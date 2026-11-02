@@ -24,6 +24,30 @@ describe("canon enable and disable", () => {
     expect(loadConfig(repo).config.features).toEqual(["process"]);
   });
 
+  test("nothing else in the file is reformatted, however long its lines", () => {
+    const long = "x".repeat(200);
+    const text = `# note\ncanon: 2.0.0\npipelines:\n  default:\n    - { id: a, by: agent, done: [.context/a], prompt: "${long}" }\n    - id: b\n      prompt: ${long}\n`;
+    const repo = makeTree({ ".context/context.yaml": text });
+    setFeature(repo, "process", true);
+    expect(readFileSync(file(repo), "utf8")).toBe(`${text}features:\n  - process\n`);
+    setFeature(repo, "process", false);
+    expect(readFileSync(file(repo), "utf8")).toBe(text);
+  });
+
+  test("a list in the middle of the file, in either form, changes in place", () => {
+    const repo = makeTree({ ".context/context.yaml": "kind: package\nfeatures: [routing]\ncap: 3\n" });
+    setFeature(repo, "styles", true);
+    expect(readFileSync(file(repo), "utf8")).toBe("kind: package\nfeatures:\n  - routing\n  - styles\ncap: 3\n");
+    setFeature(repo, "routing", false);
+    expect(readFileSync(file(repo), "utf8")).toBe("kind: package\nfeatures:\n  - styles\ncap: 3\n");
+  });
+
+  test("a file with no last line break still gets a clean field", () => {
+    const repo = makeTree({ ".context/context.yaml": "kind: package" });
+    setFeature(repo, "styles", true);
+    expect(readFileSync(file(repo), "utf8")).toBe("kind: package\nfeatures:\n  - styles\n");
+  });
+
   test("enabling twice adds it once, and disabling takes out only that one", () => {
     const repo = makeTree({});
     setFeature(repo, "routing", true);

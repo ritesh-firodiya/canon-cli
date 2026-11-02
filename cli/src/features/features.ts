@@ -11,15 +11,26 @@ export function setFeature(repo: string, name: string, isOn: boolean): string[] 
   const file = join(repo, ".context", "context.yaml");
   const exists = existsSync(file);
   if (!exists && !isOn) return [];
-  const doc = parseDocument(exists ? readFileSync(file, "utf8") : "");
+  const text = exists ? readFileSync(file, "utf8") : "";
+  const doc = parseDocument(text);
   if (doc.errors.length > 0) throw new Error(`${file} does not parse: ${doc.errors[0].message}`);
   const current = (doc.toJS()?.[FIELD] ?? []) as string[];
   const next = isOn ? [...new Set([...current, name])] : current.filter((feature) => feature !== name);
-  if (next.length > 0) doc.set(FIELD, next);
-  else doc.delete(FIELD);
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, doc.toString());
+  writeFileSync(file, withField(text, next));
   return next;
+}
+
+/** Replaces only the field's own lines: a person's formatting elsewhere in the file is theirs. */
+function withField(text: string, features: string[]): string {
+  const block = features.length > 0 ? [`${FIELD}:`, ...features.map((feature) => `  - ${feature}`)] : [];
+  const lines = text.split("\n");
+  if (lines.at(-1) === "") lines.pop();
+  const start = lines.findIndex((line) => line.startsWith(`${FIELD}:`));
+  if (start === -1) return [...lines, ...block, ""].join("\n");
+  const after = lines.findIndex((line, index) => index > start && !/^(\s|$)/.test(line));
+  const end = after === -1 ? lines.length : after;
+  return [...lines.slice(0, start), ...block, ...lines.slice(end), ""].join("\n");
 }
 
 const PLUGINS: Record<string, string> = { process: "canon-process", knowledge: "canon-knowledge", styles: "canon-styles" };
