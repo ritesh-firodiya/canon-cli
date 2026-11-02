@@ -3,6 +3,7 @@ import { basename, dirname, join, resolve } from "node:path";
 import { runChecks } from "../checks/check.ts";
 import type { Config, Feature } from "../config/schema.ts";
 import { loadConfig } from "../config/load.ts";
+import { readUserFeatures } from "../features/features.ts";
 import { stagesOf } from "../pipeline/pipeline.ts";
 import { queueOf, type QueueRow } from "../records/queue.ts";
 import { allRecords } from "../records/records.ts";
@@ -73,7 +74,8 @@ function markStages(repo: string, config: Config, current: QueueRow | undefined,
 /** Everything the band above the prompt shows about the work. It only reads, and approves nothing. */
 export function buildBand(start: string, options: { canonRoot: string }): BandFacts {
   const repo = productRoot(start);
-  if (!repo) return { product: null, ...NOTHING };
+  const onMachine = readUserFeatures();
+  if (!repo) return { product: null, ...NOTHING, features: onMachine };
   const product = basename(repo);
   const findings = runChecks(repo, options).findings;
   const pick = (level: string) => findings.filter((finding) => finding.level === level).map(({ file, message }) => ({ ...(file ? { file } : {}), message }));
@@ -84,7 +86,7 @@ export function buildBand(start: string, options: { canonRoot: string }): BandFa
     config = loadConfig(repo).config;
   } catch (error) {
     // runChecks reports a bad config too; the band still has to draw.
-    return { product, ...NOTHING, errors: errors.length ? errors : [{ message: (error as Error).message }], warnings };
+    return { product, ...NOTHING, errors: errors.length ? errors : [{ message: (error as Error).message }], warnings, features: onMachine };
   }
   const queue = queueOf(repo, config);
   const current = queue.find((row) => row.waiting) ?? queue.find((row) => row.stage);
@@ -97,6 +99,6 @@ export function buildBand(start: string, options: { canonRoot: string }): BandFa
     problem: problemOf(repo, config, running?.record ?? current?.id),
     errors,
     warnings,
-    features: config.features,
+    features: [...new Set([...config.features, ...onMachine])],
   };
 }

@@ -49,9 +49,10 @@ canon enable process
 | `routing` | Effort and model picked for each prompt, shown on the band, and you can override it | none |
 | `styles` | `/output-style canon-styles:short` or `canon-styles:detail` to set how long answers are | none |
 
-A feature only affects the repo you enable it in. A session started in a parent
-folder does not load a repo's plugins, so install one for your user if you work
-that way: `claude plugin install canon-process@canon`.
+A feature only affects the repo you enable it in. To turn one on across your
+machine, in every repo and any other folder, add `--user`:
+`canon enable routing --user`. A session started in a parent folder does not load a
+repo's plugins, so use `--user` if you work that way.
 
 ### `process`: facts, not assumptions
 

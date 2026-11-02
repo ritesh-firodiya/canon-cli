@@ -2,7 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { loadConfig } from "../src/config/load.ts";
-import { pluginCommand, setFeature } from "../src/features/features.ts";
+import { buildBand } from "../src/band/band.ts";
+import { pluginCommand, readUserFeatures, setFeature, setUserFeature } from "../src/features/features.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const file = (repo: string) => join(repo, ".context", "context.yaml");
@@ -74,6 +75,29 @@ describe("canon enable and disable", () => {
     expect(pluginCommand("knowledge", false)).toEqual(["plugin", "uninstall", "canon-knowledge@canon", "--scope", "project"]);
     expect(pluginCommand("styles", true)?.[2]).toBe("canon-styles@canon");
     expect(pluginCommand("routing", true)).toBeNull();
+  });
+
+  test("--user turns a feature on across the machine, in any repo and outside one, and off again", () => {
+    process.env.CANON_HOME = makeTree({});
+    const repo = makeTree({ ".context/context.yaml": "features: [process]\n" });
+    expect(buildBand(makeTree({}), { canonRoot: "/x" }).features).toEqual([]);
+    expect(setUserFeature("routing", true)).toEqual(["routing"]);
+    expect(setUserFeature("routing", true)).toEqual(["routing"]);
+    expect(buildBand(makeTree({}), { canonRoot: "/x" }).features).toEqual(["routing"]);
+    expect(buildBand(repo, { canonRoot: "/x" }).features).toEqual(["process", "routing"]);
+    expect(setUserFeature("routing", false)).toEqual([]);
+    expect(buildBand(repo, { canonRoot: "/x" }).features).toEqual(["process"]);
+  });
+
+  test("--user refuses an unknown feature, and a broken file counts as nothing on", () => {
+    const home = makeTree({ "features.json": "{broken" });
+    process.env.CANON_HOME = home;
+    expect(readUserFeatures()).toEqual([]);
+    expect(() => setUserFeature("search", true)).toThrow(/unknown feature/);
+  });
+
+  test("--user installs a feature's plugin for the user, not the repo", () => {
+    expect(pluginCommand("process", true, "user")).toEqual(["plugin", "install", "canon-process@canon", "--scope", "user"]);
   });
 
   test("a config that does not parse is left alone", () => {

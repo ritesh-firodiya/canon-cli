@@ -1,13 +1,39 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { parseDocument } from "yaml";
-import { FEATURES } from "../config/schema.ts";
+import { FEATURES, type Feature } from "../config/schema.ts";
 
 const FIELD = "features";
 
+function assertFeature(name: string): void {
+  if (!(FEATURES as readonly string[]).includes(name)) throw new Error(`unknown feature "${name}" — choose from: ${FEATURES.join(", ")}`);
+}
+
+const userFile = (): string => join(process.env.CANON_HOME ?? join(homedir(), ".canon"), "features.json");
+
+/** What this machine turns on everywhere: a person's own default, outside any repo, so it is never committed. */
+export function readUserFeatures(): Feature[] {
+  try {
+    const list: unknown = JSON.parse(readFileSync(userFile(), "utf8"));
+    return Array.isArray(list) ? list.filter((name): name is Feature => (FEATURES as readonly unknown[]).includes(name)) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function setUserFeature(name: string, isOn: boolean): string[] {
+  assertFeature(name);
+  const current = readUserFeatures() as string[];
+  const next = isOn ? [...new Set([...current, name])] : current.filter((feature) => feature !== name);
+  mkdirSync(dirname(userFile()), { recursive: true });
+  writeFileSync(userFile(), `${JSON.stringify(next)}\n`);
+  return next;
+}
+
 /** Turns one feature on or off in the repo's context.yaml, keeping the rest as written. Returns what is on now. */
 export function setFeature(repo: string, name: string, isOn: boolean): string[] {
-  if (!(FEATURES as readonly string[]).includes(name)) throw new Error(`unknown feature "${name}" — choose from: ${FEATURES.join(", ")}`);
+  assertFeature(name);
   const file = join(repo, ".context", "context.yaml");
   const exists = existsSync(file);
   if (!exists && !isOn) return [];
@@ -36,7 +62,7 @@ function withField(text: string, features: string[]): string {
 const PLUGINS: Record<string, string> = { process: "canon-process", knowledge: "canon-knowledge", styles: "canon-styles" };
 
 /** The Claude Code command that adds or removes a feature's plugin for one repo. Null when it has none: routing lives in the band. */
-export function pluginCommand(name: string, isOn: boolean): string[] | null {
+export function pluginCommand(name: string, isOn: boolean, scope: "project" | "user" = "project"): string[] | null {
   const plugin = PLUGINS[name];
-  return plugin ? ["plugin", isOn ? "install" : "uninstall", `${plugin}@canon`, "--scope", "project"] : null;
+  return plugin ? ["plugin", isOn ? "install" : "uninstall", `${plugin}@canon`, "--scope", scope] : null;
 }
