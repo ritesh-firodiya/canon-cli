@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, test } from "vitest";
 import { loadConfig } from "../src/config/load.ts";
@@ -290,6 +290,71 @@ pipelines:
     expect(get().data.rejections).toMatchObject([{ stage: "plan", by: "ben", note: "Too costly" }]);
     runRecord(repo, config, id, agent);
     expect(calls.at(-1)?.prompt).toContain("ben: Too costly");
+  });
+
+  test("a person can send back a stage with no gate, and every later stage runs again", () => {
+    const { repo, config, id, get } = setup();
+    const { agent } = fakeAgent();
+    runRecord(repo, config, id, agent);
+    approveStage(repo, config, id, "plan", "ana", "");
+    rejectStage(repo, config, id, "idea", "ben", "Wrong idea");
+    expect(get().data.completed).toEqual([]);
+    expect(get().data.approvals).toEqual([]);
+    expect(() => rejectStage(repo, config, id, "nope", "ben", "x")).toThrow(/no stage/);
+  });
+
+  describe("a stage that must change files", () => {
+    const CHANGES = `pipelines:
+  default:
+    - { id: build, by: agent, changes: true }
+    - { id: after, by: agent }
+`;
+    const gitSetup = () => {
+      const ctx = setup(CHANGES);
+      execFileSync("git", ["init", "-q"], { cwd: ctx.repo });
+      return ctx;
+    };
+
+    test("stops when nothing changed and no reason was given, and saves what it said", () => {
+      const { repo, config, id, get } = gitSetup();
+      const calls: string[] = [];
+      const result = runRecord(repo, config, id, (call) => {
+        calls.push(call.prompt);
+        writeFileSync(join(repo, get().file), `${readFileSync(join(repo, get().file), "utf8")}\nedited\n`);
+        return { ok: true, costUsd: 1, text: "It waits on the scan." };
+      });
+      expect(result).toMatchObject({ status: "stopped", stage: "build" });
+      expect(result.message).toContain("It waits on the scan.");
+      expect(get().data.completed ?? []).not.toContain("build");
+      expect(calls).toHaveLength(1);
+      expect(readFileSync(join(repo, get().file), "utf8")).toContain("build · It waits on the scan.");
+    });
+
+    test("goes on when a real file changed", () => {
+      const { repo, config, id } = gitSetup();
+      const result = runRecord(repo, config, id, () => {
+        writeFileSync(join(repo, "app.ts"), "x");
+        return { ok: true, costUsd: 1, text: "built" };
+      });
+      expect(result.status).toBe("done");
+    });
+
+    test("sees a new edit to a file that was already changed", () => {
+      const { repo, config, id } = gitSetup();
+      writeFileSync(join(repo, "app.ts"), "old");
+      const result = runRecord(repo, config, id, () => {
+        writeFileSync(join(repo, "app.ts"), "new");
+        return { ok: true, costUsd: 1, text: "built" };
+      });
+      expect(result.status).toBe("done");
+    });
+
+    test("goes on when the agent says why no change was needed", () => {
+      const { repo, config, id, get } = gitSetup();
+      const result = runRecord(repo, config, id, () => ({ ok: true, costUsd: 1, text: "NO CHANGE NEEDED: the fix is already on main." }));
+      expect(result.status).toBe("done");
+      expect(readFileSync(join(repo, get().file), "utf8")).toContain("already on main");
+    });
   });
 
   test("new work takes the default owner unless it names one", () => {

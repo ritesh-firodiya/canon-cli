@@ -230,6 +230,8 @@ const stage = z
     required: z.number().int().positive().optional(),
     /** The model for this stage: the smallest one that does the job well. */
     model: z.string().min(1).optional(),
+    /** The agent must change files outside the records, or say why none needed changing. */
+    changes: z.boolean().optional(),
     /** The tools an agent may use here. Absent: read and write files in the repo, with no shell. */
     tools: z.array(z.string().min(1)).optional(),
   })

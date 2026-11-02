@@ -54,13 +54,16 @@ export function approveStage(repo: string, config: Config, recordId: string, sta
   return approval;
 }
 
-/** Sends a stage back: its approvals are cleared, and the next run does it again and is told why. */
+/** Sends a stage back, gated or not: it and every stage after it lose their approvals and run again, and the next run is told why. */
 export function rejectStage(repo: string, config: Config, recordId: string, stageId: string, by: string, note: string, now = new Date()): void {
   const record = findRecord(repo, config, recordId);
-  stageOf(config, record, stageId);
+  const stages = pipelineOf(config, String(record.data.pipeline ?? "default"));
+  const from = stages.findIndex((stage) => stage.id === stageId);
+  if (from < 0) throw new Error(`no stage "${stageId}" here: ${stages.map((stage) => stage.id).join(", ")}`);
+  const redone = new Set(stages.slice(from).map((stage) => stage.id));
   setFields(repo, record.file, {
-    approvals: approvalsOf(record.data).filter((approval) => approval.stage !== stageId),
-    completed: ((record.data.completed ?? []) as string[]).filter((id) => id !== stageId),
+    approvals: approvalsOf(record.data).filter((approval) => !redone.has(approval.stage)),
+    completed: ((record.data.completed ?? []) as string[]).filter((id) => !redone.has(id)),
     rejections: [...((record.data.rejections ?? []) as object[]), { stage: stageId, by, at: now.toISOString(), note }],
   });
 }
