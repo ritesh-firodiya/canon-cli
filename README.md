@@ -102,6 +102,7 @@ canon search "<q>"     # search the knowledge index
 canon flow <product>   # how far each local Claude conversation got against the pipeline (--write: metrics/flow.json)
 canon usage            # what local Claude sessions used and cost at list prices (--skill <name>, --unused, --json, --save)
 canon band             # the facts the band above the Claude Code prompt shows, as JSON
+canon enable <feature> # turn on routing, process, knowledge or styles for this repo (canon disable turns it off)
 canon mcp              # the search MCP server, for any MCP client
 /output-style canon:short    # in Claude Code: the answer in a few lines (canon:detail for the reasoning too)
 ```
@@ -121,7 +122,7 @@ standards: [design-sets, pipeline, expo]   # canon's library standards this repo
 modules: [docs, knowledge, code, listing, refs]
 packs: [expo]
 name: Acme                          # how the product is written; `named` copies swap it in
-features: [routing]                 # what this repo turns on; everything is off unless named
+features: [routing]                 # what this repo turns on; only the band is on by default
 formerly: [acme-old]                # older folder names, so `canon flow` counts their conversations
 extends: [../rules/team.yaml]       # organization, product and team rules; the closest wins
 product: acme                       # repos naming one product act as one

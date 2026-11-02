@@ -26,6 +26,7 @@ import { registerSearch } from "./search/search.command.ts";
 import { registerFlow } from "./flow/flow.command.ts";
 import { registerUsage } from "./usage/usage.command.ts";
 import { registerBand } from "./band/band.command.ts";
+import { registerFeatures } from "./features/features.command.ts";
 import { canonVersion } from "./status/status.ts";
 
 const env: Env = {
@@ -58,6 +59,7 @@ registerWeigh(program);
 registerFlow(program, env);
 registerUsage(program, env);
 registerBand(program, env);
+registerFeatures(program);
 
 registerSearch(program);
 registerMcp(program);
