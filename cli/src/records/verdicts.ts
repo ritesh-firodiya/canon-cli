@@ -64,7 +64,7 @@ export function readVerdicts(repos: string[]): VerdictEntry[] {
       .filter((entry) => entry.isDirectory() && !["raw", "wiki", "designs"].includes(entry.name))
       .flatMap((folder) =>
         readdirSync(join(context, folder.name))
-          .filter((name) => /^\d{4}-.+\.md$/.test(name))
+          .filter((name) => name.endsWith(".md") && name !== "index.md")
           .flatMap((name) => parseVerdicts(readFileSync(join(context, folder.name, name), "utf8")).map((verdict) => ({ ...verdict, product: basename(repo) }))),
       );
   });

@@ -100,23 +100,37 @@ function resolveRecords(changes: RecordEntry[]): RecordKind[] {
     const statuses = entry.statuses ?? kind.statuses;
     // A default's words for a status the repo dropped go with it.
     const inherited = { ...kind.meanings, status: Object.fromEntries(Object.entries(kind.meanings.status ?? {}).filter(([status]) => statuses.includes(status))) };
-    return { ...kind, ...entry, closed: entry.closed ?? kind.closed.filter((status) => statuses.includes(status)), meanings: mergeMeanings(inherited, entry.meanings) };
+    const { fields, removedFields } = splitFields(kind.fields, entry);
+    return { ...kind, ...entry, fields, removed: removedFields, closed: entry.closed ?? kind.closed.filter((status) => statuses.includes(status)), meanings: mergeMeanings(inherited, entry.meanings) };
   });
   const added = kinds
     .filter((entry) => !DEFAULT_RECORDS.some((kind) => kind.folder === entry.folder))
-    .map(({ folder, prefix, statuses, closed, meanings, fields, sections, template }): RecordKind => {
-      if (!prefix || !statuses) throw new Error(`records: ${folder} is new, so it needs a prefix and statuses`);
-      return { folder, prefix, statuses, closed: closed ?? [], meanings: meanings ?? {}, fields: fields ?? {}, sections: sections ?? [], ...(template ? { template } : {}) };
+    .map((entry): RecordKind => {
+      if ((!entry.prefix && !entry.named) || !entry.statuses) throw new Error(`records: ${entry.folder} is new, so it needs a prefix (or named: true) and statuses`);
+      const { fields, removedFields } = splitFields({}, entry);
+      return { ...entry, prefix: entry.prefix ?? "", statuses: entry.statuses, closed: entry.closed ?? [], meanings: entry.meanings ?? {}, fields, removed: removedFields, required: entry.required ?? [], sections: entry.sections ?? [] };
     });
   const records = [...changedDefaults, ...added];
   for (const kind of records) {
     const unknown = Object.keys(kind.meanings.status ?? {}).concat(kind.closed).filter((status) => !kind.statuses.includes(status));
     if (unknown.length) throw new Error(`records: ${kind.folder} has no status ${unknown.join(", ")}`);
+    const impossible = kind.required.filter((field) => kind.removed.includes(field));
+    if (impossible.length) throw new Error(`records: ${kind.folder} both requires and removes ${impossible.join(", ")}`);
   }
-  const prefixes = records.map((kind) => kind.prefix);
+  const prefixes = records.map((kind) => kind.prefix).filter(Boolean);
   const repeated = prefixes.find((prefix, index) => prefixes.indexOf(prefix) !== index);
   if (repeated) throw new Error(`records: two kinds use the prefix ${repeated}`);
   return records;
+}
+
+function splitFields(base: RecordKind["fields"], entry: RecordEntry): { fields: RecordKind["fields"]; removedFields: string[] } {
+  const merged = { ...base, ...entry.fields };
+  const removedFields = Object.keys(merged).filter((field) => merged[field] === "remove");
+  return { fields: Object.fromEntries(Object.entries(merged).filter(([, rule]) => rule !== "remove")) as RecordKind["fields"], removedFields };
+}
+
+function mergeMeanings(base: RecordKind["meanings"], extra: RecordKind["meanings"] = {}): RecordKind["meanings"] {
+  return Object.fromEntries([...new Set([...Object.keys(base), ...Object.keys(extra)])].map((field) => [field, { ...base[field], ...extra[field] }]));
 }
 
 /** An entry naming a default stage inherits what it does not set, so one flow keeps one wording. */
@@ -129,10 +143,6 @@ function resolvePipelines(pipelines: Record<string, StageEntry[]>): Record<strin
     }),
   ]);
   return { default: DEFAULT_PIPELINE, ...Object.fromEntries(resolved) };
-}
-
-function mergeMeanings(base: RecordKind["meanings"], extra: RecordKind["meanings"] = {}): RecordKind["meanings"] {
-  return Object.fromEntries([...new Set([...Object.keys(base), ...Object.keys(extra)])].map((field) => [field, { ...base[field], ...extra[field] }]));
 }
 
 function mergeBy<T>(lists: T[][], key: (item: T) => string): T[] {
@@ -156,6 +166,7 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
   const inherited = [...new Set(own.flatMap((source) => extendedFiles(source.path)))].map((path): ConfigSource => ({ layer: "extends", path }));
   const sources = [...inherited, ...own];
   const layers = sources.map((source) => ({ path: source.path, data: readLayer(source.path), base: source.layer === "extends" ? dirname(source.path) : dirname(dirname(source.path)) }));
+  const inheritedLayers = layers.slice(0, inherited.length);
   const pick = <K extends keyof Layer>(key: K) => layers.map((layer) => layer.data[key]);
 
   const kind = lastDefined(pick("kind")) ?? inferKind(repo);
@@ -173,6 +184,7 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     wiki: { types: mergeBy(pick("wiki").map((wiki) => wiki?.types ?? []), (entry) => entry.type) },
     context: { folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder) },
     pipelines: resolvePipelines(Object.assign({}, ...pick("pipelines"))),
+    baseline: { pipelines: resolvePipelines(Object.assign({}, ...inheritedLayers.map((layer) => layer.data.pipelines))), cap: lastDefined(inheritedLayers.map((layer) => layer.data.cap)) },
     locks: layers.flatMap((layer) => (layer.data.locked ?? []).map((key) => ({ key, value: valueAt(layer.data, key), layer: layer.path }))),
     connectors: mergeBy(pick("connectors").map((list) => list ?? []), (entry) => entry.id),
     triggers: mergeBy(pick("triggers").map((list) => list ?? []), (entry) => entry.id),

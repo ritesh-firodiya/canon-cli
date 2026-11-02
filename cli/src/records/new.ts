@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { parse } from "yaml";
 import type { Config, RecordKind } from "../config/schema.ts";
+import { fieldProblem } from "./fields.ts";
 import { createRecord } from "./records.ts";
 
 const TEMPLATES = resolve(import.meta.dirname, "..", "..", "..", "templates", "records");
@@ -18,7 +19,7 @@ function splitTemplate(text: string, title: string, today: string): { fields: Re
 
 /** A kind with no template, such as a team's own, gets one from what its config requires. */
 function generatedTemplate(kind: RecordKind, title: string, today: string): { fields: Record<string, unknown>; body: string } {
-  const listed = Object.fromEntries(Object.entries(kind.fields).flatMap(([field, values]) => (values ? [[field, values[0]]] : [])));
+  const listed = Object.fromEntries(Object.entries(kind.fields).flatMap(([field, rule]) => (Array.isArray(rule) ? [[field, rule[0]]] : [])));
   return { fields: { status: kind.statuses[0], ...listed, "last-verified": today }, body: [`# ${title}`, ...kind.sections.map((section) => `\n## ${section}`)].join("\n") };
 }
 
@@ -47,7 +48,12 @@ export function newPage(repo: string, config: Config, what: string, title: strin
   const merged: Record<string, unknown> = { ...template.fields, ...(config.owner ? { owner: config.owner } : {}), ...fields };
   // A template's priority may not exist in a repo with its own list: start at that list's least urgent.
   if (merged.priority && !fields.priority && !(String(merged.priority) in config.priorities)) merged.priority = Object.keys(config.priorities).at(-1);
-  const missing = Object.keys(kind.fields).filter((field) => !merged[field]);
+  for (const field of kind.removed) delete merged[field];
+  const missing = kind.required.filter((field) => !field.startsWith("## ") && !merged[field]);
   if (missing.length) throw new Error(`${kind.folder} needs ${missing.map((field) => `--set ${field}=...`).join(" ")}`);
+  for (const [field, value] of Object.entries(fields)) {
+    const problem = fieldProblem(config, kind, field, value);
+    if (problem) throw new Error(problem);
+  }
   return createRecord(repo, kind, title, merged, template.body);
 }

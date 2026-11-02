@@ -23,6 +23,9 @@ export const REMOVED_WIKI_FOLDERS: Record<string, string> = {
 export const CONFIG_FILE = ".context/context.yaml";
 export const LOCAL_CONFIG_FILE = ".context/context.local.yaml";
 
+export const FIELD_TYPES = ["text", "date", "date-range", "number", "link"] as const;
+export type FieldRule = (typeof FIELD_TYPES)[number] | string[];
+
 /** One kind of numbered record, in its own `.context/` folder. */
 export interface RecordKind {
   folder: string;
@@ -32,9 +35,16 @@ export interface RecordKind {
   closed: string[];
   /** What each value means, by field: `status: { open: "..." }`. Agents are given this. */
   meanings: Record<string, Record<string, string>>;
-  /** Frontmatter fields every record of this kind must have; a list limits the values. */
-  fields: Record<string, string[] | null>;
+  /** Fields this kind knows: a type, or a list of allowed values. A value is checked only if it is present. */
+  fields: Record<string, FieldRule>;
+  /** Fields a page may not have. */
+  removed: string[];
+  /** What a page must have: field names, and sections as `## Name`. */
+  required: string[];
+  /** What a template and an agent start from. Not enforced by itself. */
   sections: string[];
+  /** Named by a unique name instead of a number; the file is `<name>.md`. */
+  named?: boolean;
   /** The repo's own template for `canon new`, relative to the repo root. */
   template?: string;
 }
@@ -54,7 +64,9 @@ export const DEFAULT_RECORDS: RecordKind[] = [
     prefix: "PROB",
     statuses: ["open", "solving", "solved", "dismissed"],
     closed: ["solved", "dismissed"],
-    fields: { source: null, priority: null },
+    fields: { source: "text" },
+    removed: [],
+    required: [],
     sections: ["Summary", "Impact", "Expected"],
     meanings: {
       status: { open: "Raised, and nobody has started on it.", solving: "Work is under way.", solved: "The Expected section is now true, with proof.", dismissed: "Decided not to solve it. The page says why." },
@@ -66,6 +78,8 @@ export const DEFAULT_RECORDS: RecordKind[] = [
     statuses: ["draft", "accepted", "shipped", "dropped"],
     closed: ["shipped", "dropped"],
     fields: {},
+    removed: [],
+    required: [],
     sections: ["Summary"],
     meanings: {
       status: { draft: "Proposed, and not yet judged.", accepted: "Chosen to go ahead.", shipped: "Built and live.", dropped: "Rejected. Its verdict says why, so do not propose it again without new facts." },
@@ -73,14 +87,16 @@ export const DEFAULT_RECORDS: RecordKind[] = [
   },
   {
     folder: "experiments",
-    prefix: "EXP",
+    prefix: "",
+    named: true,
     statuses: ["planned", "running", "done", "dropped"],
     closed: ["done", "dropped"],
-    fields: { kind: ["poc", "experiment"] },
-    sections: ["Summary"],
+    fields: {},
+    removed: [],
+    required: [],
+    sections: ["Summary", "Hypothesis", "Metric", "Result"],
     meanings: {
       status: { planned: "Written, and not started.", running: "Being built or measured.", done: "Finished, and its Result is written, whether it worked or not.", dropped: "Stopped before it gave an answer." },
-      kind: { poc: "A small working proof that an idea can work.", experiment: "A measured test of whether it helps." },
     },
   },
   {
@@ -88,7 +104,9 @@ export const DEFAULT_RECORDS: RecordKind[] = [
     prefix: "PLAN",
     statuses: ["draft", "approved", "building", "done", "dropped"],
     closed: ["done", "dropped"],
-    fields: { problem: null },
+    fields: { problem: "link" },
+    removed: [],
+    required: [],
     sections: ["Approach", "Steps"],
     meanings: {
       status: { draft: "Written, and waiting for a person.", approved: "A person agreed. Work may start.", building: "Its features and bugs are in progress.", done: "Every step is finished.", dropped: "Abandoned. The page says why." },
@@ -100,7 +118,9 @@ export const DEFAULT_RECORDS: RecordKind[] = [
     statuses: ["planned", "building", "shipped", "shelved", "superseded"],
     closed: ["shipped", "shelved", "superseded"],
     fields: { type: ["feature", "chore", "platform"] },
-    sections: [],
+    removed: [],
+    required: [],
+    sections: ["Summary", "Motivation", "Acceptance scenarios"],
     meanings: {
       status: { planned: "Agreed, and not started.", building: "Being written.", shipped: "Released. Outcome says if it stayed.", shelved: "Paused, and not expected soon.", superseded: "Replaced by another feature." },
       type: { feature: "Something users see.", chore: "Upkeep users do not see.", platform: "Groundwork other features need." },
@@ -112,6 +132,8 @@ export const DEFAULT_RECORDS: RecordKind[] = [
     statuses: ["open", "fixing", "fixed", "wontfix"],
     closed: ["fixed", "wontfix"],
     fields: { severity: ["low", "medium", "high", "critical"] },
+    removed: [],
+    required: [],
     sections: ["Summary", "Expected", "Actual"],
     meanings: {
       status: { open: "Reported, and not started.", fixing: "Being fixed.", fixed: "Fixed, with a test that failed before.", wontfix: "Decided not to fix it. The page says why." },
@@ -197,6 +219,8 @@ const stage = z
     cap: z.number().positive().optional(),
     /** What the agent is told to do at this stage. */
     prompt: z.string().min(1).optional(),
+    /** What to check it against before changing anything: connector ids and live addresses. */
+    verify: z.array(z.string().min(1)).optional(),
     /** Who may approve this stage, by git user name. Absent: any person. */
     approvers: z.array(z.string().min(1)).optional(),
     /** How many different people must approve. */
@@ -232,7 +256,10 @@ const recordEntry = z
     statuses: z.array(z.string().min(1)).min(1).optional(),
     closed: z.array(z.string().min(1)).optional(),
     meanings: z.record(z.string(), z.record(z.string(), z.string().min(1))).optional(),
-    fields: z.record(z.string(), z.array(z.string()).nullable()).optional(),
+    /** A type, allowed values, or `remove`. */
+    fields: z.record(z.string(), z.union([z.enum([...FIELD_TYPES, "remove"]), z.array(z.string())])).optional(),
+    required: z.array(z.string().min(1)).optional(),
+    named: z.boolean().optional(),
     sections: z.array(z.string().min(1)).optional(),
     template: z.string().min(1).optional(),
     remove: z.boolean().optional(),
@@ -336,6 +363,8 @@ export interface Config {
   cap?: number;
   priorities: Record<string, string>;
   owner?: string;
+  /** What this repo's own layers build on, to show what they weakened. */
+  baseline: { pipelines: Record<string, StageSpec[]>; cap?: number };
   /** What each layer locked, with the value it locked and where. */
   locks: { key: string; value: unknown; layer: string }[];
   connectors: ConnectorSpec[];

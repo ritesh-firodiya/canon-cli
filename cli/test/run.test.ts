@@ -186,11 +186,11 @@ describe("canon new", () => {
     newPage(repo, config, "feature", "Retry");
     newPage(repo, config, "bug", "Double charge");
     expect(check(repo)).toEqual([]);
-    expect(allRecords(repo, config).map((record) => record.id)).toEqual(["PROB-0001", "IDEA-0001", "EXP-0001", "PLAN-0001", "FEAT-0001", "BUG-0001"]);
+    expect(allRecords(repo, config).map((record) => record.id)).toEqual(["PROB-0001", "IDEA-0001", "retry-proof", "PLAN-0001", "FEAT-0001", "BUG-0001"]);
   });
 
   test("a required field with no default must be given", () => {
-    const repo = makeTree({});
+    const repo = makeTree({ ".context/context.yaml": "records:\n  - { folder: plans, required: [problem] }\n" });
     expect(() => newPage(repo, loadConfig(repo).config, "plan", "P")).toThrow(/--set problem=/);
   });
 

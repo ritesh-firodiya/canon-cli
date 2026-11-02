@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.29.0 — 2026-11-02
+
+The flow is a default each product changes, and what it decides stays enforced.
+
+### Added
+
+- **Fields:** `fields:` takes `text`, `date`, `date-range`, `number`, `link`, allowed values, or `remove`. `required:` names fields and `## ` sections. Only `id` is required by default.
+- **`canon set`** and **`canon done`** change fields and mark work complete, checked against the repo's rules.
+- **Named experiments:** `canon experiment start <name> --from <stage> [--to <stage>]`. Records made for one name it with `experiment:`.
+- **Checks against real sources:** `verify:` on a stage reads connectors and live addresses first. Wrong stops the run, and a source that cannot be reached needs a person's `--unverified` reason. The result goes under `## Checked`.
+- **Optional stages:** `canon run --with` and `--skip`. With no `when:`, an optional stage is skipped unless asked for.
+- **Enforcement:** `canon status` lists what a repo has weakened and whether it has a hook and a CI job. `canon init` adds a CI job. `canon check` fails a stage passed with no record of being done or skipped, a `verify:` stage with no check, and duplicate ids.
+
+### Changed
+
+- **BREAKING:** the default flow is `problem, idea, research, plan, feature, design, code, review, release, result`. `research` and `code` are back; `development` and `poc` are gone.
+- **BREAKING:** experiments are `experiments/<name>.md` with `name:`. `EXP-NNNN`, `kind: poc` and `experiment: true` are gone.
+- **BREAKING:** `fields:` no longer means required. Use `required:`. `sections:` are suggestions.
+- `canon init` creates `features/` again, and `features/` is required unless a repo removes it.
+
 ## 0.28.1 — 2026-11-02
 
 ### Fixed

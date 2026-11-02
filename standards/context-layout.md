@@ -55,7 +55,7 @@ folder.
 | Stage | Expected |
 |---|---|
 | any repo | `README.md` · `tasks.md` · `context.yaml` |
-| uses the `docs` or `knowledge` module | + `raw/` · `wiki/`; each record folder appears with its first record |
+| uses the `docs` or `knowledge` module | + `raw/` · `wiki/` · `features/`; other record folders appear with their first record |
 | draws its UI | + `designs/` (required for a mobile or web repo: designs come first) |
 | has a store presence | + `listing/` |
 | is live to users | + `marketing/` · `metrics/` · `support/` · `legal/` |
@@ -65,8 +65,8 @@ folder.
 
 - Dated sources (`raw/`) → ISO date: `YYYY-MM-DD-slug.md`. Month-grain data
   keeps `YYYY-MM.csv`.
-- Records (problems, ideas, experiments, plans, features, bugs) → zero-padded
-  number: `NNNN-slug.md`, with the same number in the ID.
+- Records → zero-padded number: `NNNN-slug.md`, with the same number in the ID.
+  Experiments → their unique name: `<name>.md`.
 - Everything else is named by topic and edited in place.
 - Frontmatter: `last-verified`, kebab-case keys. See the wiki schema.
 
@@ -83,8 +83,7 @@ Each name maps to one home; there is no separate folder per name.
 | Input (one event from a trigger) | `sources:` on its Problem: `source`, `id`, `link`, `count`, `first`, `last`. The event stays in its own tool; its text can hold personal data and is never kept |
 | Idea | `ideas/`, `IDEA-NNNN` |
 | Discovery | `wiki/synthesis/`, naming its `ideas:` |
-| POC, or a test that never ships | `experiments/`, `EXP-NNNN`; the result is a decision page |
-| A plan or feature that goes live as a test | its own page, with `experiment: true` |
+| POC, experiment | `experiments/<name>.md`; records made for it name it with `experiment:` |
 | Plan | `plans/`, `PLAN-NNNN` |
 | RFC | `plans/`; once accepted, the choice goes in `wiki/decisions/` |
 | PRD | `features/`, `type: feature` |
@@ -157,43 +156,26 @@ outcome: retained         # once it has run: retained | discarded | retried
 The wiki describes what *is*; `features/` describes what is *next*. A shipped
 feature goes `status: shipped` and is never deleted, so the reasoning survives.
 
-## The other records
+## Records
 
-Every record has `id`, `status` and `last-verified`. `canon check` verifies the
-fields and sections below, and that each link names a record that exists.
+Only `id` is required (`name` on a named kind). A value that is present must fit
+the rules below. A repo requires what it wants. `canon records` prints a repo's
+vocabulary in words, and agents are given the same text.
 
-| Record | Status | Other fields | Sections |
-|---|---|---|---|
-| `problems/` | open · solving · solved · dismissed | `source` (who or what raised it), `priority` (p0–p3) | Summary · Impact · Expected |
-| `ideas/` | draft · accepted · shipped · dropped | `problems: [PROB-0001]`, `owner`, `due` | Summary |
-| `experiments/` | planned · running · done · dropped | `kind` (poc · experiment), `ideas: [IDEA-0001]` | Summary; Result once done. An experiment also has Hypothesis and Metric (a name from `metrics/definitions.yml`) |
-| `plans/` | draft · approved · building · done · dropped | `problem: PROB-0001`, `ideas: [IDEA-0001]` | Approach · Steps |
-| `bugs/` | open · fixing · fixed · wontfix | `severity` (low · medium · high · critical), `plan: PLAN-0001` | Summary · Expected · Actual |
+| Record | Status | Usual sections |
+|---|---|---|
+| `problems/` | open · solving · solved · dismissed | Summary · Impact · Expected |
+| `ideas/` | draft · accepted · shipped · dropped | Summary |
+| `experiments/` | planned · running · done · dropped | Summary · Hypothesis · Metric · Result |
+| `plans/` | draft · approved · building · done · dropped | Approach · Steps |
+| `features/` | planned · building · shipped · shelved · superseded | Summary · Motivation · Acceptance scenarios |
+| `bugs/` | open · fixing · fixed · wontfix | Summary · Expected · Actual |
 
-These are the defaults. A repo changes them in `context.yaml`: `canon check`
-follows what it says, and a link can name any kind the repo has.
+A record with no status counts as open. Canon writes `pipeline`, `stage`,
+`completed`, `skipped`, `verified`, `approvals`, `rejections`, `sources`, `cost`
+and `rules`; `canon set` refuses them.
 
-```yaml
-records:
-  - { folder: campaigns, prefix: CAMP, statuses: [draft, live, ended], fields: { channel: [email, ads] }, sections: [Goal] }  # add
-  - { folder: bugs, statuses: [new, closed] }   # change: only what is named
-  - { folder: ideas, remove: true }             # remove
-```
-
-The runner keeps its place on the record: `pipeline`, `stage`, `completed`,
-`skipped` (with the reason) and `cost`.
-
-### Experiments that go live
-
-Any record can run as a test and be thrown away on its results. Add
-`experiment: true`, with `## Hypothesis` and `## Metric`. When the results are
-in, set `outcome` and write `## Result`. A discarded page is never deleted, so
-nobody proposes the same thing again without seeing what happened.
-
-## Meanings, priority, approvals and ownership
-
-`canon records` prints a repo's vocabulary in words, and agents are given the same
-text. Everything below is a default a repo changes in `context.yaml`.
+### Changing them
 
 ```yaml
 owner: payments                 # who owns work unless a record says otherwise
@@ -201,25 +183,72 @@ priorities:                     # replaces the list; most urgent first
   urgent: Customers are blocked.
   later: Do it when there is room.
 records:
-  - { folder: bugs, statuses: [new, closed], closed: [closed], meanings: { status: { new: Fresh from a customer. } } }
-pipelines:
-  default:
-    - { id: plan, by: agent, gate: true, approvers: [ana, ben], required: 2 }
+  - folder: plans
+    fields:
+      timeline: date-range      # text, date, date-range, number or link
+      risk: [low, high]         # allowed values
+      owner: remove             # a page may not have it
+    required: [timeline, "## Approach"]
+    statuses: [new, closed]
+    closed: [closed]            # the statuses that end the work
+    meanings: { status: { new: Fresh from a customer. } }
+  - { folder: campaigns, prefix: CAMP, statuses: [draft, live] }   # a kind of your own
+  - { folder: ideas, remove: true }
 ```
 
-- **Meanings:** `meanings:` under a record kind explains the values of any field.
-  `closed:` names the statuses that end the work.
-- **Priority:** `priority:` on any record. `canon queue` lists open work by it,
-  most urgent first. The `records` check fails a value not in the list.
-- **Approvals:** `canon approve` adds a person to `approvals:`; `canon reject` sends
-  the stage back with a reason, clears its approvals, and the next run is told why.
-  `approvers:` limits who counts and `required:` how many. People are matched by
-  their git user name, so this is a record, not proof of identity.
-- **Ownership:** `owner:` on a record is a person or team, defaulting to the
-  config's `owner`. To require one, add `owner` under a kind's `fields:`.
-- **Versions:** git versions all of it. `canon:` in `context.yaml` pins the canon
-  version. A run writes `rules:` on the record, the commit of `context.yaml` it
-  started under.
+`canon set PLAN-0001 status=approved` changes a field, checked against these rules.
+`canon done PLAN-0001` sets the kind's first closing status.
+
+### The flow
+
+`problem → idea → research → plan → feature → design → code → review → release → result`
+
+A repo re-orders, adds, removes or renames stages under `pipelines:`, and adds named
+pipelines. A stage naming a default id inherits what it does not set. Discoveries and
+findings are written in `research`. An optional stage with `when:` is decided by the
+AI; with no `when:` it is skipped unless asked for: `canon run <id> --with <stage>`
+or `--skip <stage>`.
+
+### Experiments
+
+An experiment has a unique name and can start at any stage:
+`canon experiment start checkout-retry --from design`. Earlier stages are recorded as
+skipped. A POC is `--from code --to code`. Records made for it name it:
+`experiment: checkout-retry`. When the results are in, set `outcome: retained`,
+`discarded` or `retried` and write `## Result`. A discarded page is never deleted, so
+nobody proposes the same thing again without seeing what happened.
+
+### Checking before a change
+
+`verify: [sentry, "https://app.example.com"]` on a stage lists connectors and live
+addresses. A read-only step checks them first. Confirmed, the stage runs. Wrong, the
+run stops and says what it found. If a source cannot be checked, the run stops for a
+person: `canon run <id> --unverified "<reason>"`. A source being down never counts as
+confirmed. The result goes under `## Checked` on the record.
+
+### Approvals and ownership
+
+`canon approve` adds a person to `approvals:`; `canon reject` sends the stage back
+with a reason, clears its approvals, and the next run is told why. `approvers:` limits
+who counts and `required:` how many. `owner:` is a person or team, defaulting to the
+config's `owner`.
+
+### Versions
+
+Git versions all of it. `canon:` in `context.yaml` pins the canon version. A run writes
+`rules:` on the record, the commit of `context.yaml` it started under.
+
+### What stays enforced
+
+A repo decides its flow, and canon enforces what it decided. No config can change that
+an agent run cannot approve, reject or close work past a gate; that a stage passes only
+by being done or skipped with a reason; that connectors and checks only read; that no
+key or event text is stored; that a run stops at its spend cap; that ids are unique and
+links resolve; or that a locked value holds. `canon status` lists what a repo has
+weakened against the defaults and its layers, and whether it has a hook and a CI job.
+
+The force comes from the CI job and required reviews on the branch. The hook can be
+skipped, local approvals are matched by git name, and `weigh` is advice.
 
 ## Templates
 

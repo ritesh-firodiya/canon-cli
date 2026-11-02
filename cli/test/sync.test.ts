@@ -60,6 +60,7 @@ describe("syncRepo", () => {
     const name = repo.split("/").pop();
     expect(h.calls).toEqual([
       ["qmd", "collection", "add", join(repo, ".context", "wiki"), "--name", `${name}-wiki`],
+      ["qmd", "collection", "add", join(repo, ".context", "features"), "--name", `${name}-features`],
       ["qmd", "update"],
       ["qmd", "embed"],
     ]);

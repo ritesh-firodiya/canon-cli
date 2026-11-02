@@ -1,12 +1,11 @@
 ---
-kind: poc
 status: planned
 last-verified: {{today}}
 ---
 # {{title}}
 
 ## Summary
-<!-- What is being tried. Use kind: poc for a small working proof, kind: experiment for a measured test. -->
+<!-- What is being tried. A POC starts at code and stops without a release. -->
 
 ## Hypothesis
 <!-- We believe X will do Y. -->

@@ -15,29 +15,29 @@ import { belongs, type Session } from "./sessions.ts";
 // this one: estate-wide chores commit to every repo at once.
 //
 // What each stage needs:
+//   problem       a commit touched .context/problems/
 //   idea          the conversation exists
-//   poc           a commit touched .context/experiments/
+//   research      it searched or fetched the web, or a commit touched .context/raw/ or wiki/synthesis/
 //   plan          a commit touched .context/plans/, tasks.md or wiki/decisions/
 //   feature       a commit touched .context/features/ or .context/bugs/
 //   design        a commit touched .context/designs/
-//   development   a commit touched anything outside .context/ and .claude/
+//   code          a commit touched anything outside .context/ and .claude/
 //   review        a commit is in a merged pull request
 //   release       a version tag holds a commit (an untagged version: the commit that set it)
 //   store-review  the version release.yml lists as in review holds a commit
 //   deployed      a GitHub deployment, or the web commit release.yml lists, holds a commit
 //   live          a version release.yml lists as live holds a commit
-//   result        a commit touched .context/raw/
-//   anything else a commit touched one of the stage's `done` paths
+//   anything else a commit touched one of the stage's `done` paths; with none, it is never reached
 // A conversation counts at every stage up to the furthest it reached.
 
 const MATCH_SECONDS = 120;
-export const KNOWN = ["idea", "poc", "plan", "feature", "design", "development", "review", "release", "store-review", "deployed", "live", "result"];
+export const KNOWN = ["problem", "idea", "research", "plan", "feature", "design", "code", "review", "release", "store-review", "deployed", "live"];
 const TOUCH: Record<string, string[]> = {
-  poc: [".context/experiments/"],
+  problem: [".context/problems/"],
+  research: [".context/raw/", ".context/wiki/synthesis/"],
   plan: [".context/plans/", ".context/tasks.md", ".context/wiki/decisions/"],
   feature: [".context/features/", ".context/bugs/"],
   design: [".context/designs/"],
-  result: [".context/raw/"],
 };
 
 export interface FlowResult {
@@ -54,10 +54,11 @@ type Reached = Map<string, Date | null>;
 function reached(session: Session, commits: [string, Date][], repo: string, facts: Facts, custom: Record<string, string[]>): Reached {
   const at: Reached = new Map([["idea", session.start]]);
   const first = (stage: string, when: Date | null | undefined) => at.has(stage) || at.set(stage, when ?? null);
+  if (session.web) at.set("research", session.web);
   for (const [sha, when] of [...commits].sort((a, b) => a[1].getTime() - b[1].getTime())) {
     const files = git(repo, "show", "--name-only", "--format=", sha).split(/\s+/).filter(Boolean);
     for (const [stage, prefixes] of Object.entries({ ...TOUCH, ...custom })) if (files.some((f) => prefixes.some((p) => f.startsWith(p)))) first(stage, when);
-    if (files.some((f) => !f.startsWith(".context/") && !f.startsWith(".claude/"))) first("development", when);
+    if (files.some((f) => !f.startsWith(".context/") && !f.startsWith(".claude/"))) first("code", when);
     if (facts.merged.has(sha)) first("review", facts.merged.get(sha));
     if (facts.released.has(sha)) first("release", facts.released.get(sha));
     if (facts.inReview.has(sha)) first("store-review", facts.reviewAt ?? facts.released.get(sha));

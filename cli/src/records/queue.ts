@@ -28,7 +28,7 @@ export function queueOf(repo: string, config: Config): QueueRow[] {
     .map(({ id, file, data }) => ({
       id,
       priority: data.priority ? String(data.priority) : null,
-      status: String(data.status),
+      status: data.status ? String(data.status) : "open",
       stage: data.stage ? String(data.stage) : null,
       owner: data.owner ? String(data.owner) : null,
       waiting: waitingStage(config, data),

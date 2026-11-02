@@ -91,7 +91,15 @@ const FIRST_FILE: Record<string, string> = {
   "tasks.md": ".context/tasks.md",
   raw: ".context/raw/.gitkeep",
   wiki: ".context/wiki/index.md",
+  features: ".context/features/index.md",
 };
+
+/** The hook can be skipped; a required CI job cannot, short of a repo admin. */
+export const CI_WORKFLOW = ".github/workflows/canon.yml";
+
+function ciWorkflow(version: string): string {
+  return `name: canon\n\non:\n  pull_request:\n  push:\n    branches: [main]\n\njobs:\n  check:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 24\n      - run: npx --yes @freetesh/canon@${version} check\n`;
+}
 
 function template(file: string): string {
   switch (file) {
@@ -99,6 +107,8 @@ function template(file: string): string {
       return "# .context\n\nProduct material, in the canon context layout. Start at [`tasks.md`](tasks.md).\n";
     case ".context/tasks.md":
       return "# Tasks\n\n## Now\n\n## Blocked\n\n## Waiting\n";
+    case ".context/features/index.md":
+      return "# Features\n\n| ID | Title | Status | Release |\n|---|---|---|---|\n";
     case ".context/wiki/index.md":
       return "# Wiki index\n\nPages by type. Schema: the canon plugin's wiki-schema standard.\n";
     default:
@@ -117,6 +127,7 @@ export function planInit(repo: string, answers: InitAnswers): InitPlan {
   const config: InitPlan["config"] = { canon: answers.canonVersion, kind, modules, pipelines: { default: DEFAULT_PIPELINE }, ...(sdk ? { expo: { sdk } } : {}), ...packs };
 
   const create = requiredContext(modules).filter((name) => !existsSync(join(repo, ".context", name))).map((name) => FIRST_FILE[name]);
+  if (!existsSync(join(repo, CI_WORKFLOW))) create.push(CI_WORKFLOW);
   if (modules.includes("architecture")) {
     // A workspace that already has rules of its own (any name dependency-cruiser reads) keeps them.
     const taken = (file: string) =>
@@ -135,6 +146,10 @@ export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; 
   const starters = new Map(architectureStarters(repo).map((s) => [s.file, s.template]));
   for (const file of plan.create) {
     const starter = starters.get(file);
+    if (file === CI_WORKFLOW) {
+      write(file, ciWorkflow(plan.config.canon));
+      continue;
+    }
     write(file, starter ? readFileSync(join(options.canonRoot, ARCHITECTURE_TEMPLATES, starter), "utf8") : template(file));
   }
 
@@ -143,7 +158,7 @@ export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; 
 
 /** Adds the repo's wiki and each record folder it has to qmd. Safe to repeat: qmd refuses a name it already has. */
 export function indexKnowledge(repo: string, name: string, run: Runner): void {
-  const folders = loadConfig(repo).config.records.map((kind) => kind.folder).filter((folder) => existsSync(join(repo, ".context", folder)));
+  const folders = loadConfig(repo).config.records.map((kind) => kind.folder).filter((folder) => folder === "features" || existsSync(join(repo, ".context", folder)));
   for (const kind of ["wiki", ...folders]) {
     run("qmd", ["collection", "add", join(repo, ".context", kind), "--name", `${name}-${kind}`]);
   }

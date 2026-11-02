@@ -9,7 +9,7 @@ surfaces: []
 # {{title}}
 
 ## Summary
-<!-- What it does. To run it as a live test, add experiment: true, with Hypothesis and Metric sections. -->
+<!-- What it does. -->
 
 ## Motivation
 <!-- Why it is needed. -->

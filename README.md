@@ -87,6 +87,9 @@ canon new <kind> <t>   # start a page from its template: problem, idea, plan, fi
 canon records          # what each kind, status and priority means here
 canon queue            # open work, most urgent first, and what it waits for
 canon reject <stage> --record <id> --note <why>   # a person sends a stage back
+canon set <record> field=value   # change a field, checked against the rules
+canon done <record>    # mark it complete
+canon experiment start <name> --from <stage>   # a named experiment, from any stage
 canon run <record>     # move a record through its pipeline with an agent; stops at gates and caps
 canon trigger [id]     # read connectors, open problems, join repeats (--run works on new ones)
 canon verdict          # put a weigh verdict on the record it judged
@@ -122,7 +125,8 @@ team: growth
 cap: 5                              # dollars per stage, unless a stage sets its own
 pipelines:                          # `default` is canon's flow until you change it; add your own
   default:
-    - { id: review, by: agent, gate: true, tools: [Read, Bash] }
+    - { id: code, verify: [sentry, "https://app.example.com"] }   # check the real source first
+    - { id: review, gate: true }
   hotfix:
     - { id: fix, by: agent, cap: 2 }
 locked: [pipelines.default.review]  # a lower layer cannot change this
@@ -130,6 +134,7 @@ connectors:                         # your tools, read-only; keys stay in .env
   - { id: sentry, via: cli }
   - { id: acme-erp, via: api, target: https://erp.example.com, env: [ACME_ERP_TOKEN] }   # your own
 records:                            # add, change or remove record kinds
+  - { folder: plans, fields: { timeline: date-range, owner: remove }, required: [timeline] }
   - { folder: campaigns, prefix: CAMP, statuses: [draft, live], sections: [Goal] }
 triggers:                           # what opens a Problem; source is a connector, manual or schedule
   - { id: new-error, source: sentry, when: a p0 error, pipeline: hotfix, cap: 2 }

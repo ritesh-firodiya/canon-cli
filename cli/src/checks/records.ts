@@ -1,28 +1,23 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { listFiles } from "../lib/files.ts";
 import { parseFrontmatter } from "../lib/frontmatter.ts";
+import { fieldProblem } from "../records/fields.ts";
 import type { Check, Finding } from "./types.ts";
 
-const OUTCOMES = ["retained", "discarded", "retried"];
 // A chore or a platform change ships with nothing a user reads; a feature that never shipped keeps its target release.
 const NEVER_SHIPPED = ["shelved", "superseded"];
 const STORE_COPY = /^## Store copy[ \t]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m;
 
 const hasSection = (body: string, section: string) => new RegExp(`^## ${section}[ \\t]*$`, "m").test(body);
-const missingSections = (body: string, sections: string[]) => sections.filter((section) => !hasSection(body, section)).map((section) => `missing section ## ${section}`);
 
-/** Any record can run as an experiment: it says what it tests, and once it has an outcome, what happened. */
-function experimentRules(folder: string, data: Record<string, unknown>, body: string): string[] {
-  const outcome = data.outcome ? String(data.outcome) : null;
-  return [
-    ...(outcome && !OUTCOMES.includes(outcome) ? [`outcome ${outcome} is not one of ${OUTCOMES.join(", ")}`] : []),
-    ...(data.experiment === true ? missingSections(body, ["Hypothesis", "Metric"]) : []),
-    ...(outcome || (folder === "experiments" && data.status === "done") ? missingSections(body, ["Result"]) : []),
-  ];
+/** An experiment should say what it tests and what happened, but a missing section does not block a push. */
+function experimentWarnings(folder: string, data: Record<string, unknown>, body: string): string[] {
+  const wanted = [...(folder === "experiments" ? ["Hypothesis", "Metric"] : []), ...(data.outcome || (folder === "experiments" && data.status === "done") ? ["Result"] : [])];
+  return wanted.filter((section) => !hasSection(body, section)).map((section) => `no ## ${section} section`);
 }
 
-/** A shipped feature's release note. */
+/** A shipped feature's release note: store listings read it. */
 function storeCopyRule(folder: string, data: Record<string, unknown>, body: string): string[] {
   if (folder !== "features" || data.type !== "feature") return [];
   const released = /\d+\.\d+\.\d+/.test(String(data.release ?? "")) && !NEVER_SHIPPED.includes(String(data.status));
@@ -33,32 +28,40 @@ function storeCopyRule(folder: string, data: Record<string, unknown>, body: stri
 export const records: Check = {
   id: "records",
   module: "docs",
-  description: "each record has its id, status, fields and sections for its kind, and links only to records that exist",
+  description: "each record has a unique id matching its file, its values fit the repo's rules, what the repo requires is there, and links name records that exist",
   run({ repo, config }) {
     const pages = config.records.flatMap((kind) =>
-      listFiles(repo, `.context/${kind.folder}`, (name) => /^\d{4}-.+\.md$/.test(name)).map((file) => ({ kind, file, ...parseFrontmatter(readFileSync(join(repo, file), "utf8")) })),
+      listFiles(repo, `.context/${kind.folder}`, (name) => (kind.named ? name.endsWith(".md") && name !== "index.md" : /^\d{4}-.+\.md$/.test(name))).map((file) => ({ kind, file, ...parseFrontmatter(readFileSync(join(repo, file), "utf8")) })),
     );
-    const known = new Set(pages.map((page) => String(page.data?.id)));
-    const recordId = new RegExp(`\\b(?:${config.records.map((kind) => kind.prefix).join("|")})-\\d{4}\\b`, "g");
+    const idOf = (kind: (typeof pages)[number]["kind"], data: Record<string, unknown> | null) => String((kind.named ? data?.name : data?.id) ?? "");
+    const ids = pages.map((page) => idOf(page.kind, page.data));
+    const known = new Set(ids);
+    const prefixes = config.records.map((kind) => kind.prefix).filter(Boolean);
+    const recordId = new RegExp(`\\b(?:${prefixes.join("|") || "$^"})-\\d{4}\\b`, "g");
     return pages.flatMap(({ kind, file, data, body }): Finding[] => {
-      const finding = (message: string): Finding => ({ check: "records", level: "error", file, message });
+      const finding = (message: string, level: Finding["level"] = "error"): Finding => ({ check: "records", level, file, message });
       if (!data) return [finding("no frontmatter")];
-      const expectedId = `${kind.prefix}-${file.match(/(\d{4})-[^/]+$/)?.[1]}`;
-      const links = Object.entries(data).flatMap(([field, value]) => (field === "id" ? [] : (String(value ?? "").match(recordId) ?? [])));
-      const messages = [
-        ...(data.id ? (data.id === expectedId ? [] : [`id ${data.id} should be ${expectedId}`]) : ["missing id"]),
-        ...(data.status ? (kind.statuses.includes(String(data.status)) ? [] : [`status ${data.status} is not one of ${kind.statuses.join(", ")}`]) : ["missing status"]),
-        ...Object.entries(kind.fields).flatMap(([field, values]) => {
-          if (!data[field]) return [`missing field ${field}`];
-          return values && !values.includes(String(data[field])) ? [`${field} ${data[field]} is not one of ${values.join(", ")}`] : [];
+      const idField = kind.named ? "name" : "id";
+      const id = idOf(kind, data);
+      const expected = kind.named ? basename(file, ".md") : `${kind.prefix}-${file.match(/(\d{4})-[^/]+$/)?.[1]}`;
+      const links = Object.entries(data).flatMap(([field, value]) => (field === idField ? [] : (String(value ?? "").match(recordId) ?? [])));
+      const experiment = data.experiment && !known.has(String(data.experiment)) ? [String(data.experiment)] : [];
+      const errors = [
+        ...(id ? (id === expected ? [] : [`${idField} ${id} should be ${expected}`]) : [`missing ${idField}`]),
+        ...(id && ids.filter((other) => other === id).length > 1 ? [`${idField} ${id} is used by more than one record`] : []),
+        ...Object.entries(data).flatMap(([field, value]) => {
+          if (field === idField || value === null || value === undefined) return [];
+          const problem = fieldProblem(config, kind, field, value);
+          return problem ? [problem] : [];
         }),
-        ...(data.priority && !(String(data.priority) in config.priorities) ? [`priority ${data.priority} is not one of ${Object.keys(config.priorities).join(", ")}`] : []),
-        ...missingSections(body, kind.sections),
-        ...experimentRules(kind.folder, data, body),
+        ...kind.required.flatMap((need) => {
+          if (need.startsWith("## ")) return hasSection(body, need.slice(3)) ? [] : [`missing section ${need}`];
+          return data[need] === undefined || data[need] === null || data[need] === "" ? [`missing field ${need}`] : [];
+        }),
         ...storeCopyRule(kind.folder, data, body),
-        ...links.filter((id) => !known.has(id)).map((id) => `links to ${id}, which does not exist`),
+        ...[...links, ...experiment].filter((link) => !known.has(link)).map((link) => `links to ${link}, which does not exist`),
       ];
-      return messages.map(finding);
+      return [...errors.map((message) => finding(message)), ...experimentWarnings(kind.folder, data, body).map((message) => finding(message, "warn"))];
     });
   },
 };

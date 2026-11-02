@@ -4,15 +4,22 @@ import { loadConfig } from "../config/load.ts";
 import { claudeAgent, runRecord } from "./run.ts";
 import { runTrigger } from "./trigger.ts";
 
+const collect = (value: string, list: string[]) => [...list, value];
+
 export function registerRun(program: Command): void {
   program
     .command("run")
     .description("move a record through its pipeline with an agent, stopping at each gate and cap")
     .argument("<record>", "the record, like PROB-0001")
     .argument("[repo]", "product repo", ".")
-    .action((recordId: string, repo: string) => {
+    .option("--with <stage>", "run this optional stage without asking; repeat for each", collect, [] as string[])
+    .option("--skip <stage>", "skip this optional stage without asking; repeat for each", collect, [] as string[])
+    .option("--unverified <reason>", "a person's reason to go ahead when a source could not be checked")
+    .action((recordId: string, repo: string, options: { with: string[]; skip: string[]; unverified?: string }) => {
+      // An agent inside a run cannot start its own run with a skip or an excuse.
+      if (process.env.CANON_RUN) throw new Error("canon run cannot start from inside a run");
       const root = resolve(repo);
-      const result = runRecord(root, loadConfig(root).config, recordId, claudeAgent);
+      const result = runRecord(root, loadConfig(root).config, recordId, claudeAgent, options);
       console.log(`${result.status}: ${result.message} ($${result.costUsd.toFixed(2)} this run)`);
       if (result.status === "stopped") process.exitCode = 1;
     });

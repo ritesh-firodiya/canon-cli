@@ -14,12 +14,28 @@ const run = (files: Record<string, string>) => pipeline.run(contextFor(makeTree(
 describe("pipeline check", () => {
   test("a record may sit at a gate, but cannot pass it unapproved", () => {
     expect(run({ [FILE]: page("stage: plan") })).toEqual([]);
-    expect(run({ [FILE]: page("stage: build") })[0].message).toMatch(/gate "plan"/);
+    expect(run({ [FILE]: page("stage: build\ncompleted: [plan]") })[0].message).toMatch(/gate "plan"/);
   });
 
   test("an approval or a skipped stage lets it pass", () => {
-    expect(run({ [FILE]: page("stage: build\napprovals:\n  - { stage: plan, by: me, at: 2026-11-02 }") })).toEqual([]);
+    expect(run({ [FILE]: page("stage: build\ncompleted: [plan]\napprovals:\n  - { stage: plan, by: me, at: 2026-11-02 }") })).toEqual([]);
     expect(run({ [FILE]: page("stage: build\nskipped:\n  - { stage: plan, reason: no }") })).toEqual([]);
+  });
+
+  test("a stage behind a record must be done or skipped with a reason, however it got there", () => {
+    expect(run({ [FILE]: page("stage: ship\ncompleted: [plan]\napprovals:\n  - { stage: plan, by: me, at: x }") })[0].message).toMatch(/"build" neither done nor skipped/);
+  });
+
+  test("a stage with verify cannot pass without its check", () => {
+    const yaml = "pipelines:\n  default:\n    - { id: build, by: agent, verify: [\"https://x.example.com\"] }\n    - { id: ship, by: person }\n";
+    const at = (extra: string) => pipeline.run(contextFor(makeTree({ ".context/context.yaml": yaml, [FILE]: page(extra) })));
+    expect(at("stage: ship\ncompleted: [build]")[0].message).toMatch(/no check against/);
+    expect(at("stage: ship\ncompleted: [build]\nverified: [build]")).toEqual([]);
+  });
+
+  test("verify must name a connector or an address", () => {
+    const yaml = "pipelines:\n  default:\n    - { id: build, by: agent, verify: [nope] }\n";
+    expect(pipeline.run(contextFor(makeTree({ ".context/context.yaml": yaml })))[0].message).toMatch(/verifies against nope/);
   });
 
   test("a record naming a missing pipeline is an error", () => {

@@ -50,7 +50,7 @@ describe("planInit", () => {
 
   test("without docs or knowledge, no raw or wiki is created", () => {
     const plan = planInit(makeTree({}), { canonVersion: "1", kind: "web", modules: ["code"] });
-    expect(plan.create).toEqual([".context/README.md", ".context/tasks.md"]);
+    expect(plan.create).toEqual([".context/README.md", ".context/tasks.md", ".github/workflows/canon.yml"]);
   });
 
   test("chosen packs are written to the config; none means no packs key", () => {
@@ -64,6 +64,8 @@ describe("planInit", () => {
     expect(plan.create).toEqual([
       ".context/tasks.md",
       ".context/raw/.gitkeep",
+      ".context/features/index.md",
+      ".github/workflows/canon.yml",
     ]);
   });
 
@@ -93,6 +95,7 @@ describe("applyInit", () => {
     expect(existsSync(join(repo, ".context/raw/.gitkeep"))).toBe(true);
     expect(calls).toEqual([
       ["qmd", "collection", "add", join(repo, ".context/wiki"), "--name", "demo-wiki"],
+      ["qmd", "collection", "add", join(repo, ".context/features"), "--name", "demo-features"],
     ]);
   });
 
@@ -109,6 +112,13 @@ describe("applyInit", () => {
     expect(architectureStarters(makeTree({ "src/a.ts": "" })).map((s) => s.template)).toEqual(["base.cjs", "root.cjs"]);
   });
 
+  test("init adds a CI job pinned to its canon version, and never over one that exists", () => {
+    const repo = makeTree({});
+    applyInit(repo, planInit(repo, { canonVersion: "1.2.3", kind: "content", modules: [] }), { run: recorder().run, name: "demo", canonRoot: repo });
+    expect(readFileSync(join(repo, ".github/workflows/canon.yml"), "utf8")).toContain("@freetesh/canon@1.2.3 check");
+    expect(planInit(repo, { canonVersion: "1.2.3", kind: "content", modules: [], force: true } as never).create).not.toContain(".github/workflows/canon.yml");
+  });
+
   test("init writes the starters from canon's templates and never over a repo's own rules", () => {
     const canon = makeTree({
       "templates/dependency-cruiser/base.cjs": "// base\n",
@@ -117,7 +127,7 @@ describe("applyInit", () => {
     });
     const repo = makeTree({ "apps/web/package.json": "{}", "packages/ui/package.json": "{}", "packages/ui/.dependency-cruiser.json": "{}" });
     const plan = planInit(repo, { canonVersion: "1", kind: "web", modules: ["architecture"] });
-    expect(plan.create).toEqual([".context/README.md", ".context/tasks.md", ".dependency-cruiser.base.cjs", "apps/web/.dependency-cruiser.cjs"]);
+    expect(plan.create).toEqual([".context/README.md", ".context/tasks.md", ".github/workflows/canon.yml", ".dependency-cruiser.base.cjs", "apps/web/.dependency-cruiser.cjs"]);
     applyInit(repo, plan, { run: recorder().run, name: "demo", canonRoot: canon });
     expect(readFileSync(join(repo, ".dependency-cruiser.base.cjs"), "utf8")).toBe("// base\n");
     expect(readFileSync(join(repo, "apps/web/.dependency-cruiser.cjs"), "utf8")).toBe("// app\n");
@@ -134,7 +144,7 @@ describe("applyInit", () => {
     const calls: string[][] = [];
     const repo = makeTree({ ".context/problems/0001-a.md": "", ".context/ideas/0001-a.md": "" });
     indexKnowledge(repo, "demo", (command, args) => calls.push([command, ...args]));
-    expect(calls.map((call) => call[call.length - 1])).toEqual(["demo-wiki", "demo-problems", "demo-ideas"]);
+    expect(calls.map((call) => call[call.length - 1])).toEqual(["demo-wiki", "demo-problems", "demo-ideas", "demo-features"]);
   });
 
   test("writes canon's default flow into context.yaml, to change at will", () => {

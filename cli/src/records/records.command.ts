@@ -2,9 +2,25 @@ import { resolve } from "node:path";
 import type { Command } from "commander";
 import { loadConfig } from "../config/load.ts";
 import { describeRecords } from "./describe.ts";
+import { startExperiment } from "./experiment.ts";
 import { newPage } from "./new.ts";
 import { formatQueue, queueOf } from "./queue.ts";
+import { markDone, setRecordFields } from "./set.ts";
 import { OUTCOMES, recordVerdict, VERDICTS, type Outcome } from "./verdicts.ts";
+
+function parsePairs(pairs: string[]): Record<string, string> {
+  return Object.fromEntries(
+    pairs.map((pair) => {
+      const at = pair.indexOf("=");
+      if (at < 1) throw new Error(`needs field=value, not "${pair}"`);
+      return [pair.slice(0, at), pair.slice(at + 1)];
+    }),
+  );
+}
+
+function requireNoRun(): void {
+  if (process.env.CANON_RUN) throw new Error("an agent run cannot use this: only the last stage closes work, and it edits the page itself");
+}
 
 const collect = (value: string, list: string[]) => [...list, value];
 
@@ -17,16 +33,51 @@ export function registerRecords(program: Command): void {
     .argument("[repo]", "product repo", ".")
     .option("--set <field=value>", "a frontmatter field, like problem=PROB-0001; repeat for each", collect, [] as string[])
     .action((kind: string, title: string, repo: string, options: { set: string[] }) => {
-      const fields = Object.fromEntries(
-        options.set.map((pair) => {
-          const at = pair.indexOf("=");
-          if (at < 1) throw new Error(`--set needs field=value, not "${pair}"`);
-          return [pair.slice(0, at), pair.slice(at + 1)];
-        }),
-      );
+      const fields = parsePairs(options.set);
       const root = resolve(repo);
       const { id, file } = newPage(root, loadConfig(root).config, kind, title, fields);
       console.log(`${id}: ${file}`);
+    });
+
+  program
+    .command("set")
+    .description("change fields on a record, checked against this repo's rules")
+    .argument("<record>", "the record")
+    .argument("<fields...>", "field=value, like status=approved")
+    .option("--repo <path>", "product repo", ".")
+    .action((recordId: string, pairs: string[], options: { repo: string }) => {
+      requireNoRun();
+      const root = resolve(options.repo);
+      const { config } = loadConfig(root);
+      setRecordFields(root, config, recordId, parsePairs(pairs));
+      console.log(`${recordId}: ${pairs.join(", ")}`);
+    });
+
+  program
+    .command("done")
+    .description("mark a record complete: its kind's first closing status")
+    .argument("<record>", "the record")
+    .argument("[repo]", "product repo", ".")
+    .action((recordId: string, repo: string) => {
+      requireNoRun();
+      const root = resolve(repo);
+      console.log(`${recordId}: ${markDone(root, loadConfig(root).config, recordId)}`);
+    });
+
+  program
+    .command("experiment")
+    .description("start a named experiment from any stage")
+    .command("start")
+    .description("start a named experiment: earlier stages are recorded as skipped")
+    .argument("<name>", "a unique name, like checkout-retry")
+    .argument("[repo]", "product repo", ".")
+    .requiredOption("--from <stage>", "the stage it starts at")
+    .option("--to <stage>", "the stage it stops after; a POC is --from code --to code")
+    .option("--pipeline <name>", "the pipeline it follows", "default")
+    .action((name: string, repo: string, options: { from: string; to?: string; pipeline: string }) => {
+      const root = resolve(repo);
+      const { id, file } = startExperiment(root, loadConfig(root).config, name, options);
+      console.log(`${id}: ${file}\nnext: canon run ${id}`);
     });
 
   program

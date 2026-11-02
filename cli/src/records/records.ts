@@ -18,7 +18,7 @@ const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 
 function recordFiles(repo: string, kind: RecordKind): string[] {
   const dir = join(repo, ".context", kind.folder);
-  return existsSync(dir) ? readdirSync(dir).filter((name) => RECORD_FILE.test(name)).sort() : [];
+  return existsSync(dir) ? readdirSync(dir).filter((name) => (kind.named ? name.endsWith(".md") && name !== "index.md" : RECORD_FILE.test(name))).sort() : [];
 }
 
 export function allRecords(repo: string, config: Config): WorkRecord[] {
@@ -26,7 +26,7 @@ export function allRecords(repo: string, config: Config): WorkRecord[] {
     recordFiles(repo, kind).flatMap((name) => {
       const file = join(".context", kind.folder, name);
       const { data, body } = parseFrontmatter(readFileSync(join(repo, file), "utf8"));
-      return data ? [{ id: String(data.id), file, kind, data, body }] : [];
+      return data ? [{ id: String(kind.named ? data.name : data.id), file, kind, data, body }] : [];
     }),
   );
 }
@@ -66,14 +66,23 @@ export function appendToSection(repo: string, file: string, section: string, lin
   writeFileSync(path, `${text.slice(0, end).trimEnd()}\n${lines}\n${next === -1 ? "" : `\n${text.slice(end)}`}`);
 }
 
-/** Writes a new record with the next number for its kind. */
+const toSlug = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "record";
+
+/** Writes a new record: the next number for its kind, or its unique name. */
 export function createRecord(repo: string, kind: RecordKind, slug: string, fields: Record<string, unknown>, body: string): { id: string; file: string } {
+  const dir = join(".context", kind.folder);
+  mkdirSync(join(repo, dir), { recursive: true });
+  if (kind.named) {
+    const name = toSlug(slug);
+    const file = join(dir, `${name}.md`);
+    if (existsSync(join(repo, file))) throw new Error(`${kind.folder} already has one named ${name}: names are unique`);
+    writeFileSync(join(repo, file), `---\n${stringify({ name, ...fields }).trimEnd()}\n---\n${body.trimEnd()}\n`);
+    return { id: name, file };
+  }
   const last = recordFiles(repo, kind).map((name) => Number(name.slice(0, 4))).reduce((a, b) => Math.max(a, b), 0);
   const number = String(last + 1).padStart(4, "0");
   const id = `${kind.prefix}-${number}`;
-  const safeSlug = slug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "record";
-  const file = join(".context", kind.folder, `${number}-${safeSlug}.md`);
-  mkdirSync(join(repo, ".context", kind.folder), { recursive: true });
+  const file = join(dir, `${number}-${toSlug(slug)}.md`);
   writeFileSync(join(repo, file), `---\n${stringify({ id, ...fields }).trimEnd()}\n---\n${body.trimEnd()}\n`);
   return { id, file };
 }

@@ -37,7 +37,7 @@ describe("canon flow", () => {
     expect(belongs(new Set(["shared", "bin"]), new Set(["myapp"]), known)).toBe(false);
   });
 
-  test("a session is its typed requests, commit calls and folders; tool output is not read", () => {
+  test("a session is its typed requests, commit calls, first web search and folders; tool output is not read", () => {
     const text = [
       line({ type: "user", cwd: `${W}/myapp`, message: { content: "add a stats screen" } }),
       line({ type: "user", message: { content: "<command-name>/clear</command-name>" } }),
@@ -50,6 +50,7 @@ describe("canon flow", () => {
     expect(session).toEqual({
       start: new Date("2026-10-01T10:00:00Z"),
       calls: [new Date("2026-10-01T10:09:00Z")],
+      web: new Date("2026-10-01T10:05:00Z"),
       where: new Set(["myapp"]),
     });
     expect(readSession(line({ type: "user", message: { content: "<system-reminder>" } }), productPath(W))).toBeNull();
@@ -69,7 +70,7 @@ describe("canon flow", () => {
     mkdirSync(repo);
     git({}, "init", "-q");
     git({}, "remote", "add", "origin", "git@github.com:me/myapp.git");
-    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipelines:\n  default:\n    - { id: idea, done: [x] }\n    - { id: plan, done: [x] }\n    - { id: development, done: [x] }\n    - { id: review, done: [x] }\n    - { id: live, done: [x] }\n");
+    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipelines:\n  default:\n    - { id: idea, done: [x] }\n    - { id: plan, done: [x] }\n    - { id: code, done: [x] }\n    - { id: review, done: [x] }\n    - { id: live, done: [x] }\n");
     commit("2026-10-01T11:00:00Z", ".context/plans/stats.md");
     commit("2026-10-01T13:00:00Z", "src/stats.ts");
     commit("2026-10-02T09:00:00Z", ".context/ops/release.yml", "surfaces:\n  ios: { live: '1.0.0' }\n");
@@ -90,8 +91,8 @@ describe("canon flow", () => {
 
     const result = flow(workspace, "myapp", allSessions(workspace, projects), [], github);
     expect(result.since).toBe("2026-10-01");
-    expect(result.stages).toEqual([{ id: "idea", count: 2 }, { id: "plan", count: 1 }, { id: "development", count: 1 }, { id: "review", count: 1 }, { id: "live", count: 1 }]);
-    expect(result.medianHours).toEqual({ "idea→plan": 0.5, "plan→development": 2, "development→review": null, "review→live": null });
+    expect(result.stages).toEqual([{ id: "idea", count: 2 }, { id: "plan", count: 1 }, { id: "code", count: 1 }, { id: "review", count: 1 }, { id: "live", count: 1 }]);
+    expect(result.medianHours).toEqual({ "idea→plan": 0.5, "plan→code": 2, "code→review": null, "review→live": null });
   });
 
   test("a live web surface counts everything deployed, not only what its tag holds", () => {
@@ -108,7 +109,7 @@ describe("canon flow", () => {
     mkdirSync(repo);
     git({}, "init", "-q");
     git({}, "remote", "add", "origin", "git@github.com:me/site.git");
-    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipelines:\n  default:\n    - { id: idea, done: [x] }\n    - { id: development, done: [x] }\n    - { id: live, done: [x] }\n");
+    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipelines:\n  default:\n    - { id: idea, done: [x] }\n    - { id: code, done: [x] }\n    - { id: live, done: [x] }\n");
     git(at("2026-10-01T10:00:00Z"), "tag", "v0.1.0");
     commit("2026-10-02T10:00:00Z", "src/page.ts");
     const deployed = git({}, "rev-parse", "HEAD").toString().trim();
