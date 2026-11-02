@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.28.1 — 2026-11-02
+
+### Fixed
+
+- `canon run`: an agent can no longer close a record before the last stage, which skipped the gates still ahead of it.
+- The last stage closes the work and everything made for it, so finished work leaves `canon queue`.
+- The default stages give agents full `.context/` paths, so a discovery cannot land outside `wiki/synthesis/`.
+
 ## 0.28.0 — 2026-11-02
 
 One way to do each thing. Run `canon sync` to index the new folders.

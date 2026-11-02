@@ -113,6 +113,33 @@ describe("runRecord", () => {
     expect(runRecord(repo, config, id, agent).message).toMatch(/An agent never approves/);
   });
 
+  test("an agent cannot close a record before the last stage", () => {
+    const { repo, config, id, get } = setup();
+    const closing: Agent = (call) => {
+      if (call.small) return { ok: true, costUsd: 0, text: "No" };
+      setFields(repo, get().file, { status: "solved" });
+      return { ok: true, costUsd: 0, text: "" };
+    };
+    runRecord(repo, config, id, closing);
+    expect(get().data.status).toBe("solving");
+    approveStage(repo, config, id, "plan", "me", "");
+    approveStage(repo, config, id, "ship", "me", "");
+    expect(runRecord(repo, config, id, closing).status).toBe("done");
+    expect(get().data.status).toBe("solved");
+  });
+
+  test("only the last stage is told to close the work", () => {
+    const { repo, config } = setup();
+    const { id } = addProblem(repo, config, { title: "Crash", source: "sentry", pipeline: "hotfix" });
+    const { agent, calls } = fakeAgent();
+    runRecord(repo, config, id, agent);
+    expect(calls[0].prompt).toMatch(/This is the last stage/);
+    const other = setup();
+    const second = fakeAgent();
+    runRecord(other.repo, other.config, other.id, second.agent);
+    expect(second.calls.find((call) => !call.small)?.prompt).toMatch(/Leave PROB-\d+ open/);
+  });
+
   test("a failed agent stops the run; a discarded record is shown to later agents", () => {
     const { repo, config, id } = setup();
     const { id: other, file } = addProblem(repo, config, { title: "Old", source: "person" });
