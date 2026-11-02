@@ -9,5 +9,5 @@
 | [FEAT-0021](0021-usage-report.md) | Usage report | building | — |
 | [FEAT-0022](0022-session-defaults.md) | Session defaults | building | — |
 | [FEAT-0023](0023-wildcard-ideas.md) | Wildcard ideas | building | — |
-| [FEAT-0024](0024-canon-band.md) | Canon band | planned | — |
+| [FEAT-0024](0024-canon-band.md) | Canon band | building | — |
 | [FEAT-0025](0025-prompt-routing.md) | Prompt routing | planned | — |

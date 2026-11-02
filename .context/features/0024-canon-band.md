@@ -1,7 +1,7 @@
 ---
 id: FEAT-0024
 type: feature
-status: planned
+status: building
 priority: p2
 last-verified: 2026-11-02
 release: null
@@ -31,9 +31,7 @@ The state of the work and its cost should be visible without asking, and colour 
 - Approving a gate from the band.
 
 ## Open questions
-- The mock-up removes the ribbon and ponytail plugins. Ribbon's band is replaced, but ponytail's rules still apply, so check what the band replaces in it.
-- The mock-up marks running time, problem ID and spend as "needs T001". Check them against what 0.27.0 and FEAT-0020 now provide.
-- The design is still in another session's scratch folder. Move it to `.context/designs/` as a Babul set when it is approved.
+- Turning off Ribbon and hiding Ponytail's band is the owner's choice, once this band has been seen working.
 
 ## Store copy
 > See your stage, checks, usage and cache above the prompt, and extend the cache with one click.

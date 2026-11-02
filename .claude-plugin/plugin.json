@@ -1,5 +1,6 @@
 {
   "name": "canon",
   "version": "0.29.0",
-  "description": "Keeps your domain knowledge and AI rules in your repos and enforces them, so Claude hallucinates less."
+  "description": "Keeps your domain knowledge and AI rules in your repos and enforces them, so Claude hallucinates less.",
+  "types": "./hooks/band/types.d.ts"
 }

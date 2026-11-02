@@ -35,6 +35,7 @@
     "check": "node cli/src/index.ts check . && pnpm typecheck && pnpm test",
     "build": "rm -rf cli/dist && tsc -p cli/tsconfig.build.json",
     "test": "vitest run --root cli",
+    "test:band": "d=$(mktemp -d) && mkdir -p $d/cli/src && cp -R hooks .claude-plugin $d && cp -R cli/src/usage $d/cli/src && claude plugin test $d",
     "coverage": "vitest run --root cli --coverage",
     "typecheck": "tsc -p cli",
     "prepack": "pnpm build"

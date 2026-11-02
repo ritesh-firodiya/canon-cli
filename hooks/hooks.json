@@ -10,5 +10,8 @@
         ]
       }
     ]
-  }
+  },
+  "modules": [
+    "./band/register.tsx"
+  ]
 }

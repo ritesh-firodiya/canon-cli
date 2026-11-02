@@ -5,13 +5,14 @@ import { basename, join } from "node:path";
 import type { Config, ConnectorSpec, StageSpec } from "../config/schema.ts";
 import { isApproved, pipelineOf } from "../pipeline/pipeline.ts";
 import { describeRecords } from "../records/describe.ts";
+import { clearRunning, markRunning } from "./running.ts";
 import { allRecords, appendToSection, approvalsOf, findRecord, setFields, type WorkRecord } from "../records/records.ts";
 
 const READ_ONLY_TOOLS = ["Read", "Glob", "Grep"];
 const FILE_TOOLS = [...READ_ONLY_TOOLS, "Edit", "Write"];
 const STAGE_TIMEOUT_MS = 60 * 60 * 1000;
 const DECISION_CAP_USD = 0.5;
-const DEFAULT_CAP_USD = 5;
+export const DEFAULT_CAP_USD = 5;
 const MAX_FAILURES_SHOWN = 20;
 const MAX_SOURCE_CHARS = 20_000;
 const SOURCE_TIMEOUT_MS = 60_000;
@@ -199,6 +200,15 @@ export interface RunOptions {
 
 /** Moves one record through its pipeline, from where it stopped, until a person is needed or something stops it. */
 export function runRecord(repo: string, config: Config, recordId: string, agent: Agent, options: RunOptions = {}): RunResult {
+  markRunning(repo, recordId);
+  try {
+    return moveRecord(repo, config, recordId, agent, options);
+  } finally {
+    clearRunning(repo);
+  }
+}
+
+function moveRecord(repo: string, config: Config, recordId: string, agent: Agent, options: RunOptions): RunResult {
   const first = findRecord(repo, config, recordId);
   const all = pipelineOf(config, String(first.data.pipeline ?? "default"));
   const stopsAt = all.findIndex((stage) => stage.id === first.data["stops-at"]);

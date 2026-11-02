@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canon Band Sample</title>
+<style>
+:root {
+  --page: #f4f2ee; --ink: #24211c; --soft: #6d675d; --line: #dcd7cd;
+  --term: #171614; --band: #26241f; --panel: #1f1d19; --text: #e7e2d8; --muted: #8f897d; --hover: #47433a;
+  --amber: #f0b429; --amber-hover: #ffcb52; --amber-ink: #241a00; --red: #ff7b72; --red-bg: #4a1f1c; --red-hover: #6b2a25;
+  --blue: #8cc4ff;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.45 -apple-system, "Segoe UI", sans-serif; }
+main { width: 1040px; margin: 0 auto; padding: 32px 20px 44px; }
+h1 { font-size: 26px; margin: 0 0 4px; }
+.lead { color: var(--soft); margin: 0 0 16px; }
+h2 { font-size: 15px; margin: 26px 0 2px; }
+h3 { font-size: 20px; margin: 40px 0 0; padding-top: 18px; border-top: 1px solid var(--line); }
+.note { color: var(--soft); margin: 0 0 8px; font-size: 14px; }
+.term { background: var(--term); border-radius: 8px; padding: 12px 0; width: max-content; font: 13px/20px ui-monospace, Menlo, monospace; color: var(--text); }
+.w120 { --cols: 120ch; } .w80 { --cols: 80ch; }
+.line { width: var(--cols); padding: 0 1ch; white-space: pre; }
+.dim { color: var(--muted); }
+.band { width: var(--cols); padding: 0 1ch; background: var(--band); display: flex; justify-content: space-between; gap: 2ch; white-space: pre; margin-top: 8px; }
+.band + .band { margin-top: 0; }
+.group { display: flex; gap: 2ch; }
+.brand { font-weight: 700; }
+.m { color: var(--muted); }
+.run { color: var(--blue); font-weight: 700; }
+.warn { color: var(--amber); }
+.low { color: var(--red); font-weight: 700; }
+.prompt { width: var(--cols); padding: 6px 1ch 0; margin-top: 6px; border-top: 1px solid #3a372f; }
+
+/* Clickable: dotted underline at rest, filled on hover. */
+button.c { all: unset; cursor: pointer; color: var(--text); text-decoration: underline dotted; text-underline-offset: 3px; }
+button.c:hover, button.c.show-hover, button.c:focus-visible { background: var(--hover); color: #fff; text-decoration-style: solid; }
+button.c:focus-visible { outline: 1px solid var(--text); }
+button.c.quiet { color: var(--muted); }
+button.c.warn { color: var(--amber); }
+button.c.wait { background: var(--amber); color: var(--amber-ink); font-weight: 700; padding: 0 1ch; }
+button.c.wait:hover, button.c.wait.show-hover, button.c.wait:focus-visible { background: var(--amber-hover); color: var(--amber-ink); }
+button.c.bad { background: var(--red-bg); color: var(--red); font-weight: 700; padding: 0 1ch; }
+button.c.bad:hover, button.c.bad.show-hover, button.c.bad:focus-visible { background: var(--red-hover); color: #fff; }
+
+.panel { width: var(--cols); padding: 6px 1ch; background: var(--panel); white-space: pre; }
+.panel .here { color: var(--amber); font-weight: 700; }
+.panel .err { color: var(--red); }
+
+.key { display: flex; gap: 24px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-size: 14px; }
+.key .term { padding: 4px 10px; }
+.key .band { width: auto; margin: 0; padding: 0; background: none; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; background: #fff; margin-top: 8px; }
+th, td { text-align: left; padding: 7px 10px; border: 1px solid var(--line); vertical-align: top; }
+th { background: #ece8e0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>One band: canon</h1>
+  <p class="lead">Sample only, with made-up numbers. Canon is the only band: Ribbon's mod is turned off and Ponytail's band is hidden with <code>/ponytail band off</code>. Ponytail itself stays. Colour appears only when something needs you. In this page, hover and click the marked items.</p>
+
+  <div class="key">
+    <strong>Key</strong>
+    <div class="term"><div class="band"><button class="c" type="button" tabindex="-1">clickable</button></div></div>
+    <div class="term"><div class="band"><button class="c show-hover" type="button" tabindex="-1">on hover</button></div></div>
+    <div class="term"><div class="band"><span>only for reading</span></div></div>
+  </div>
+
+  <h2>1. Waiting on you</h2>
+  <p class="note">The most important state. Everything else stays quiet.</p>
+  <div class="term w120">
+    <div class="line dim">  Design set is ready for review.</div>
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · <button class="c" data-panel="stage" type="button">Design</button></span><button class="c wait" data-panel="review" type="button">WAITING ON YOU</button><button class="c quiet" data-panel="problem" type="button">PROB-0012</button><span>$1.20 of $5</span></div><div class="group"><span class="m">checks ok</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>2. A run is moving</h2>
+  <p class="note">The stage and spend update as the run goes.</p>
+  <div class="term w120">
+    <div class="line dim">  Running review checks...</div>
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · <button class="c" data-panel="stage-review" type="button">Review</button></span><span class="run">running 12m</span><button class="c quiet" data-panel="problem" type="button">PROB-0012</button><span>$3.40 of $5</span></div><div class="group"><button class="c warn" data-panel="warnings" type="button">3 warnings</button><span class="m">tests ok</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>3. Normal chat, no run</h2>
+  <p class="note">The run slot shows the cost of this task instead.</p>
+  <div class="term w120">
+    <div class="line dim">  Fixed the board redraw.</div>
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · <button class="c" data-panel="stage-dev" type="button">Development</button></span><span class="m">task $8.18</span></div><div class="group"><span class="m">checks ok</span><span class="warn">tests stale</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>4. Things are wrong</h2>
+  <p class="note">Errors, low usage and a cold cache all get colour. Only the errors are clickable.</p>
+  <div class="term w120">
+    <div class="line dim">  Back after a long break.</div>
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · <button class="c" data-panel="stage-dev" type="button">Development</button></span><button class="c bad" data-panel="errors" type="button">2 ERRORS</button></div><div class="group"><span class="low">tests failed</span><span class="low">7D 9% LOW 3d 9h</span><span>5H 96%</span><span class="warn">cold · next ~$1.94</span></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>5. Outside a product repo</h2>
+  <p class="note">No canon facts, so only usage and cache remain. Only extend is clickable.</p>
+  <div class="term w120">
+    <div class="line dim">  Listed the folder.</div>
+    <div class="band"><div class="group"><span class="brand">canon</span><span class="m">no product here</span></div><div class="group"><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>6. Narrow terminal (80 columns)</h2>
+  <p class="note">Two rows at most: the work on top, your limits below. The same items stay clickable.</p>
+  <div class="term w80">
+    <div class="line dim">  Design set is ready for review.</div>
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · <button class="c" data-panel="stage" type="button">Design</button></span><button class="c wait" data-panel="review" type="button">WAITING ON YOU</button><span>$1.20 of $5</span></div></div>
+    <div class="band"><div class="group"><span class="m">checks ok</span><span class="m">tests ok</span></div><div class="group"><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h3>What each click shows</h3>
+  <p class="note">A panel folds open under the band. A second click closes it. No click approves anything. Only extend does something: it sends one tiny message and spends what its label says.</p>
+
+  <h2>WAITING ON YOU, hovered and clicked</h2>
+  <div class="term w120" data-open="review">
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · Design</span><button class="c wait show-hover" type="button" tabindex="-1">WAITING ON YOU</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>Stage, clicked</h2>
+  <div class="term w120" data-open="stage">
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · <button class="c show-hover" type="button" tabindex="-1">Design</button></span></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>Errors, clicked</h2>
+  <div class="term w120" data-open="errors">
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · Development</span><button class="c bad show-hover" type="button" tabindex="-1">2 ERRORS</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>Warnings, clicked</h2>
+  <div class="term w120" data-open="warnings">
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · Review</span><button class="c warn show-hover" type="button" tabindex="-1">3 warnings</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>Problem, clicked</h2>
+  <div class="term w120" data-open="problem">
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · Review</span><button class="c quiet show-hover" type="button" tabindex="-1">PROB-0012</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>Extend, clicked</h2>
+  <p class="note">The label gives the cost first. A click sends one tiny message, then the hour starts again. It shows only when the cache is warm and no reply is running. A cold cache has nothing left to extend, so state 4 has no button.</p>
+  <div class="term w120">
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · Development</span></div><div class="group"><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet show-hover" type="button" tabindex="-1">extend ~$0.17</button></div></div>
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · Development</span></div><div class="group"><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><span class="m">extending...</span></div></div>
+    <div class="band"><div class="group"><span class="brand">canon</span><span>chess · Development</span></div><div class="group"><span>7D 41%</span><span>5H 96%</span><span class="m">cache 60m</span><button class="c quiet" type="button" tabindex="-1">extend ~$0.17</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h3>What it shows</h3>
+  <table>
+    <tr><th>Item</th><th>When it shows</th><th>Click</th><th>Data today</th></tr>
+    <tr><td>Product</td><td>In a product repo</td><td>No</td><td>Ready: <code>canon status</code></td></tr>
+    <tr><td>Stage</td><td>In a product repo</td><td>Yes: all stages</td><td>Ready: <code>canon pipeline --json</code></td></tr>
+    <tr><td>Waiting on you</td><td>A gate is open</td><td>Yes: what to review</td><td>Ready: <code>canon pipeline --json</code></td></tr>
+    <tr><td>Running time</td><td>A run is active</td><td>No</td><td>Needs T001</td></tr>
+    <tr><td>Problem ID</td><td>A run is active</td><td>Yes: the Problem</td><td>Needs T001</td></tr>
+    <tr><td>Spend of cap</td><td>A run is active</td><td>No</td><td>Needs T001</td></tr>
+    <tr><td>Task cost</td><td>No run active</td><td>No</td><td>Ready: engine usage figures</td></tr>
+    <tr><td>Checks ok</td><td>In a product repo, nothing wrong</td><td>No</td><td>Ready: <code>canon check</code></td></tr>
+    <tr><td>Errors or warnings</td><td>In a product repo, something wrong</td><td>Yes: the list</td><td>Ready: <code>canon check</code></td></tr>
+    <tr><td>Tests ok, stale or failed</td><td>After tests or a later edit</td><td>No</td><td>To build: canon's own detection</td></tr>
+    <tr><td>7D and 5H left</td><td>Always. Reset time only when low</td><td>No</td><td>Ready: engine usage figures</td></tr>
+    <tr><td>Cache minutes, or cold price</td><td>After the first reply</td><td>No</td><td>Ready, with a price table to maintain</td></tr>
+    <tr><td>Extend, with its cost</td><td>Cache warm, no reply running</td><td>Yes: sends one tiny message</td><td>Ready: <code>$.prompt.submit</code>, context size and the same price table</td></tr>
+  </table>
+</main>
+
+<template id="p-review"><div class="panel">Review the design set     canon ui
+Then approve it yourself  canon approve design --note "what you reviewed"</div></template>
+<template id="p-stage"><div class="panel">Problem ok · Idea ok · POC skipped · Plan ok · Feature ok · <span class="here">Design waiting on you</span> · Development · Review · Release</div></template>
+<template id="p-stage-review"><div class="panel">Problem ok · Idea ok · POC skipped · Plan ok · Feature ok · Design ok · Development ok · <span class="here">Review running</span> · Release</div></template>
+<template id="p-stage-dev"><div class="panel">Problem ok · Idea ok · POC skipped · Plan ok · Feature ok · Design ok · <span class="here">Development in progress</span> · Review · Release</div></template>
+<template id="p-errors"><div class="panel"><span class="err">error</span>  features/0007-ads.md  missing last-verified
+<span class="err">error</span>  context.yaml          stage "qa" has no gate owner</div></template>
+<template id="p-warnings"><div class="panel"><span class="warn">warning</span>  wiki/ads.md           not verified for 90 days
+<span class="warn">warning</span>  features/index.md     lists a removed feature
+<span class="warn">warning</span>  tasks.md              horizon has passed</div></template>
+<template id="p-problem"><div class="panel">PROB-0012  Ad frequency too high on small screens
+Source     App Store reviews     Priority  high
+Doc        .context/problems/PROB-0012.md</div></template>
+
+<script>
+const panelFor = name => document.getElementById('p-' + name).content.firstElementChild.cloneNode(true);
+
+// Static views: the panel is always open.
+document.querySelectorAll('[data-open]').forEach(term => {
+  term.querySelector('.band').after(panelFor(term.dataset.open));
+});
+
+// Sample only: the real button sends the message, and the hour restarts when the reply lands.
+document.querySelectorAll('button[data-extend]').forEach(button => {
+  button.addEventListener('click', () => {
+    const minutes = button.previousElementSibling;
+    const label = button.textContent;
+    button.textContent = 'extending...';
+    setTimeout(() => {
+      minutes.textContent = 'cache 60m';
+      button.textContent = label;
+    }, 900);
+  });
+});
+
+// Live states: a click opens the panel under the band, a second click closes it.
+document.querySelectorAll('button[data-panel]').forEach(button => {
+  button.addEventListener('click', () => {
+    const term = button.closest('.term');
+    const lastBand = [...term.querySelectorAll('.band')].pop();
+    const open = term.querySelector('.panel');
+    const same = open && open.dataset.from === button.dataset.panel;
+    if (open) open.remove();
+    if (same) return;
+    const panel = panelFor(button.dataset.panel);
+    panel.dataset.from = button.dataset.panel;
+    lastBand.after(panel);
+  });
+});
+</script>
+</body>
+</html>

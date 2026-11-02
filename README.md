@@ -101,6 +101,7 @@ canon wiki             # every product wiki on localhost
 canon search "<q>"     # search the knowledge index
 canon flow <product>   # how far each local Claude conversation got against the pipeline (--write: metrics/flow.json)
 canon usage            # what local Claude sessions used and cost at list prices (--skill <name>, --unused, --json, --save)
+canon band             # the facts the band above the Claude Code prompt shows, as JSON
 canon mcp              # the search MCP server, for any MCP client
 /output-style canon:short    # in Claude Code: the answer in a few lines (canon:detail for the reasoning too)
 ```
