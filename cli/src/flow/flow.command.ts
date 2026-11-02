@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import type { Command } from "commander";
-import { findProducts } from "../check/check.ts";
+import { findProducts } from "../checks/check.ts";
 import { loadConfig } from "../config/load.ts";
 import { flow } from "./flow.ts";
 import { allSessions } from "./sessions.ts";

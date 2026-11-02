@@ -6,9 +6,6 @@ import { findProducts } from "./check.ts";
 import { requireWorkspace, type Env } from "../lib/env.ts";
 
 const MARK = "installed by `canon hooks install`";
-// Hooks written by the tools this command replaced (the old ~/git/bin script, then zeno); they are ours to overwrite.
-const OLD_MARKS = [MARK, "installed by ~/git/bin/install-hooks", "installed by `zeno hooks install`"];
-
 export const HOOK = `#!/bin/sh
 # ${MARK} — run it again rather than editing this file.
 # A machine without canon pushes unchecked, as it would without any hook.
@@ -18,7 +15,7 @@ root=$(cd "$(git rev-parse --git-common-dir)/.." && pwd) || exit 0
 exec canon check "$root"
 `;
 
-const ours = (path: string) => OLD_MARKS.some((mark) => readFileSync(path, "utf8").includes(mark));
+const ours = (path: string) => readFileSync(path, "utf8").includes(MARK);
 
 /** Writes the pre-push hook into one repo. Returns a one-line outcome. */
 export function installHook(repo: string): string {

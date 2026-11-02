@@ -12,9 +12,9 @@ describe("context-layout", () => {
   });
 
   test("a missing required folder is an error", () => {
-    const { ".context/features/index.md": _, ...rest } = VALID_CONTEXT;
+    const { ".context/wiki/index.md": _, ...rest } = VALID_CONTEXT;
     const findings = contextLayout.run(contextFor(makeTree(rest)));
-    expect(findings).toEqual([expect.objectContaining({ level: "error", file: ".context/features" })]);
+    expect(findings).toEqual([expect.objectContaining({ level: "error", file: ".context/wiki" })]);
   });
 
   test("designs/ is never required, even with the design module on", () => {
@@ -99,7 +99,7 @@ describe("context-layout additions", () => {
     expect(findings.filter((f) => /live/.test(f.message))).toEqual([]);
   });
 
-  test("a custom record folder is allowed, a removed one is not, and removing features stops requiring it", () => {
+  test("a custom record folder is allowed, a removed one is not, and no record folder is required", () => {
     const { ".context/features/index.md": _, ...rest } = VALID_CONTEXT;
     const yaml = "modules: [docs]\nrecords:\n  - { folder: campaigns, prefix: CAMP, statuses: [draft], sections: [Goal] }\n  - { folder: features, remove: true }\n  - { folder: bugs, remove: true }\n";
     const tree = { ...rest, ".context/context.yaml": yaml, ".context/campaigns/0001-a.md": "x" };

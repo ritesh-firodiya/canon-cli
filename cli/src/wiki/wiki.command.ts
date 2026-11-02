@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { Command } from "commander";
 import { architectureGraph } from "../checks/architecture.ts";
 import { CACHE_DIR } from "../lib/system.ts";
-import { findProducts } from "../check/check.ts";
+import { findProducts } from "../checks/check.ts";
 import { buildSite, quartzConfig } from "./wiki.ts";
 import { requireWorkspace, type Env } from "../lib/env.ts";
 

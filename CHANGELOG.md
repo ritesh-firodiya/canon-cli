@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.28.0 — 2026-11-02
+
+One way to do each thing. Run `canon sync` to index the new folders.
+
+### Added
+
+- **`canon new <kind> <title>`** starts a page from its template: problem, idea, experiment, plan, feature, bug, discovery, finding or decision. A repo's own kind gets a template from its config, or names its own with `template:`. Agents are told each kind's format.
+- **Meanings:** `meanings:` and `closed:` under `records:` explain each value. `canon records` prints them, and agents are given them.
+- **Priority:** `priorities:` is configurable, works on any record, and `canon queue` lists open work by it.
+- **Approvals:** `approvers:` and `required:` on a stage, and `canon reject` to send one back with a reason.
+- **Ownership:** `owner:` on a record, with a default in config. `canon queue --owner`.
+- **Versions:** a run writes `rules:`, the commit of `context.yaml` the work started under.
+
+- A stage naming a default id inherits what it does not set, so `- { id: plan, cap: 2 }` keeps canon's wording and gate.
+
+### Changed
+
+- **BREAKING:** one stage vocabulary. `canon flow` measures `idea, poc, plan, feature, design, development, review, release, store-review, deployed, live, result`; `research` and `code` are gone (`code` is `development`). Any other stage counts by its `done` paths.
+- **BREAKING:** `canon problem add` is gone; use `canon new problem`.
+- No record folder is required any more, and `canon init` no longer writes `features/index.md`.
+
+### Removed
+
+- The check for the old `.claude/canon.yaml`, and replacing hooks written by tools canon replaced.
+
 ## 0.27.0 — 2026-11-02
 
 Canon now runs work, not only checks it. Everything here is a default a repo can change in config.

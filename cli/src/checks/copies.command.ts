@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import type { Command } from "commander";
-import { compareCopies, syncCopies } from "../checks/shared-files.ts";
+import { compareCopies, syncCopies } from "./shared-files.ts";
 import { loadConfig } from "../config/load.ts";
 import type { Env } from "../lib/env.ts";
 

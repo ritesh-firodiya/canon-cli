@@ -83,7 +83,10 @@ canon update           # update the CLI and the Claude plugin to the latest rele
 canon status           # version, kind, modules, config layers, check summary
 canon doctor           # node, git, qmd — plus any tools your config lists
 canon learn            # proposals from overridden verdicts
-canon problem add <t>  # write down what needs solving
+canon new <kind> <t>   # start a page from its template: problem, idea, plan, finding, ...
+canon records          # what each kind, status and priority means here
+canon queue            # open work, most urgent first, and what it waits for
+canon reject <stage> --record <id> --note <why>   # a person sends a stage back
 canon run <record>     # move a record through its pipeline with an agent; stops at gates and caps
 canon trigger [id]     # read connectors, open problems, join repeats (--run works on new ones)
 canon verdict          # put a weigh verdict on the record it judged

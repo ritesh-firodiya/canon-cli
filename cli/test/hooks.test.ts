@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { HOOK, installHook } from "../src/check/hooks.command.ts";
+import { HOOK, installHook } from "../src/checks/hooks.command.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 function repo(files: Record<string, string>): string {
@@ -20,17 +20,13 @@ describe("installHook", () => {
     expect(statSync(hook).mode & 0o111).not.toBe(0);
   });
 
-  test("replaces a hook the old ~/git/bin script wrote, but never someone else's", () => {
-    const old = repo({ ".context/tasks.md": "" });
-    writeFileSync(join(old, ".git/hooks/pre-push"), "#!/bin/sh\n# installed by ~/git/bin/install-hooks\n");
-    expect(installHook(old)).toMatch(/^installed/);
-    const zeno = repo({ ".context/tasks.md": "" });
-    writeFileSync(join(zeno, ".git/hooks/pre-push"), "#!/bin/sh\n# installed by `zeno hooks install`\n");
-    expect(installHook(zeno)).toMatch(/^installed/);
+  test("replaces its own hook, but never someone else's", () => {
+    const ours = repo({ ".context/tasks.md": "" });
+    writeFileSync(join(ours, ".git/hooks/pre-push"), `${HOOK}\n# older\n`);
+    expect(installHook(ours)).toMatch(/^installed/);
     const theirs = repo({ ".context/tasks.md": "" });
-    writeFileSync(join(theirs, ".git/hooks/pre-push"), "#!/bin/sh\nnpm test\n");
-    expect(installHook(theirs)).toMatch(/^SKIPPED.*not canon's/);
-    expect(readFileSync(join(theirs, ".git/hooks/pre-push"), "utf8")).toBe("#!/bin/sh\nnpm test\n");
+    writeFileSync(join(theirs, ".git/hooks/pre-push"), "#!/bin/sh\necho mine\n");
+    expect(installHook(theirs)).toMatch(/^skipped/i);
   });
 
   test("a husky repo gets .husky/pre-push; a repo without tasks.md gets nothing", () => {

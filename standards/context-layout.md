@@ -55,7 +55,7 @@ folder.
 | Stage | Expected |
 |---|---|
 | any repo | `README.md` · `tasks.md` · `context.yaml` |
-| uses the `docs` or `knowledge` module | + `raw/` · `wiki/` · `features/`; the other record folders appear with their first record |
+| uses the `docs` or `knowledge` module | + `raw/` · `wiki/`; each record folder appears with its first record |
 | draws its UI | + `designs/` (required for a mobile or web repo: designs come first) |
 | has a store presence | + `listing/` |
 | is live to users | + `marketing/` · `metrics/` · `support/` · `legal/` |
@@ -72,8 +72,9 @@ folder.
 
 ## Where each kind of document lives
 
-Teams name documents many ways. Each name maps to one home; there is no
-separate folder per name.
+Work goes one way: a Problem, then Ideas with their discoveries and findings,
+then a Plan, then Features and Bugs. Teams use other names for these documents.
+Each name maps to one home; there is no separate folder per name.
 
 | Document | Home |
 |---|---|
@@ -87,7 +88,7 @@ separate folder per name.
 | Plan | `plans/`, `PLAN-NNNN` |
 | RFC | `plans/`; once accepted, the choice goes in `wiki/decisions/` |
 | PRD | `features/`, `type: feature` |
-| Initiative | `wiki/synthesis/`, linking its plans and decisions |
+| Initiative | `plans/`, with features and bugs naming it |
 | Finding | the dated data in `raw/`; what it means in `wiki/synthesis/` or a concept, naming its `ideas:` |
 | Verdict | `## Verdict` on the record it judged, written by `canon verdict`. A request with no record becomes an Idea |
 | Gate approval | `approvals:` on the record, written by `canon approve`; code review stays on the pull request |
@@ -188,6 +189,44 @@ Any record can run as a test and be thrown away on its results. Add
 `experiment: true`, with `## Hypothesis` and `## Metric`. When the results are
 in, set `outcome` and write `## Result`. A discarded page is never deleted, so
 nobody proposes the same thing again without seeing what happened.
+
+## Meanings, priority, approvals and ownership
+
+`canon records` prints a repo's vocabulary in words, and agents are given the same
+text. Everything below is a default a repo changes in `context.yaml`.
+
+```yaml
+owner: payments                 # who owns work unless a record says otherwise
+priorities:                     # replaces the list; most urgent first
+  urgent: Customers are blocked.
+  later: Do it when there is room.
+records:
+  - { folder: bugs, statuses: [new, closed], closed: [closed], meanings: { status: { new: Fresh from a customer. } } }
+pipelines:
+  default:
+    - { id: plan, by: agent, gate: true, approvers: [ana, ben], required: 2 }
+```
+
+- **Meanings:** `meanings:` under a record kind explains the values of any field.
+  `closed:` names the statuses that end the work.
+- **Priority:** `priority:` on any record. `canon queue` lists open work by it,
+  most urgent first. The `records` check fails a value not in the list.
+- **Approvals:** `canon approve` adds a person to `approvals:`; `canon reject` sends
+  the stage back with a reason, clears its approvals, and the next run is told why.
+  `approvers:` limits who counts and `required:` how many. People are matched by
+  their git user name, so this is a record, not proof of identity.
+- **Ownership:** `owner:` on a record is a person or team, defaulting to the
+  config's `owner`. To require one, add `owner` under a kind's `fields:`.
+- **Versions:** git versions all of it. `canon:` in `context.yaml` pins the canon
+  version. A run writes `rules:` on the record, the commit of `context.yaml` it
+  started under.
+
+## Templates
+
+`canon new <kind> "<title>"` starts a page: `problem`, `idea`, `experiment`,
+`plan`, `feature`, `bug`, `discovery`, `finding`, `decision`, or a kind the repo
+added. A repo's own kind gets its template from its fields and sections, or from
+`template:` under `records:`, which can also replace a default's.
 
 ## `tasks.md` — open work only
 

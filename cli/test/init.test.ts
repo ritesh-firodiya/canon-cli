@@ -48,7 +48,7 @@ describe("planInit", () => {
     expect(plan.config.modules).toContain("design");
   });
 
-  test("without docs or knowledge, no raw, wiki or features are created", () => {
+  test("without docs or knowledge, no raw or wiki is created", () => {
     const plan = planInit(makeTree({}), { canonVersion: "1", kind: "web", modules: ["code"] });
     expect(plan.create).toEqual([".context/README.md", ".context/tasks.md"]);
   });
@@ -64,7 +64,6 @@ describe("planInit", () => {
     expect(plan.create).toEqual([
       ".context/tasks.md",
       ".context/raw/.gitkeep",
-      ".context/features/index.md",
     ]);
   });
 
@@ -94,7 +93,6 @@ describe("applyInit", () => {
     expect(existsSync(join(repo, ".context/raw/.gitkeep"))).toBe(true);
     expect(calls).toEqual([
       ["qmd", "collection", "add", join(repo, ".context/wiki"), "--name", "demo-wiki"],
-      ["qmd", "collection", "add", join(repo, ".context/features"), "--name", "demo-features"],
     ]);
   });
 
@@ -136,7 +134,7 @@ describe("applyInit", () => {
     const calls: string[][] = [];
     const repo = makeTree({ ".context/problems/0001-a.md": "", ".context/ideas/0001-a.md": "" });
     indexKnowledge(repo, "demo", (command, args) => calls.push([command, ...args]));
-    expect(calls.map((call) => call[call.length - 1])).toEqual(["demo-wiki", "demo-problems", "demo-ideas", "demo-features"]);
+    expect(calls.map((call) => call[call.length - 1])).toEqual(["demo-wiki", "demo-problems", "demo-ideas"]);
   });
 
   test("writes canon's default flow into context.yaml, to change at will", () => {

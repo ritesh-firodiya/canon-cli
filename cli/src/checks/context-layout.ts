@@ -1,14 +1,13 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join, relative } from "node:path";
-import { CONFIG_FILE, CONTEXT_FOLDERS, DEFAULT_RECORDS, LOCAL_CONFIG_FILE, type Module, type RecordKind } from "../config/schema.ts";
+import { CONFIG_FILE, CONTEXT_FOLDERS, LOCAL_CONFIG_FILE, type Module } from "../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 
 /** What .context must hold: README.md and tasks.md always, the knowledge folders only when docs or knowledge is on. */
-export function requiredContext(modules: Module[], records: RecordKind[] = DEFAULT_RECORDS): string[] {
+export function requiredContext(modules: Module[]): string[] {
   const knowledge = modules.includes("docs") || modules.includes("knowledge");
-  const features = records.some((kind) => kind.folder === "features") ? ["features"] : [];
-  return ["README.md", "tasks.md", ...(knowledge ? ["raw", "wiki", ...features] : [])];
+  return ["README.md", "tasks.md", ...(knowledge ? ["raw", "wiki"] : [])];
 }
 const ROOT_FILES = ["README.md", "tasks.md", basename(CONFIG_FILE), basename(LOCAL_CONFIG_FILE)];
 const LIVE_FOLDERS = ["marketing", "metrics", "support", "legal"];
@@ -38,7 +37,7 @@ export const contextLayout: Check = {
     });
     if (!existsSync(context)) return [finding("error", ".context", "no .context/ folder — run `canon init`")];
 
-    const findings = requiredContext(config.modules, config.records).filter((name) => !existsSync(join(context, name))).map((name) =>
+    const findings = requiredContext(config.modules).filter((name) => !existsSync(join(context, name))).map((name) =>
       finding("error", `.context/${name}`, `required ${name} is missing`),
     );
     const allowed = [...CONTEXT_FOLDERS, ...config.records.map((kind) => kind.folder), ...config.context.folders.map((entry) => entry.folder)];

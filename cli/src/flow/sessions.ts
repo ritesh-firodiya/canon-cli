@@ -3,15 +3,12 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 export const COMMIT_CALL = /\bgit\b[^|;&]*\bcommit\b/;
-const WEB_TOOLS = new Set(["WebSearch", "WebFetch"]);
 
 /** One Claude conversation, reduced to counts and times. */
 export interface Session {
   start: Date;
   /** When it ran `git commit`. */
   calls: Date[];
-  /** When it first searched or fetched the web. */
-  web: Date | null;
   /** The product folders it worked in: its working folders and the paths its tools named, never tool output. */
   where: Set<string>;
 }
@@ -44,7 +41,6 @@ export function readSession(text: string, products: RegExp): Session | null {
   const where = new Set<string>();
   const named = (value: string) => [...value.matchAll(products)].forEach((m) => where.add(m[1]));
   let asks = 0;
-  let web: Date | null = null;
   for (const line of text.split("\n")) {
     let e: Entry;
     try {
@@ -62,12 +58,11 @@ export function readSession(text: string, products: RegExp): Session | null {
     for (const c of content as ToolUse[]) {
       if (c?.type !== "tool_use") continue;
       named(JSON.stringify(c.input ?? {}));
-      if (WEB_TOOLS.has(c.name ?? "") && web === null) web = t;
       if (typeof c.input?.command === "string" && COMMIT_CALL.test(c.input.command)) calls.push(t);
     }
   }
   if (!times.length || asks === 0) return null;
-  return { start: times.reduce((a, b) => (b < a ? b : a)), calls, web, where };
+  return { start: times.reduce((a, b) => (b < a ? b : a)), calls, where };
 }
 
 /** Every conversation on this machine: one started in ~ or ~/git can still have worked in a product. */

@@ -52,6 +52,7 @@ export const records: Check = {
           if (!data[field]) return [`missing field ${field}`];
           return values && !values.includes(String(data[field])) ? [`${field} ${data[field]} is not one of ${values.join(", ")}`] : [];
         }),
+        ...(data.priority && !(String(data.priority) in config.priorities) ? [`priority ${data.priority} is not one of ${Object.keys(config.priorities).join(", ")}`] : []),
         ...missingSections(body, kind.sections),
         ...experimentRules(kind.folder, data, body),
         ...storeCopyRule(kind.folder, data, body),

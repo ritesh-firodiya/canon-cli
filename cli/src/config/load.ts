@@ -2,14 +2,13 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { parse } from "yaml";
 import { DEFAULT_PIPELINE } from "./default-pipeline.ts";
-import { CONFIG_FILE, isStandardName, LOCAL_CONFIG_FILE, MODULES_BY_KIND, layerSchema, type Config, type CopyFileSpec, type Kind, type Layer, type Module, DEFAULT_RECORDS, type RecordEntry, type RecordKind } from "./schema.ts";
+import { CONFIG_FILE, isStandardName, LOCAL_CONFIG_FILE, MODULES_BY_KIND, layerSchema, type Config, type CopyFileSpec, type Kind, type Layer, type Module, DEFAULT_PRIORITIES, DEFAULT_RECORDS, type RecordEntry, type StageEntry, type StageSpec, type RecordKind } from "./schema.ts";
 
 export interface ConfigSource {
   layer: "extends" | "product" | "local";
   path: string;
 }
 
-const LEGACY_CONFIG_FILE = ".claude/canon.yaml";
 const EXPO_MARKERS = ["app.config.ts", "app.config.js", "app.json"];
 const WEB_MARKERS = ["next.config.ts", "next.config.js", "next.config.mjs", "vite.config.ts"];
 
@@ -95,18 +94,45 @@ function lastDefined<T>(values: Array<T | undefined>): T | undefined {
 function resolveRecords(changes: RecordEntry[]): RecordKind[] {
   const removed = new Set(changes.filter((entry) => entry.remove).map((entry) => entry.folder));
   const kinds = changes.filter((entry) => !entry.remove);
-  const changedDefaults = DEFAULT_RECORDS.filter((kind) => !removed.has(kind.folder)).map((kind) => ({ ...kind, ...kinds.find((entry) => entry.folder === kind.folder) }));
+  const changedDefaults = DEFAULT_RECORDS.filter((kind) => !removed.has(kind.folder)).map((kind) => {
+    const entry = kinds.find((item) => item.folder === kind.folder);
+    if (!entry) return kind;
+    const statuses = entry.statuses ?? kind.statuses;
+    // A default's words for a status the repo dropped go with it.
+    const inherited = { ...kind.meanings, status: Object.fromEntries(Object.entries(kind.meanings.status ?? {}).filter(([status]) => statuses.includes(status))) };
+    return { ...kind, ...entry, closed: entry.closed ?? kind.closed.filter((status) => statuses.includes(status)), meanings: mergeMeanings(inherited, entry.meanings) };
+  });
   const added = kinds
     .filter((entry) => !DEFAULT_RECORDS.some((kind) => kind.folder === entry.folder))
-    .map(({ folder, prefix, statuses, fields, sections }): RecordKind => {
+    .map(({ folder, prefix, statuses, closed, meanings, fields, sections, template }): RecordKind => {
       if (!prefix || !statuses) throw new Error(`records: ${folder} is new, so it needs a prefix and statuses`);
-      return { folder, prefix, statuses, fields: fields ?? {}, sections: sections ?? [] };
+      return { folder, prefix, statuses, closed: closed ?? [], meanings: meanings ?? {}, fields: fields ?? {}, sections: sections ?? [], ...(template ? { template } : {}) };
     });
   const records = [...changedDefaults, ...added];
+  for (const kind of records) {
+    const unknown = Object.keys(kind.meanings.status ?? {}).concat(kind.closed).filter((status) => !kind.statuses.includes(status));
+    if (unknown.length) throw new Error(`records: ${kind.folder} has no status ${unknown.join(", ")}`);
+  }
   const prefixes = records.map((kind) => kind.prefix);
   const repeated = prefixes.find((prefix, index) => prefixes.indexOf(prefix) !== index);
   if (repeated) throw new Error(`records: two kinds use the prefix ${repeated}`);
   return records;
+}
+
+/** An entry naming a default stage inherits what it does not set, so one flow keeps one wording. */
+function resolvePipelines(pipelines: Record<string, StageEntry[]>): Record<string, StageSpec[]> {
+  const resolved = Object.entries(pipelines).map(([name, stages]) => [
+    name,
+    stages.map((stage): StageSpec => {
+      const inherited = DEFAULT_PIPELINE.find((entry) => entry.id === stage.id);
+      return { ...inherited, ...stage, done: stage.done ?? inherited?.done ?? [], gate: stage.gate ?? inherited?.gate ?? false };
+    }),
+  ]);
+  return { default: DEFAULT_PIPELINE, ...Object.fromEntries(resolved) };
+}
+
+function mergeMeanings(base: RecordKind["meanings"], extra: RecordKind["meanings"] = {}): RecordKind["meanings"] {
+  return Object.fromEntries([...new Set([...Object.keys(base), ...Object.keys(extra)])].map((field) => [field, { ...base[field], ...extra[field] }]));
 }
 
 function mergeBy<T>(lists: T[][], key: (item: T) => string): T[] {
@@ -122,8 +148,6 @@ function mergeBy<T>(lists: T[][], key: (item: T) => string): T[] {
  * wiki types, context folders). Copy sets come from the source repo's context.yaml.
  */
 export function loadConfig(repo: string): { config: Config; sources: ConfigSource[] } {
-  // Without this a repo not yet moved would silently run on inferred defaults.
-  if (existsSync(join(repo, LEGACY_CONFIG_FILE))) throw new Error(`${repo} still has ${LEGACY_CONFIG_FILE} — move it to ${CONFIG_FILE}`);
   const candidates: ConfigSource[] = [
     { layer: "product", path: configPath(repo) },
     { layer: "local", path: join(repo, LOCAL_CONFIG_FILE) },
@@ -148,13 +172,15 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     weigh: { weights: Object.assign({}, ...pick("weigh").map((weigh) => weigh?.weights)) },
     wiki: { types: mergeBy(pick("wiki").map((wiki) => wiki?.types ?? []), (entry) => entry.type) },
     context: { folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder) },
-    pipelines: { default: DEFAULT_PIPELINE, ...Object.assign({}, ...pick("pipelines")) },
+    pipelines: resolvePipelines(Object.assign({}, ...pick("pipelines"))),
     locks: layers.flatMap((layer) => (layer.data.locked ?? []).map((key) => ({ key, value: valueAt(layer.data, key), layer: layer.path }))),
     connectors: mergeBy(pick("connectors").map((list) => list ?? []), (entry) => entry.id),
     triggers: mergeBy(pick("triggers").map((list) => list ?? []), (entry) => entry.id),
     records: resolveRecords(mergeBy(pick("records").map((list) => list ?? []), (entry) => entry.folder)),
     name: lastDefined(pick("name")),
     cap: lastDefined(pick("cap")),
+    priorities: lastDefined(pick("priorities")) ?? DEFAULT_PRIORITIES,
+    owner: lastDefined(pick("owner")),
     product: lastDefined(pick("product")),
     team: lastDefined(pick("team")),
     formerly: [...new Set(pick("formerly").flatMap((names) => names ?? []))],
@@ -166,6 +192,7 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
   };
   if (config.name === undefined) delete config.name;
   if (config.cap === undefined) delete config.cap;
+  if (config.owner === undefined) delete config.owner;
   if (config.product === undefined) delete config.product;
   if (config.team === undefined) delete config.team;
   if (Object.keys(config.expo ?? {}).length === 0) delete config.expo;

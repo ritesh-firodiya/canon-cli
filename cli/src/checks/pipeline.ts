@@ -1,5 +1,6 @@
 import { BUILT_IN_TRIGGER_SOURCES } from "../config/schema.ts";
-import { allRecords, approvalsOf } from "../records/records.ts";
+import { isApproved } from "../pipeline/pipeline.ts";
+import { allRecords } from "../records/records.ts";
 import type { Check, Finding } from "./types.ts";
 
 export const pipeline: Check = {
@@ -20,11 +21,10 @@ export const pipeline: Check = {
       if (record.data.pipeline && !stages) return [finding(`follows pipeline ${name}, which does not exist`, record.file)];
       const current = stages?.findIndex((stage) => stage.id === record.data.stage) ?? -1;
       if (current < 0) return [];
-      const approved = new Set(approvalsOf(record.data).map((approval) => approval.stage));
       const skipped = new Set(((record.data.skipped ?? []) as { stage: string }[]).map((entry) => entry.stage));
       return stages
         .slice(0, current)
-        .filter((stage) => stage.gate && !approved.has(stage.id) && !skipped.has(stage.id))
+        .filter((stage) => stage.gate && !isApproved(stage, record.data) && !skipped.has(stage.id))
         .map((stage) => finding(`reached "${record.data.stage}" before gate "${stage.id}" was approved — a person runs \`canon approve ${stage.id} --record ${record.id}\``, record.file));
     });
     return [...triggers, ...gates];

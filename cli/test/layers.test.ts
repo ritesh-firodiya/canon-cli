@@ -39,7 +39,7 @@ describe("rule layers", () => {
     const check = (yaml: string) => locks.run(contextFor(tree(yaml)));
     expect(check("cap: 2")).toEqual([]);
     expect(check("pipelines:\n  default:\n    - { id: build, by: agent }\n")[0].message).toMatch(/pipelines.default.review is locked by .*org.yaml/);
-    expect(check("pipelines:\n  default:\n    - { id: review, by: agent }\n")[0].message).toMatch(/locked/);
+    expect(check("pipelines:\n  default:\n    - { id: review, by: agent, gate: false }\n")[0].message).toMatch(/locked/);
     expect(check("records:\n  - { folder: bugs, remove: true }\n")[0].message).toMatch(/records.bugs/);
     expect(check("pipelines:\n  default:\n    - { id: build, by: person }\n    - { id: review, by: agent, gate: true }\n")).toEqual([]);
   });
@@ -48,6 +48,15 @@ describe("rule layers", () => {
     expect(() => loadConfig(tree("extends: [nope.yaml]\n"))).toThrow();
     const root = makeTree({ "a.yaml": "extends: [b.yaml]\n", "b.yaml": "extends: [a.yaml]\n", "app/.context/context.yaml": "extends: [../../a.yaml]\n" });
     expect(() => loadConfig(join(root, "app"))).toThrow(/circle/);
+  });
+
+  test("a stage naming a default id inherits what it does not set, and can change it", () => {
+    const { config } = loadConfig(makeTree({ ".context/context.yaml": "pipelines:\n  default:\n    - { id: plan, cap: 2 }\n    - { id: store-review, done: [x] }\n" }));
+    const [plan, store] = config.pipelines.default;
+    expect(plan).toMatchObject({ gate: true, by: "agent", cap: 2, done: [".context/plans"] });
+    expect(plan.prompt).toMatch(/weigh/);
+    expect(store).toMatchObject({ gate: false, done: ["x"] });
+    expect(store.by).toBeUndefined();
   });
 
   test("with no pipeline set, canon's default flow applies", () => {

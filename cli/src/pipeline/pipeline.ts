@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { Config, StageSpec } from "../config/schema.ts";
-import { allRecords, approvalsOf, findRecord, setFields, type Approval } from "../records/records.ts";
+import { allRecords, approvalsOf, findRecord, setFields, type Approval, type WorkRecord } from "../records/records.ts";
 
 export interface StageState {
   id: string;
@@ -29,13 +29,38 @@ export function pipelineOf(config: Config, name: string): StageSpec[] {
   return stages;
 }
 
+/** Enough different allowed people have approved this stage on this record. */
+export function isApproved(stage: StageSpec, data: Record<string, unknown>): boolean {
+  const people = approvalsOf(data).filter((approval) => approval.stage === stage.id && (!stage.approvers || stage.approvers.includes(approval.by)));
+  return new Set(people.map((approval) => approval.by)).size >= (stage.required ?? 1);
+}
+
+function stageOf(config: Config, record: WorkRecord, stageId: string): StageSpec {
+  const stages = pipelineOf(config, String(record.data.pipeline ?? "default"));
+  const needing = stages.filter((stage) => stage.gate || stage.by === "person");
+  const stage = needing.find((entry) => entry.id === stageId);
+  if (!stage) throw new Error(`"${stageId}" needs no approval here — stages that do: ${needing.map((entry) => entry.id).join(", ") || "none"}`);
+  return stage;
+}
+
 /** Records a person's approval on the record. Stages a person does are approved the same way as gates. */
 export function approveStage(repo: string, config: Config, recordId: string, stageId: string, by: string, note: string, now = new Date()): Approval {
   const record = findRecord(repo, config, recordId);
-  const stages = pipelineOf(config, String(record.data.pipeline ?? "default"));
-  const needing = stages.filter((stage) => stage.gate || stage.by === "person").map((stage) => stage.id);
-  if (!needing.includes(stageId)) throw new Error(`"${stageId}" needs no approval here — stages that do: ${needing.join(", ") || "none"}`);
+  const stage = stageOf(config, record, stageId);
+  if (stage.approvers && !stage.approvers.includes(by)) throw new Error(`${by} cannot approve ${stageId} — approvers: ${stage.approvers.join(", ")}`);
+  if (approvalsOf(record.data).some((approval) => approval.stage === stageId && approval.by === by)) throw new Error(`${by} already approved ${stageId} on ${recordId}`);
   const approval: Approval = { stage: stageId, by, at: now.toISOString(), ...(note ? { note } : {}) };
   setFields(repo, record.file, { approvals: [...approvalsOf(record.data), approval] });
   return approval;
+}
+
+/** Sends a stage back: its approvals are cleared, and the next run does it again and is told why. */
+export function rejectStage(repo: string, config: Config, recordId: string, stageId: string, by: string, note: string, now = new Date()): void {
+  const record = findRecord(repo, config, recordId);
+  stageOf(config, record, stageId);
+  setFields(repo, record.file, {
+    approvals: approvalsOf(record.data).filter((approval) => approval.stage !== stageId),
+    completed: ((record.data.completed ?? []) as string[]).filter((id) => id !== stageId),
+    rejections: [...((record.data.rejections ?? []) as object[]), { stage: stageId, by, at: now.toISOString(), note }],
+  });
 }

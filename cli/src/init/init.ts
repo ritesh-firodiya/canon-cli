@@ -91,7 +91,6 @@ const FIRST_FILE: Record<string, string> = {
   "tasks.md": ".context/tasks.md",
   raw: ".context/raw/.gitkeep",
   wiki: ".context/wiki/index.md",
-  features: ".context/features/index.md",
 };
 
 function template(file: string): string {
@@ -102,8 +101,6 @@ function template(file: string): string {
       return "# Tasks\n\n## Now\n\n## Blocked\n\n## Waiting\n";
     case ".context/wiki/index.md":
       return "# Wiki index\n\nPages by type. Schema: the canon plugin's wiki-schema standard.\n";
-    case ".context/features/index.md":
-      return "# Features\n\n| ID | Title | Status | Release |\n|---|---|---|---|\n";
     default:
       return "";
   }
@@ -144,9 +141,9 @@ export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; 
   if (plan.config.modules.includes("knowledge")) indexKnowledge(repo, options.name, options.run);
 }
 
-/** Adds the repo's wiki, features and other record folders to qmd. Safe to repeat: qmd refuses a name it already has. */
+/** Adds the repo's wiki and each record folder it has to qmd. Safe to repeat: qmd refuses a name it already has. */
 export function indexKnowledge(repo: string, name: string, run: Runner): void {
-  const folders = loadConfig(repo).config.records.map((kind) => kind.folder).filter((folder) => folder === "features" || existsSync(join(repo, ".context", folder)));
+  const folders = loadConfig(repo).config.records.map((kind) => kind.folder).filter((folder) => existsSync(join(repo, ".context", folder)));
   for (const kind of ["wiki", ...folders]) {
     run("qmd", ["collection", "add", join(repo, ".context", kind), "--name", `${name}-${kind}`]);
   }

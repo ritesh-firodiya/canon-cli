@@ -17,7 +17,7 @@ A Problem is one doc that starts work. A person opens it, or a trigger does: a f
 Work only starts today when someone opens a chat. Problems that arrive while the owner is away wait unseen.
 
 ## Acceptance scenarios
-- Given `canon problem add`, when a person fills it in, then one Problem doc lands in the repo with its source, priority, impact, cost and expected result.
+- Given `canon new problem`, when a person fills it in, then one Problem doc lands in the repo with its source, priority, impact, cost and expected result.
 - Given a scheduled or polling trigger in config, when its condition is met, then a Problem opens and names the source.
 - Given a second event matching an open Problem in the same repo, then it is added to that Problem and no new one opens.
 - Given a trigger past its spend cap, then it stops opening work and says so.

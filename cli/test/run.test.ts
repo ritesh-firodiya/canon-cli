@@ -1,10 +1,15 @@
-import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, test } from "vitest";
 import { loadConfig } from "../src/config/load.ts";
-import { approveStage } from "../src/pipeline/pipeline.ts";
+import { approveStage, rejectStage } from "../src/pipeline/pipeline.ts";
+import { formatQueue, queueOf } from "../src/records/queue.ts";
 import { addProblem, recordEvent } from "../src/records/problems.ts";
-import { findRecord, setFields } from "../src/records/records.ts";
+import { allRecords, findRecord, setFields } from "../src/records/records.ts";
+import { newPage } from "../src/records/new.ts";
+import { records } from "../src/checks/records.ts";
+import { contextFor } from "./helpers/context.ts";
 import { runRecord, runsLog, type Agent, type AgentCall } from "../src/run/run.ts";
 import { runTrigger } from "../src/run/trigger.ts";
 import { makeTree } from "./helpers/fixture.ts";
@@ -138,6 +143,146 @@ describe("runRecord", () => {
     const lines = readFileSync(runsLog(), "utf8").trim().split("\n").map((line) => JSON.parse(line));
     expect(lines[0]).toMatchObject({ record: id, stage: "idea", costUsd: 0.5, ok: true });
     expect(Object.keys(lines[0])).not.toContain("text");
+  });
+});
+
+describe("canon new", () => {
+  const check = (repo: string) => records.run(contextFor(repo));
+
+  test("every default template passes the records check", () => {
+    const repo = makeTree({});
+    const { config } = loadConfig(repo);
+    newPage(repo, config, "problem", "Checkout fails");
+    newPage(repo, config, "idea", "Retry");
+    newPage(repo, config, "experiment", "Retry proof");
+    newPage(repo, config, "plan", "Retry plan", { problem: "PROB-0001" });
+    newPage(repo, config, "feature", "Retry");
+    newPage(repo, config, "bug", "Double charge");
+    expect(check(repo)).toEqual([]);
+    expect(allRecords(repo, config).map((record) => record.id)).toEqual(["PROB-0001", "IDEA-0001", "EXP-0001", "PLAN-0001", "FEAT-0001", "BUG-0001"]);
+  });
+
+  test("a required field with no default must be given", () => {
+    const repo = makeTree({});
+    expect(() => newPage(repo, loadConfig(repo).config, "plan", "P")).toThrow(/--set problem=/);
+  });
+
+  test("wiki documents go by topic, and never overwrite", () => {
+    const repo = makeTree({});
+    const { config } = loadConfig(repo);
+    expect(newPage(repo, config, "finding", "Retry charges twice").file).toBe(join(".context", "wiki", "synthesis", "retry-charges-twice.md"));
+    expect(newPage(repo, config, "decision", "Retry policy").file).toBe(join(".context", "wiki", "decisions", "retry-policy.md"));
+    expect(() => newPage(repo, config, "finding", "Retry charges twice")).toThrow(/already exists/);
+  });
+
+  test("a team's own kind gets a template from its config, or names its own", () => {
+    const repo = makeTree({
+      ".context/context.yaml": "records:\n  - { folder: campaigns, prefix: CAMP, statuses: [draft, live], fields: { channel: [email, ads] }, sections: [Goal] }\n  - { folder: bugs, template: my-bug.md }\n",
+      "my-bug.md": "---\nstatus: open\nseverity: low\n---\n# {{title}}\n## Summary\nours\n## Expected\ne\n## Actual\na\n",
+    });
+    const { config } = loadConfig(repo);
+    newPage(repo, config, "campaign", "Launch");
+    newPage(repo, config, "bug", "Mine");
+    expect(check(repo)).toEqual([]);
+    expect(findRecord(repo, config, "CAMP-0001").data).toMatchObject({ status: "draft", channel: "email" });
+    expect(findRecord(repo, config, "BUG-0001").body).toContain("ours");
+    expect(() => newPage(repo, config, "nope", "X")).toThrow(/kinds here: .*campaigns/);
+  });
+
+  test("templates ship in every kind the docs name", () => {
+    for (const what of ["discovery", "finding", "decision"]) expect(existsSync(join(import.meta.dirname, "..", "..", "templates", "records", `${what}.md`))).toBe(true);
+  });
+});
+
+describe("meanings, priority, approvals and ownership", () => {
+  const YAML2 = `owner: payments
+priorities:
+  urgent: Today.
+  later: Some day.
+records:
+  - { folder: bugs, statuses: [new, closed], closed: [closed], meanings: { status: { new: Fresh from a customer. } } }
+pipelines:
+  default:
+    - { id: plan, by: agent, gate: true, approvers: [ana, ben], required: 2 }
+    - { id: build, by: agent }
+`;
+  const page = (id: string, folder: string, extra: string) => ({ [`.context/${folder}/${id.slice(-4)}-a.md`]: `---\nid: ${id}\n${extra}\n---\n` });
+
+  test("status meanings are customizable and reach the agent", () => {
+    const { repo, config, id } = setup(YAML2);
+    const { agent, calls } = fakeAgent();
+    runRecord(repo, config, id, agent);
+    expect(calls[0].prompt).toContain("status new: Fresh from a customer.");
+    expect(calls[0].prompt).toContain("status solved (closed): The Expected section is now true");
+    expect(calls[0].prompt).toContain("urgent: Today.");
+    expect(config.records.find((kind) => kind.folder === "bugs")?.meanings.status.open).toBeUndefined();
+  });
+
+  test("a meaning or closed status that does not exist is refused", () => {
+    expect(() => loadConfig(makeTree({ ".context/context.yaml": "records:\n  - { folder: bugs, meanings: { status: { nope: x } } }\n" }))).toThrow(/no status nope/);
+  });
+
+  test("the queue is ordered by the repo's priorities, hides closed work and shows what waits", () => {
+    const repo = makeTree({
+      ".context/context.yaml": YAML2,
+      ...page("PROB-0001", "problems", "status: open\nsource: a\npriority: later\nowner: ana"),
+      ...page("PROB-0002", "problems", "status: solving\nsource: a\npriority: urgent\nstage: plan"),
+      ...page("PROB-0003", "problems", "status: solved\nsource: a\npriority: urgent"),
+      ...page("IDEA-0001", "ideas", "status: draft"),
+    });
+    const rows = queueOf(repo, loadConfig(repo).config);
+    expect(rows.map((row) => row.id)).toEqual(["PROB-0002", "PROB-0001", "IDEA-0001"]);
+    expect(rows[0]).toMatchObject({ waiting: "plan", owner: null });
+    expect(formatQueue(rows)).toContain("waits for a person at plan");
+  });
+
+  test("a priority outside the repo's list fails the check", () => {
+    const repo = makeTree({ ".context/context.yaml": YAML2, ...page("PROB-0001", "problems", "status: open\nsource: a\npriority: p0") });
+    expect(records.run(contextFor(repo)).map((finding) => finding.message)).toContainEqual(expect.stringMatching(/priority p0/));
+  });
+
+  test("only named approvers count, each once, and the gate holds until enough have", () => {
+    const { repo, config, id } = setup(YAML2);
+    const { agent } = fakeAgent();
+    expect(runRecord(repo, config, id, agent).status).toBe("waiting");
+    expect(() => approveStage(repo, config, id, "plan", "eve", "")).toThrow(/cannot approve/);
+    approveStage(repo, config, id, "plan", "ana", "");
+    expect(() => approveStage(repo, config, id, "plan", "ana", "")).toThrow(/already approved/);
+    expect(runRecord(repo, config, id, agent).status).toBe("waiting");
+    approveStage(repo, config, id, "plan", "ben", "");
+    expect(runRecord(repo, config, id, agent).status).toBe("done");
+  });
+
+  test("rejecting clears approvals, reruns the stage and tells the agent why", () => {
+    const { repo, config, id, get } = setup(YAML2);
+    const { agent, calls } = fakeAgent();
+    runRecord(repo, config, id, agent);
+    approveStage(repo, config, id, "plan", "ana", "");
+    rejectStage(repo, config, id, "plan", "ben", "Too costly");
+    expect(get().data.approvals).toEqual([]);
+    expect(get().data.rejections).toMatchObject([{ stage: "plan", by: "ben", note: "Too costly" }]);
+    runRecord(repo, config, id, agent);
+    expect(calls.at(-1)?.prompt).toContain("ben: Too costly");
+  });
+
+  test("new work takes the default owner unless it names one", () => {
+    const { config, get } = setup(YAML2);
+    expect(get().data).toMatchObject({ owner: "payments", priority: "later" });
+    const repo = makeTree({ ".context/context.yaml": YAML2 });
+    const { id } = newPage(repo, config, "idea", "Mine", { owner: "ana" });
+    expect(findRecord(repo, config, id).data.owner).toBe("ana");
+  });
+
+  test("a run notes which rules it started under, and keeps them", () => {
+    const { repo, config, id, get } = setup();
+    execFileSync("git", ["init", "-q"], { cwd: repo });
+    execFileSync("git", ["add", ".context/context.yaml"], { cwd: repo });
+    execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "x"], { cwd: repo });
+    runRecord(repo, config, id, fakeAgent().agent);
+    const rules = get().data.rules;
+    expect(rules).toMatch(/^[0-9a-f]+$/);
+    runRecord(repo, config, id, fakeAgent().agent);
+    expect(get().data.rules).toBe(rules);
   });
 });
 

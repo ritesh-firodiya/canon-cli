@@ -28,19 +28,96 @@ export interface RecordKind {
   folder: string;
   prefix: string;
   statuses: string[];
+  /** The statuses that mean the work is over. */
+  closed: string[];
+  /** What each value means, by field: `status: { open: "..." }`. Agents are given this. */
+  meanings: Record<string, Record<string, string>>;
   /** Frontmatter fields every record of this kind must have; a list limits the values. */
   fields: Record<string, string[] | null>;
   sections: string[];
+  /** The repo's own template for `canon new`, relative to the repo root. */
+  template?: string;
 }
+
+/** What each priority means, most urgent first. A repo replaces the whole list under `priorities`. */
+export const DEFAULT_PRIORITIES: Record<string, string> = {
+  p0: "Something is broken for users now. Drop other work.",
+  p1: "Serious and getting worse. Do it next.",
+  p2: "Worth doing. Do it in normal order.",
+  p3: "Do it when nothing more urgent waits.",
+};
 
 /** The default records. A repo adds, changes or removes kinds under `records`. */
 export const DEFAULT_RECORDS: RecordKind[] = [
-  { folder: "problems", prefix: "PROB", statuses: ["open", "solving", "solved", "dismissed"], fields: { source: null, priority: ["p0", "p1", "p2", "p3"] }, sections: ["Summary", "Impact", "Expected"] },
-  { folder: "ideas", prefix: "IDEA", statuses: ["draft", "accepted", "shipped", "dropped"], fields: {}, sections: ["Summary"] },
-  { folder: "experiments", prefix: "EXP", statuses: ["planned", "running", "done", "dropped"], fields: { kind: ["poc", "experiment"] }, sections: ["Summary"] },
-  { folder: "plans", prefix: "PLAN", statuses: ["draft", "approved", "building", "done", "dropped"], fields: { problem: null }, sections: ["Approach", "Steps"] },
-  { folder: "features", prefix: "FEAT", statuses: ["planned", "building", "shipped", "shelved", "superseded"], fields: { type: ["feature", "chore", "platform"] }, sections: [] },
-  { folder: "bugs", prefix: "BUG", statuses: ["open", "fixing", "fixed", "wontfix"], fields: { severity: ["low", "medium", "high", "critical"] }, sections: ["Summary", "Expected", "Actual"] },
+  {
+    folder: "problems",
+    prefix: "PROB",
+    statuses: ["open", "solving", "solved", "dismissed"],
+    closed: ["solved", "dismissed"],
+    fields: { source: null, priority: null },
+    sections: ["Summary", "Impact", "Expected"],
+    meanings: {
+      status: { open: "Raised, and nobody has started on it.", solving: "Work is under way.", solved: "The Expected section is now true, with proof.", dismissed: "Decided not to solve it. The page says why." },
+    },
+  },
+  {
+    folder: "ideas",
+    prefix: "IDEA",
+    statuses: ["draft", "accepted", "shipped", "dropped"],
+    closed: ["shipped", "dropped"],
+    fields: {},
+    sections: ["Summary"],
+    meanings: {
+      status: { draft: "Proposed, and not yet judged.", accepted: "Chosen to go ahead.", shipped: "Built and live.", dropped: "Rejected. Its verdict says why, so do not propose it again without new facts." },
+    },
+  },
+  {
+    folder: "experiments",
+    prefix: "EXP",
+    statuses: ["planned", "running", "done", "dropped"],
+    closed: ["done", "dropped"],
+    fields: { kind: ["poc", "experiment"] },
+    sections: ["Summary"],
+    meanings: {
+      status: { planned: "Written, and not started.", running: "Being built or measured.", done: "Finished, and its Result is written, whether it worked or not.", dropped: "Stopped before it gave an answer." },
+      kind: { poc: "A small working proof that an idea can work.", experiment: "A measured test of whether it helps." },
+    },
+  },
+  {
+    folder: "plans",
+    prefix: "PLAN",
+    statuses: ["draft", "approved", "building", "done", "dropped"],
+    closed: ["done", "dropped"],
+    fields: { problem: null },
+    sections: ["Approach", "Steps"],
+    meanings: {
+      status: { draft: "Written, and waiting for a person.", approved: "A person agreed. Work may start.", building: "Its features and bugs are in progress.", done: "Every step is finished.", dropped: "Abandoned. The page says why." },
+    },
+  },
+  {
+    folder: "features",
+    prefix: "FEAT",
+    statuses: ["planned", "building", "shipped", "shelved", "superseded"],
+    closed: ["shipped", "shelved", "superseded"],
+    fields: { type: ["feature", "chore", "platform"] },
+    sections: [],
+    meanings: {
+      status: { planned: "Agreed, and not started.", building: "Being written.", shipped: "Released. Outcome says if it stayed.", shelved: "Paused, and not expected soon.", superseded: "Replaced by another feature." },
+      type: { feature: "Something users see.", chore: "Upkeep users do not see.", platform: "Groundwork other features need." },
+    },
+  },
+  {
+    folder: "bugs",
+    prefix: "BUG",
+    statuses: ["open", "fixing", "fixed", "wontfix"],
+    closed: ["fixed", "wontfix"],
+    fields: { severity: ["low", "medium", "high", "critical"] },
+    sections: ["Summary", "Expected", "Actual"],
+    meanings: {
+      status: { open: "Reported, and not started.", fixing: "Being fixed.", fixed: "Fixed, with a test that failed before.", wontfix: "Decided not to fix it. The page says why." },
+      severity: { low: "Annoying, with an easy way around it.", medium: "Gets in the way, with a way around it.", high: "Blocks important work.", critical: "Loses data or money, or is a security hole." },
+    },
+  },
 ];
 
 /** The other `.context/` folders every repo may have. A repo adds more under `context.folders`. */
@@ -108,9 +185,9 @@ const stage = z
   .object({
     id: kebab,
     /** Paths that show the stage has started, for `canon pipeline` and `canon flow`; any one is enough. */
-    done: z.array(z.string().min(1)).default([]),
+    done: z.array(z.string().min(1)).optional(),
     /** A person must approve this stage on the record (`canon approve <id> --record <id>`) before any later stage runs. */
-    gate: z.boolean().default(false),
+    gate: z.boolean().optional(),
     /** Who does the work; a person when absent. */
     by: z.enum(["person", "agent"]).optional(),
     /** A stage the run may skip. `when` says in words when it is needed. */
@@ -120,6 +197,10 @@ const stage = z
     cap: z.number().positive().optional(),
     /** What the agent is told to do at this stage. */
     prompt: z.string().min(1).optional(),
+    /** Who may approve this stage, by git user name. Absent: any person. */
+    approvers: z.array(z.string().min(1)).optional(),
+    /** How many different people must approve. */
+    required: z.number().int().positive().optional(),
     /** The model for this stage: the smallest one that does the job well. */
     model: z.string().min(1).optional(),
     /** The tools an agent may use here. Absent: read and write files in the repo, with no shell. */
@@ -149,8 +230,11 @@ const recordEntry = z
     folder: kebab,
     prefix: z.string().regex(/^[A-Z]+$/, "a prefix is capital letters, like CAMP").optional(),
     statuses: z.array(z.string().min(1)).min(1).optional(),
+    closed: z.array(z.string().min(1)).optional(),
+    meanings: z.record(z.string(), z.record(z.string(), z.string().min(1))).optional(),
     fields: z.record(z.string(), z.array(z.string()).nullable()).optional(),
     sections: z.array(z.string().min(1)).optional(),
+    template: z.string().min(1).optional(),
     remove: z.boolean().optional(),
   })
   .strict();
@@ -165,7 +249,7 @@ const trigger = z
     cap: z.number().positive().optional(),
     /** The named pipeline its problems follow. */
     pipeline: kebab.optional(),
-    priority: z.enum(["p0", "p1", "p2", "p3"]).optional(),
+    priority: z.string().min(1).optional(),
   })
   .strict();
 
@@ -188,6 +272,10 @@ export const layerSchema = z
     context: z.object({ folders: z.array(contextFolder) }).partial(),
     /** Named pipelines. A more specific layer replaces a pipeline of the same name and keeps the others. */
     pipelines: z.record(kebab, z.array(stage)),
+    /** What each priority means, most urgent first. Replaces the whole list. */
+    priorities: z.record(z.string(), z.string().min(1)),
+    /** Who owns work here unless a record names someone: a person or a team. */
+    owner: z.string().min(1),
     /** The default spend cap per stage, in US dollars. */
     cap: z.number().positive(),
     /** The layers this one builds on, furthest first: an organization's rules, a product's, a team's. Paths are relative to this file. */
@@ -219,7 +307,9 @@ export type CommandSpec = z.infer<typeof command>;
 export type ToolSpec = z.infer<typeof tool>;
 export type WikiTypeSpec = z.infer<typeof wikiType>;
 export type ContextFolderSpec = z.infer<typeof contextFolder>;
-export type StageSpec = z.infer<typeof stage>;
+export type StageEntry = z.infer<typeof stage>;
+/** A stage as resolved: an entry naming a default stage's id inherits what it does not set. */
+export type StageSpec = StageEntry & { done: string[]; gate: boolean };
 export type ConnectorSpec = z.infer<typeof connector>;
 export type TriggerSpec = z.infer<typeof trigger>;
 export type RecordEntry = z.infer<typeof recordEntry>;
@@ -244,6 +334,8 @@ export interface Config {
   /** Ordered stages by name. `default` is canon's flow unless a layer sets its own. */
   pipelines: Record<string, StageSpec[]>;
   cap?: number;
+  priorities: Record<string, string>;
+  owner?: string;
   /** What each layer locked, with the value it locked and where. */
   locks: { key: string; value: unknown; layer: string }[];
   connectors: ConnectorSpec[];

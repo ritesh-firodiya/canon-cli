@@ -53,14 +53,13 @@ describe("syncRepo", () => {
     expect(result.version).toBeNull();
   });
 
-  test("indexes the repo's wiki and features before reindexing, so a late qmd install still finds them", async () => {
+  test("indexes the repo's wiki and records before reindexing, so a late qmd install still finds them", async () => {
     const repo = makeTree({ ".context/context.yaml": "canon: 0.4.0\nkind: content\nmodules: [knowledge]\n" });
     const h = harness();
     await syncRepo(repo, { canonRoot: canonWith("0.4.0"), cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
     const name = repo.split("/").pop();
     expect(h.calls).toEqual([
       ["qmd", "collection", "add", join(repo, ".context", "wiki"), "--name", `${name}-wiki`],
-      ["qmd", "collection", "add", join(repo, ".context", "features"), "--name", `${name}-features`],
       ["qmd", "update"],
       ["qmd", "embed"],
     ]);

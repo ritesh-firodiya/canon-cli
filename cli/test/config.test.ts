@@ -58,11 +58,6 @@ describe("loadConfig", () => {
     expect(() => loadConfig(makeTree({ ".context/context.yaml": "kind: package\nproduct: Not Kebab\n" }))).toThrow();
   });
 
-  test("a repo still on the old .claude/canon.yaml is told to move it, not silently given defaults", () => {
-    const repo = makeTree({ ".claude/canon.yaml": "kind: web\n", "app.config.ts": "" });
-    expect(() => loadConfig(repo)).toThrow(/move it to \.context\/context\.yaml/);
-  });
-
   test("the local layer wins over the repo's context.yaml", () => {
     const repo = makeTree({
       ".context/context.yaml": "weigh:\n  weights:\n    C-07: 2\n    C-15: 3\n",

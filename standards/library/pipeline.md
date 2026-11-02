@@ -1,6 +1,7 @@
 # Pipeline
 
-How a new app is built: five stages, in order, with hard gates. Opt in with
+How a new app's first version is built: five steps, in order, with hard gates.
+Once an app exists, its work follows the repo's `pipelines:`. Opt in with
 `standards: [pipeline]`.
 
 These are hard rules. There is no "quick prototype" exception and no "I'll add
@@ -23,7 +24,8 @@ Each stage stops and waits for the owner's approval before the next starts.
 5. **Build the app.**
 
 Present the stage, then stop. A plan approved is not code approved. Do not start
-with "a small piece", a spike, or a test harness because it looks useful.
+with "a small piece", a spike, or a test harness because it looks useful. A proof
+someone asked for is an `experiments/` record, not a head start on the build.
 
 ## Principles
 
