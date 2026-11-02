@@ -16,3 +16,4 @@ pipelines:
 features:
   - process
   - knowledge
+  - routing
