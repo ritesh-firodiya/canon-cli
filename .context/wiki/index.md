@@ -9,3 +9,4 @@ last-verified: 2026-10-27
 - [config-location](decisions/config-location.md) — config is .context/context.yaml; the old .claude/canon.yaml is an error
 - [work-records](decisions/work-records.md) — one home and format for problems, inputs, integrations, ideas, features, experiments, verdicts and runs
 - [rule-layers](decisions/rule-layers.md) — extends: organization, product, team, repo, machine; the closest wins unless locked
+- [hosted-team-version-only-enforcement-has-a-clear](synthesis/hosted-team-version-only-enforcement-has-a-clear.md) — first-pass research: only enforcement has a clear gap; demand unproven
