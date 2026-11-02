@@ -18,5 +18,5 @@ A link opens its page in the shell, once.
 Not reproduced. In `canon ui`, a link in a page opened its target normally and the shell drew once, with no frame.
 
 ## Evidence
-- Tried on the Canon design set, `web/site/home.html` to `web/site/install.html`, in Chrome. No `file:///` run, where the shell comes from the published package.
-- Needs the page and link that does it, and whether it was `file:///` or `canon ui`.
+- Tried on the Canon design set, `web/site/home.html`, in Chrome: on `canon ui`, and on `file:///` with the 0.30.0 and 2.1.1 shells. Each click made one top-level navigation and left the page on its target.
+- Needs the page and link that does it.

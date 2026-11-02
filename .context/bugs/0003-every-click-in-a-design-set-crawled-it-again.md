@@ -20,4 +20,5 @@ Every page view waited for a full crawl.
 ## Evidence
 - `cli/test/shell-state.test.ts`: a page reuses the crawl the journey stored and loads no frame. It failed before the change.
 - In `canon ui` on a 51-page set, a page opened after the Journey loaded in 181 ms with no frames.
+- On `file:///` with the 2.1.1 shell, the same page drew in 256 ms against 1392 ms on the 0.30.0 shell, and a click loaded 0 scan frames against 160. Sets only get this after BUG-0006.
 - Fixed in `shell/crawl.js`. The crawl is kept in `sessionStorage`, so a changed page shows after the Journey is opened again.
