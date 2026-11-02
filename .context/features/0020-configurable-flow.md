@@ -18,7 +18,7 @@ Every product and team works differently, so canon's flow is a starting point, n
 
 ## The default flow
 
-`problem → idea → research → plan → feature → design → code → review → release → result`
+`problem → research → idea → plan → feature → design → code → review → release → result`
 
 - `research` and `code` keep their names. `development` and `poc` go.
 - `problem` is done once its page exists, so a run starts at `idea`.

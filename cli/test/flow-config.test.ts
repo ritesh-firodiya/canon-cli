@@ -27,13 +27,13 @@ beforeEach(() => {
 });
 
 describe("the default flow", () => {
-  test("a problem is done once its page exists, and a run starts at idea, stopping at the first gate", () => {
+  test("a problem is done once its page exists, and a run starts at research, stopping at the first gate", () => {
     const repo = makeTree({});
     const { config } = loadConfig(repo);
     const { id } = newPage(repo, config, "problem", "P");
     const { agent, calls } = recording();
     expect(runRecord(repo, config, id, agent)).toMatchObject({ status: "waiting", stage: "plan" });
-    expect(calls.map(stageOf)).toEqual(["idea", "research", "plan"]);
+    expect(calls.map(stageOf)).toEqual(["research", "idea", "plan"]);
   });
 
   test("a repo adds, removes and re-orders stages", () => {
@@ -141,7 +141,7 @@ describe("experiments", () => {
     expect(() => startExperiment(repo, config, "checkout-retry", { from: "code" })).toThrow(/names are unique/);
     const page = findRecord(repo, config, id);
     expect(page.data).toMatchObject({ name: id, "started-at": "design", status: "running" });
-    expect((page.data.skipped as { stage: string; reason: string }[]).map((entry) => entry.stage)).toEqual(["idea", "research", "plan", "feature"]);
+    expect((page.data.skipped as { stage: string; reason: string }[]).map((entry) => entry.stage)).toEqual(["research", "idea", "plan", "feature"]);
     const { agent, calls } = recording(() => "Yes");
     expect(runRecord(repo, config, id, agent)).toMatchObject({ status: "waiting", stage: "design" });
     expect(calls.filter((call) => !call.small).map(stageOf)).toEqual(["design"]);

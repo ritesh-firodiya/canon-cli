@@ -7,8 +7,8 @@ const agent = (id: string, done: string[], prompt: string, more: Partial<StageSp
 /** Canon's flow when a repo sets none of its own. `canon init` writes it to context.yaml, to change at will. */
 export const DEFAULT_PIPELINE: StageSpec[] = [
   { id: "problem", done: [".context/problems"], gate: false },
-  agent("idea", [".context/ideas"], "Search the wiki and past outcomes for how this was solved before. Write each way to solve it in .context/ideas, naming the problem under problems:."),
-  agent("research", [".context/raw", ".context/wiki/synthesis"], "Check the ideas against evidence. Put each discovery or finding in .context/wiki/synthesis/<topic>.md, with last-verified in its frontmatter, and dated data in .context/raw/. Counts and rates only, never rows that name a person."),
+  agent("research", [".context/raw", ".context/wiki/synthesis"], "Find what is known about the problem: search the wiki, past outcomes and other evidence for how it was solved before. Put each discovery or finding in .context/wiki/synthesis/<topic>.md, with last-verified in its frontmatter, and dated data in .context/raw/. Counts and rates only, never rows that name a person."),
+  agent("idea", [".context/ideas"], "Using the findings, write each way to solve the problem in .context/ideas, naming the problem under problems: and the evidence behind it."),
   agent("plan", [".context/plans"], "Weigh the ideas against the knowledge and findings with the weigh skill. Write the best one as a plan in .context/plans with its Approach and Steps, and say why the others lost.", { gate: true }),
   agent("feature", [".context/features", ".context/bugs"], "Split the approved plan into small pieces in .context/features or .context/bugs, each naming the plan."),
   agent("design", [".context/designs"], "Draw only what changes, as HTML in .context/designs.", { optional: true, when: "a screen changes", gate: true }),

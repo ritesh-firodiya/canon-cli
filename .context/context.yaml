@@ -4,8 +4,8 @@ product: canon
 pipelines:
   default:
     - { id: problem }
-    - { id: idea }
     - { id: research }
+    - { id: idea }
     - { id: plan }
     - { id: feature }
     - { id: code }

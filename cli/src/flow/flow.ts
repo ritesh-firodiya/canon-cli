@@ -31,7 +31,7 @@ import { belongs, type Session } from "./sessions.ts";
 // A conversation counts at every stage up to the furthest it reached.
 
 const MATCH_SECONDS = 120;
-export const KNOWN = ["problem", "idea", "research", "plan", "feature", "design", "code", "review", "release", "store-review", "deployed", "live"];
+export const KNOWN = ["problem", "research", "idea", "plan", "feature", "design", "code", "review", "release", "store-review", "deployed", "live"];
 const TOUCH: Record<string, string[]> = {
   problem: [".context/problems/"],
   research: [".context/raw/", ".context/wiki/synthesis/"],

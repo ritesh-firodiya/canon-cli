@@ -201,7 +201,7 @@ records:
 
 ### The flow
 
-`problem → idea → research → plan → feature → design → code → review → release → result`
+`problem → research → idea → plan → feature → design → code → review → release → result`
 
 A repo re-orders, adds, removes or renames stages under `pipelines:`, and adds named
 pipelines. A stage naming a default id inherits what it does not set. Discoveries and
