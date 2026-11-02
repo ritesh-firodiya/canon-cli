@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.0 — 2026-11-02
+
+Canon picks the effort and model for each prompt, and the band follows your work.
+
+### Added
+
+- **Prompt routing:** the band sorts each typed prompt as small, medium or large with Haiku, through your own login. It sets effort per prompt, and the model at the start of a session; mid-session the model only moves up. Your choice on the band, or `/model`, always wins. Headless sessions and `canon run` agents are not routed.
+- `canon usage` shows prompt routing counts and what deciding cost.
+
+### Changed
+
+- The band follows the product you edit or `cd` into, so a session in a parent folder or moving between products needs no link.
+
 ## 0.30.0 — 2026-11-02
 
 See what your Claude sessions cost, and keep the state of the work above the prompt.

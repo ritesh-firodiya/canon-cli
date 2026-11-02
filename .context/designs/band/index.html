@@ -117,8 +117,41 @@ th { background: #ece8e0; }
     <div class="prompt">&gt; </div>
   </div>
 
+  <h3>Prompt routing</h3>
+  <p class="note">The band picks effort for every prompt, and the model at the start of a session. The pick sits beside the task cost and is quiet unless you change it. Click it to see why, or to choose yourself.</p>
+
+  <h2>7. Picked for you</h2>
+  <p class="note">This prompt looked like medium work, so it runs on Sonnet at medium effort.</p>
+  <div class="term w120">
+    <div class="line dim">  Fixed the board redraw.</div>
+    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c" data-panel="stage-dev" type="button">Development</button></span><button class="c quiet" data-panel="route" type="button">auto: sonnet · medium</button><span class="m">task $0.42</span></div><div class="group"><span class="m">checks ok</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>8. You chose</h2>
+  <p class="note">Your choice holds until you go back to auto. Amber, so a forgotten choice is easy to see.</p>
+  <div class="term w120">
+    <div class="line dim">  Planning the migration.</div>
+    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c" data-panel="stage-dev" type="button">Development</button></span><button class="c warn" data-panel="route-fixed" type="button">you: opus · high</button><span class="m">task $3.10</span></div><div class="group"><span class="m">checks ok</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>9. Could not decide</h2>
+  <p class="note">A failed or unclear answer uses your normal settings and says so. Nothing else changes.</p>
+  <div class="term w120">
+    <div class="line dim">  Working on it...</div>
+    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c" data-panel="stage-dev" type="button">Development</button></span><button class="c quiet" data-panel="route-failed" type="button">auto: opus · medium (default)</button></div><div class="group"><span class="m">checks ok</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
+  <h2>Pick, clicked</h2>
+  <div class="term w120" data-open="route">
+    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · Development</span><button class="c quiet show-hover" type="button" tabindex="-1">auto: sonnet · medium</button></div></div>
+    <div class="prompt">&gt; </div>
+  </div>
+
   <h3>What each click shows</h3>
-  <p class="note">A panel folds open under the band. A second click closes it. No click approves anything. Only extend does something: it sends one tiny message and spends what its label says.</p>
+  <p class="note">A panel folds open under the band. A second click closes it. No click approves anything. Extend sends one tiny message and spends what its label says. The model and effort choices change how later prompts run.</p>
 
   <h2>WAITING ON YOU, hovered and clicked</h2>
   <div class="term w120" data-open="review">
@@ -174,10 +207,18 @@ th { background: #ece8e0; }
     <tr><td>Tests ok, stale or failed</td><td>After tests or a later edit</td><td>No</td><td>To build: canon's own detection</td></tr>
     <tr><td>7D and 5H left</td><td>Always. Reset time only when low</td><td>No</td><td>Ready: engine usage figures</td></tr>
     <tr><td>Cache minutes, or cold price</td><td>After the first reply</td><td>No</td><td>Ready, with a price table to maintain</td></tr>
+    <tr><td>Pick: model and effort</td><td>Always, once a prompt has run</td><td>Yes: why, and choose yourself</td><td>To build: FEAT-0025</td></tr>
     <tr><td>Extend, with its cost</td><td>Cache warm, no reply running</td><td>Yes: sends one tiny message</td><td>Ready: <code>$.prompt.submit</code>, context size and the same price table</td></tr>
   </table>
 </main>
 
+<template id="p-route"><div class="panel">This prompt: medium work → Sonnet · medium     Decided by Haiku, about $0.001
+Model   <button class="c" type="button" tabindex="-1">auto</button>  <button class="c" type="button" tabindex="-1">haiku</button>  <button class="c" type="button" tabindex="-1">sonnet</button>  <button class="c" type="button" tabindex="-1">opus</button>      <span class="m">changing model mid-session reloads the chat: ~$1.94</span>
+Effort  <button class="c" type="button" tabindex="-1">auto</button>  <button class="c" type="button" tabindex="-1">low</button>  <button class="c" type="button" tabindex="-1">medium</button>  <button class="c" type="button" tabindex="-1">high</button>      <span class="m">changing effort keeps the cache</span></div></template>
+<template id="p-route-fixed"><div class="panel">You chose Opus · high. Auto is off for this session.
+Model   <button class="c" type="button" tabindex="-1">auto</button>  <button class="c" type="button" tabindex="-1">haiku</button>  <button class="c" type="button" tabindex="-1">sonnet</button>  <span class="here">opus</span>
+Effort  <button class="c" type="button" tabindex="-1">auto</button>  <button class="c" type="button" tabindex="-1">low</button>  <button class="c" type="button" tabindex="-1">medium</button>  <span class="here">high</span></div></template>
+<template id="p-route-failed"><div class="panel">Could not decide for this prompt: Haiku did not answer. Used your normal settings.</div></template>
 <template id="p-review"><div class="panel">Review the design set     canon ui
 Then approve it yourself  canon approve design --note "what you reviewed"</div></template>
 <template id="p-stage"><div class="panel">Problem ok · Idea ok · POC skipped · Plan ok · Feature ok · <span class="here">Design waiting on you</span> · Development · Review · Release</div></template>

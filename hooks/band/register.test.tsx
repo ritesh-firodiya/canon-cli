@@ -1,6 +1,7 @@
 import { expect, mock, test } from 'claude-code/testing'
 
 import { isInside, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, extendLabel, isNarrow, isTestCommand, panelLines, windowViews } from './facts'
+import { classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
 import type { BandFacts } from './types'
 
 const FACTS: BandFacts = {
@@ -218,4 +219,92 @@ test('from a parent folder the band follows edits between products, and ignores 
   await $.tool.call({ tool: 'Bash', command: 'cd two && ls' })
   expect(await ui.find({ type: 'Text', text: /^two/ })).toBeDefined()
   await ui.unmount()
+})
+
+const NONE = { model: null, effort: null }
+
+test('the first prompt of a session picks by size', () => {
+  const base = { chosen: NONE, isFresh: true, current: 'opus' as const, tokens: 1000 }
+  expect(pick({ ...base, size: 'small' })).toEqual({ model: 'haiku', effort: 'low' })
+  expect(pick({ ...base, size: 'medium' })).toEqual({ model: 'sonnet', effort: 'medium' })
+  expect(pick({ ...base, size: 'large' })).toEqual({ model: 'opus', effort: 'high' })
+})
+
+test('mid-session the model only moves up, while effort follows each prompt', () => {
+  const base = { chosen: NONE, isFresh: false, tokens: 1000 }
+  expect(pick({ ...base, size: 'small', current: 'opus' })).toEqual({ model: 'opus', effort: 'low' })
+  expect(pick({ ...base, size: 'large', current: 'haiku' })).toEqual({ model: 'opus', effort: 'high' })
+})
+
+test('Haiku is not picked for a chat too large for it', () => {
+  expect(pick({ chosen: NONE, isFresh: true, current: null, tokens: 150_000, size: 'small' }).model).toBe('sonnet')
+})
+
+test('a failed decision keeps what is running, and the person always wins', () => {
+  expect(pick({ chosen: NONE, isFresh: true, current: 'opus', tokens: 1, size: null })).toEqual({ model: 'opus', effort: null })
+  expect(pick({ chosen: { model: 'opus', effort: 'high' }, isFresh: false, current: 'opus', tokens: 1, size: 'small' })).toEqual({ model: 'opus', effort: 'high' })
+  expect(pick({ chosen: { model: 'haiku', effort: null }, isFresh: false, current: 'opus', tokens: 1, size: 'medium' })).toEqual({ model: 'haiku', effort: 'medium' })
+})
+
+test('only a clear first word counts as an answer', () => {
+  expect(parseSize('Small')).toBe('small')
+  expect(parseSize('large.')).toBe('large')
+  expect(parseSize('It is large')).toBeNull()
+  expect(parseSize('')).toBeNull()
+})
+
+test('slash commands and messages from a mod are not decided on, and long prompts are cut', () => {
+  expect(isRoutable('fix the bug', false)).toBe(true)
+  expect(isRoutable('/clear', false)).toBe(false)
+  expect(isRoutable('ok', true)).toBe(false)
+  expect(classifierPrompt('x'.repeat(5000)).length).toBeLessThan(2100)
+})
+
+test('a model id finds its tier, and the label says who chose', () => {
+  expect(tierOf('claude-opus-5-5')).toBe('opus')
+  expect(tierOf('opus[1m]')).toBe('opus')
+  expect(tierOf('other')).toBeNull()
+  expect(routeMode(NONE, 'small')).toBe('auto')
+  expect(routeMode(NONE, null)).toBe('default')
+  expect(routeMode({ model: 'opus', effort: null }, 'small')).toBe('you')
+  expect(routeLabel('auto', 'sonnet', 'medium')).toBe('auto: sonnet · medium')
+  expect(routeLabel('you', 'opus', 'high')).toBe('you: opus · high')
+  expect(routeLabel('default', 'opus', undefined)).toBe('auto: opus (default)')
+})
+
+function routed(on: any, env: Record<string, string> = {}) {
+  const asked: string[] = []
+  engine(on, FACTS)
+  on('env.get', (_: unknown, e: any) => ({ value: env[e.name] }))
+  on('fs.read', () => ({ value: '' }))
+  on('fs.write', () => ({ value: undefined }))
+  on('prompt.submit', (_: unknown, e: any) => ({ text: e.text }))
+  on('model.complete', (_: unknown, e: any) => {
+    asked.push(e.prompt)
+    return { value: { isAnswered: true, text: 'small', usage: { input_tokens: 10, output_tokens: 1 } } }
+  })
+  return asked
+}
+
+test('an interactive session decides on a typed prompt, but not on a slash command', async ($, on) => {
+  const asked = routed(on)
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  await $.prompt.submit({ text: '/clear', origin: { kind: 'composer' } })
+  expect(asked.length).toBe(0)
+  await $.prompt.submit({ text: 'what is this?', origin: { kind: 'composer' } })
+  expect(asked.length).toBe(1)
+})
+
+test('a headless session is never routed', async ($, on) => {
+  const asked = routed(on)
+  await $.session.start({ cwd: '/w/shop', surface: null, isInteractive: false })
+  await $.prompt.submit({ text: 'what is this?', origin: { kind: 'composer' } })
+  expect(asked.length).toBe(0)
+})
+
+test('a canon run agent is never routed, so its stage model and cap hold', async ($, on) => {
+  const asked = routed(on, { CANON_RUN: '1' })
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  await $.prompt.submit({ text: 'what is this?', origin: { kind: 'composer' } })
+  expect(asked.length).toBe(0)
 })

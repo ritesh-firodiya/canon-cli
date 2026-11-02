@@ -32,7 +32,7 @@ export function registerUsage(program: Command, env: Env): void {
       const tally = newTally(new Date(Date.now() - days * DAY_MS), installedSkills());
       const products = new Set(env.workspace ? findProducts(env.workspace).map((repo) => basename(resolve(repo))) : []);
       await readTranscripts(tally, join(homedir(), ".claude", "projects"), { products, workspace: env.workspace ?? null });
-      const report = buildReport(tally, runsLog());
+      const report = buildReport(tally, runsLog(), join(dirname(runsLog()), "routes.jsonl"));
       if (options.save) {
         const file = join(dirname(runsLog()), "usage", `${new Date().toISOString().slice(0, 10)}.json`);
         mkdirSync(dirname(file), { recursive: true });

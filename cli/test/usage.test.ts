@@ -160,6 +160,14 @@ describe("canon usage", () => {
     expect(report.runs).toEqual([{ stage: "code", runs: 1, costUsd: 2 }]);
   });
 
+  test("prompt routing picks are counted, with what deciding cost, and old or broken lines left out", () => {
+    const file = join(mkdtempSync(join(tmpdir(), "canon-routes-")), "routes.jsonl");
+    writeFileSync(file, `${JSON.stringify({ at: at(1), size: "small", decideUsd: 0.001 })}\n${JSON.stringify({ at: at(2), size: null, decideUsd: 0 })}\nbad\n${JSON.stringify({ at: "2026-09-01T00:00:00Z", size: "large", decideUsd: 9 })}\n`);
+    const report = buildReport(newTally(SINCE, new Set()), undefined, file);
+    expect(report.routes).toEqual({ small: 1, medium: 0, large: 0, failed: 1, decideUsd: 0.001 });
+    expect(formatReport(report)).toContain("small 1");
+  });
+
   test("installed skills come from plugins and the user's own folder, and a folder with no SKILL.md is not one", () => {
     const home = mkdtempSync(join(tmpdir(), "canon-home-"));
     mkdirSync(join(home, "cache", "skills", "weigh"), { recursive: true });

@@ -290,6 +290,7 @@ export interface UsageReport {
   firstContextMedian: number;
   coldReloads: { count: number; extraUsd: number };
   runs: { stage: string; runs: number; costUsd: number }[];
+  routes: { small: number; medium: number; large: number; failed: number; decideUsd: number };
   unpricedModels: string[];
   skippedLines: number;
 }
@@ -322,7 +323,24 @@ function readRuns(file: string | undefined, since: Date): UsageReport["runs"] {
   return [...stages].map(([stage, entry]) => ({ stage, runs: entry.runs, costUsd: usd(entry.costUsd) })).sort((a, b) => b.costUsd - a.costUsd);
 }
 
-export function buildReport(tally: Tally, runsFile?: string): UsageReport {
+function readRoutes(file: string | undefined, since: Date): UsageReport["routes"] {
+  const routes = { small: 0, medium: 0, large: 0, failed: 0, decideUsd: 0 };
+  if (!file || !existsSync(file)) return routes;
+  for (const line of readFileSync(file, "utf8").split("\n")) {
+    try {
+      const entry = JSON.parse(line) as { at?: string; size?: unknown; decideUsd?: unknown };
+      if (!entry.at || new Date(entry.at) < since) continue;
+      if (entry.size === "small" || entry.size === "medium" || entry.size === "large") routes[entry.size] += 1;
+      else routes.failed += 1;
+      routes.decideUsd += tokens(entry.decideUsd);
+    } catch {
+      continue;
+    }
+  }
+  return { ...routes, decideUsd: usd(routes.decideUsd) };
+}
+
+export function buildReport(tally: Tally, runsFile?: string, routesFile?: string): UsageReport {
   for (const state of tally.sessions.values()) closeReply(tally, state);
   const skills: SkillRow[] = [...tally.skills].map(([name, skill]) => ({
     name,
@@ -348,6 +366,7 @@ export function buildReport(tally: Tally, runsFile?: string): UsageReport {
     firstContextMedian: median(tally.firstContexts),
     coldReloads: { count: tally.coldCount, extraUsd: usd(tally.coldExtraUsd) },
     runs: readRuns(runsFile, tally.since),
+    routes: readRoutes(routesFile, tally.since),
     unpricedModels: [...tally.unpriced].sort(),
     skippedLines: tally.skippedLines,
   };
@@ -391,6 +410,7 @@ export function formatReport(report: UsageReport): string {
     ...section("skills (from the call to the next message)", report.skills.slice(0, TOP_ROWS).map((skill) => `  ${skill.name}  ${skill.calls} calls  last ${skill.lastUsed ?? "unknown"}  ${money(skill.costUsd)}`)),
     `installed but never used: ${report.neverUsed.length} (canon usage --unused)`,
     ...section("canon runs", report.runs.map((run) => `  ${run.stage}  ${run.runs} runs  ${money(run.costUsd)}`)),
+    ...section("prompt routing", report.routes.small + report.routes.medium + report.routes.large + report.routes.failed ? [`  small ${report.routes.small} · medium ${report.routes.medium} · large ${report.routes.large} · could not decide ${report.routes.failed} · deciding cost ${money(report.routes.decideUsd)}`] : []),
     ...(report.unpricedModels.length ? [``, `no price for: ${report.unpricedModels.join(", ")}`] : []),
     ...(report.skippedLines ? [``, `could not read ${report.skippedLines} lines`] : []),
   ].join("\n");

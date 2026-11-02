@@ -3,6 +3,7 @@ import type { EngineInterface, Register, RenderChildren } from 'claude-code'
 
 import {
   afterEdit,
+  callUsd,
   afterTestRun,
   canExtend,
   cacheView,
@@ -16,17 +17,23 @@ import {
   money,
   movedTo,
   panelLines,
+  reloadUsd,
   stageWord,
   testsLabel,
+  usdLabel,
   windowViews,
 } from './facts'
-import type { BandFacts, CacheFacts, Panel, Tests, UsageWindow } from './types'
+import { CLASSIFIER_SYSTEM, EFFORTS, TIERS, classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
+import type { Applied, BandFacts, CacheFacts, Chosen, Effort, Panel, Route, Tests, Tier, UsageWindow } from './types'
 
 // The band above the prompt: the work in one line, in colour only when something needs you.
 // Cache and usage logic follow ribbon (MIT, robonuggets/ribbon); test state follows ponytail's band (MIT, DietrichGebert/ponytail).
 
 const TICK_MS = 30_000
 const EXTEND_MESSAGE = 'Reply with only: ok'
+const CLASSIFIER_MODEL = 'claude-haiku-5-5'
+const CLASSIFIER_TIMEOUT_MS = 3000
+const CLASSIFIER_MAX_TOKENS = 5
 
 const AMBER = '#f0b429'
 const AMBER_INK = '#241a00'
@@ -37,6 +44,11 @@ const BLUE = '#8cc4ff'
 const facts = atom({ plugin: 'canon', key: 'facts' } as const, null as BandFacts | null)
 const isLoaded = atom({ plugin: 'canon', key: 'isLoaded' } as const, false)
 const workPath = atom({ plugin: 'canon', key: 'workPath' } as const, null as string | null)
+const isRouting = atom({ plugin: 'canon', key: 'isRouting' } as const, false)
+const isFresh = atom({ plugin: 'canon', key: 'isFresh' } as const, true)
+const route = atom({ plugin: 'canon', key: 'route' } as const, null as Route | null)
+const chosen = atom({ plugin: 'canon', key: 'chosen' } as const, { model: null, effort: null } as Chosen)
+const applied = atom({ plugin: 'canon', key: 'applied' } as const, null as Applied | null)
 const windows = atom({ plugin: 'canon', key: 'windows' } as const, [] as UsageWindow[])
 const cache = atom({ plugin: 'canon', key: 'cache' } as const, null as CacheFacts | null)
 const taskUsd = atom({ plugin: 'canon', key: 'taskUsd' } as const, 0)
@@ -70,6 +82,25 @@ async function followWork($: EngineInterface, path: string | null): Promise<void
   }
 }
 
+// shortcut: rewrites the whole log per prompt, since $.fs has no append; use `canon` to log if the file ever grows large.
+async function logRoute($: EngineInterface, entry: Route): Promise<void> {
+  const home = (await $.env.get('CANON_HOME')) ?? `${await $.env.get('HOME')}/.canon`
+  const file = `${home}/routes.jsonl`
+  const before = await $.fs.read(file).catch(() => '')
+  await $.fs.write(file, `${before}${JSON.stringify({ at: new Date(await $.clock.now()).toISOString(), size: entry.size, isFailed: entry.isFailed, decideUsd: entry.decideUsd })}\n`)
+}
+
+/** Asks Haiku how hard a prompt is. A failed or unclear answer leaves the session's own settings. */
+async function decide($: EngineInterface, text: string): Promise<void> {
+  const answer = await $.model
+    .complete({ model: CLASSIFIER_MODEL, system: CLASSIFIER_SYSTEM, prompt: classifierPrompt(text), maxTokens: CLASSIFIER_MAX_TOKENS, timeoutMs: CLASSIFIER_TIMEOUT_MS })
+    .catch(() => undefined)
+  const size = answer?.isAnswered ? parseSize(answer.text) : null
+  const entry: Route = { size, isFailed: size === null, decideUsd: answer ? callUsd(CLASSIFIER_MODEL, answer.usage.input_tokens, answer.usage.output_tokens) : 0 }
+  await update($, route, () => entry)
+  await logRoute($, entry).catch(() => undefined)
+}
+
 async function refreshUsage($: EngineInterface, lastAt: number | null, model: string | null): Promise<void> {
   const usage = await $.session.usage()
   await update($, windows, () => usage.rateLimits.map(w => ({ kind: w.kind, percentUsed: w.percentUsed, resetsAt: w.resetsAt })))
@@ -85,6 +116,9 @@ async function refreshUsage($: EngineInterface, lastAt: number | null, model: st
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await refreshFacts($)
+    // A `canon run` agent has its own model and cap per stage, and a headless run has nobody to override a pick.
+    await update($, isRouting, () => e.isInteractive)
+    if (await $.env.get('CANON_RUN')) await update($, isRouting, () => false)
     $.clock.every(TICK_MS, async () => {
       // A run moves on its own, so only then are its facts read again between turns.
       if ((await read($, facts))?.running) await refreshFacts($)
@@ -100,12 +134,16 @@ export const register: Register = on => {
       await update($, cache, () => null)
       if (e.source === 'clear') {
         await update($, workPath, () => null)
+        await update($, route, () => null)
+        await update($, applied, () => null)
+        await update($, isFresh, () => true)
         await update($, tests, () => 'none' as Tests)
         await update($, panel, () => null)
       }
     } else if ((e.source === 'resume' || e.source === 'fork') && typeof e.seconds_since_last_response === 'number') {
       const now = await $.clock.now()
       const seconds = e.seconds_since_last_response
+      await update($, isFresh, () => false)
       await update($, cache, () => ({
         lastAt: now - seconds * 1000,
         tokens: typeof e.context_tokens === 'number' ? e.context_tokens : 0,
@@ -115,13 +153,45 @@ export const register: Register = on => {
     return result
   }).catch(($, e, next) => next(e))
 
-  // Each main request reads or writes the cache, so its start restarts the hour.
+  // /model is the person choosing, so it holds like a choice on the band.
+  on('classic.PostModelSwitch', async ($, e, next) => {
+    const result = await next(e)
+    await update($, chosen, c => ({ ...c, model: tierOf(e.to_model) }))
+    return result
+  }).catch(($, e, next) => next(e))
+
+  on('prompt.submit', async ($, e, next) => {
+    if (!(await read($, isRouting)) || !isRoutable(e.text, e.origin.kind === 'plugin')) return next(e)
+    const mine = await read($, chosen)
+    // Nothing to decide when the person chose both.
+    if (!mine.model || !mine.effort) await decide($, e.text)
+    return next(e)
+  }).catch(($, e, next) => next(e))
+
   on('turn.step', async function* ($, e, next) {
-    if (!e.agentId) {
-      const now = await $.clock.now()
-      await update($, cache, c => ({ lastAt: now, tokens: c?.tokens ?? 0, model: e.model }))
+    if (e.agentId) {
+      yield* next(e)
+      return
     }
-    yield* next(e)
+    const session = tierOf(await $.session.model())
+    const routing = (await read($, isRouting)) && tierOf(e.model) === session
+    const planned = routing
+      ? pick({
+          size: (await read($, route))?.size ?? null,
+          chosen: await read($, chosen),
+          isFresh: await read($, isFresh),
+          current: tierOf((await read($, applied))?.model) ?? session,
+          tokens: (await read($, cache))?.tokens ?? 0,
+        })
+      : { model: null, effort: null }
+    // A different tier here means a skill's model or a fallback: only then is e.model left to the engine.
+    const model = planned.model && planned.model !== tierOf(e.model) ? planned.model : e.model
+    const effort = planned.effort ?? e.effort
+    const now = await $.clock.now()
+    // Each main request reads or writes the cache, so its start restarts the hour.
+    await update($, cache, c => ({ lastAt: now, tokens: c?.tokens ?? 0, model }))
+    await update($, applied, () => ({ model, ...(typeof effort === 'string' ? { effort } : {}) }))
+    yield* next({ ...e, model, ...(effort === undefined ? {} : { effort }) })
   })
 
   on('tool.call', async ($, e, next) => {
@@ -140,6 +210,7 @@ export const register: Register = on => {
     const result = await next(e)
     if (e.agentId) return result
     await update($, isExtending, () => false)
+    await update($, isFresh, () => false)
     await refreshUsage($, await $.clock.now(), e.usage?.model ?? null)
     await refreshFacts($)
     return result
@@ -159,12 +230,49 @@ export const register: Register = on => {
     const usage = windowViews(await read($, windows), now)
     const testState = await read($, tests)
     const task = await read($, taskUsd)
+    const choice = await read($, chosen)
+    const lastRoute = await read($, route)
+    const running = await read($, applied)
+    const cached = await read($, cache)
 
     const toggle = (name: Panel) => () => update($, panel, value => (value === name ? null : name))
     const extend = async () => {
       await update($, isExtending, () => true)
       void $.prompt.submit({ text: EXTEND_MESSAGE })
     }
+
+    const mode = routeMode(choice, lastRoute?.size ?? null)
+    const routeWord = running ? routeLabel(mode, tierOf(running.model) ?? running.model, running.effort) : null
+    const pickButton = routeWord ? (
+      <Button key="route" plain onPress={toggle('route')}>
+        <Text color={mode === 'you' ? AMBER : undefined} dimColor={mode !== 'you'}>{routeWord}</Text>
+      </Button>
+    ) : null
+
+    const choiceRow = <T extends string>(title: string, name: 'model' | 'effort', options: readonly T[], current: T | null) => (
+      <Box key={`choose-${name}`} flexDirection="row" gap={2}>
+        <Text dimColor>{title}</Text>
+        <Button key={`${name}-auto`} plain onPress={() => update($, chosen, c => ({ ...c, [name]: null }))}>
+          <Text color={current === null ? AMBER : undefined}>auto</Text>
+        </Button>
+        {options.map(option => (
+          <Button key={`${name}-${option}`} plain onPress={() => update($, chosen, c => ({ ...c, [name]: option }))}>
+            <Text color={current === option ? AMBER : undefined}>{option}</Text>
+          </Button>
+        ))}
+      </Box>
+    )
+    const reload = reloadUsd(cached)
+    const routePanel = open === 'route' ? (
+      <Box key="route-panel" flexDirection="column">
+        {lastRoute ? (
+          <Text>{lastRoute.isFailed ? 'Could not decide for this prompt. Used your normal settings.' : `This prompt: ${lastRoute.size} work. Decided by Haiku, ${usdLabel(lastRoute.decideUsd)}.`}</Text>
+        ) : null}
+        {choiceRow('Model ', 'model', TIERS as readonly Tier[], choice.model)}
+        {reload === null ? null : <Text dimColor>Changing model mid-session reloads the chat: ~{money(reload)}. Changing effort keeps the cache.</Text>}
+        {choiceRow('Effort', 'effort', EFFORTS as readonly Effort[], choice.effort)}
+      </Box>
+    ) : null
 
     const work = f?.product
       ? [
@@ -174,10 +282,11 @@ export const register: Register = on => {
           f.errors.length ? <Button key="errors" plain onPress={toggle('errors')}><Text backgroundColor={RED_BG} color={RED} bold> {f.errors.length} ERROR{f.errors.length === 1 ? '' : 'S'} </Text></Button> : null,
           f.running ? <Text key="running" color={BLUE} bold>running {duration(now - Date.parse(f.running.startedAt))}</Text> : null,
           f.problem && (f.running || f.waiting) ? <Button key="problem" plain dimColor label={f.problem.id} onPress={toggle('problem')} /> : null,
+          pickButton,
           f.running ? <Text key="spend">{money(f.running.spendUsd)} of {money(f.running.capUsd)}</Text> : null,
           !f.running && !f.waiting && task > 0 ? <Text key="task" dimColor>task {money(task)}</Text> : null,
         ]
-      : [<Text key="none" dimColor>{f ? 'no product here' : loaded ? 'canon unavailable' : ''}</Text>]
+      : [<Text key="none" dimColor>{f ? 'no product here' : loaded ? 'canon unavailable' : ''}</Text>, pickButton]
 
     const health = f?.product
       ? [
@@ -218,12 +327,13 @@ export const register: Register = on => {
         ))}
       </Box>
     ) : null
-    const lines = open && open !== 'stage' && f ? panelLines(open, f) : []
+    const lines = open && open !== 'stage' && open !== 'route' && f ? panelLines(open, f) : []
 
     const mine = (
       <Box flexDirection="column" width={e.props.bodyColumns}>
         {rows}
         {stages}
+        {routePanel}
         {lines.map(line => <Text key={line}>{line}</Text>)}
       </Box>
     )

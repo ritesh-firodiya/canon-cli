@@ -1,10 +1,10 @@
 ---
 id: FEAT-0025
 type: feature
-status: planned
+status: shipped
 priority: p2
 last-verified: 2026-11-02
-release: null
+release: 1.0.0
 superseded-by: null
 surfaces: []
 plan: PLAN-0001
@@ -24,14 +24,18 @@ Opus is 99% of cost. Most of the saving must come from building on a smaller mod
 - Given a failed or unclear decision, then the session's own model and effort are used.
 - Given a pick, then the band shows it, and the owner can override it.
 - Given a pick, then it is logged for `canon usage`, without the prompt's text.
+- Given a `canon run` agent or a headless session, then nothing is routed, so a stage's model and cap hold.
+- Given `/model`, then it holds like a choice on the band.
 - Given a week of use, then cost and rework are compared with the baseline, and routing is removed if rework rose.
+
+## Tested
+On 2026-11-02, through `turn.step` on a 41,000-token session: changing effort kept the cache (41,210 read, 64 written). Changing model missed it (11,333 read, 31,788 written). The first model's cache stayed warm for the way back.
 
 ## Out of scope
 - A proxy.
 - Routing to other companies' models.
 
 ## Open questions
-- Test that changing effort through `turn.step` keeps the cache before relying on it.
 - Whether a local Laya classifier beats Haiku. Try it only if the classifier's cost shows up in `canon usage`.
 
 ## Store copy

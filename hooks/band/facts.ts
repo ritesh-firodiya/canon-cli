@@ -112,3 +112,17 @@ export function movedTo(command: string, cwd: string): string | null {
 
 /** Whether a path is already inside the product the band shows, so nothing needs reading again. */
 export const isInside = (path: string, product: string | null | undefined): boolean => Boolean(product) && `${path}/`.includes(`/${product}/`)
+
+/** What moving a live chat to another model costs: all of it is written to the cache again. */
+export function reloadUsd(cache: CacheFacts | null): number | null {
+  const price = cache?.model ? priceOf(cache.model, cache.tokens) : null
+  return cache && price && cache.tokens > 0 ? (cache.tokens * price.write1h) / PER_MILLION : null
+}
+
+/** What a small model call cost, at list price. */
+export function callUsd(model: string, inputTokens: number, outputTokens: number): number {
+  const price = priceOf(model, inputTokens)
+  return price ? (inputTokens * price.input + outputTokens * price.output) / PER_MILLION : 0
+}
+
+export const usdLabel = (usd: number): string => `about $${usd.toFixed(usd < CENT ? 4 : 2)}`
