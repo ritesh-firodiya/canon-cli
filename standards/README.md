@@ -8,7 +8,7 @@ canon's standards. `canon standards` lists the ones that apply to a repo.
 |---|---|
 | `constitution.md` | The principles a request is weighed against (C-01 to C-15; C-01 to C-19 are canon's) |
 | `wiki-schema.md` | Wiki page types, frontmatter, required sections, lint rules |
-| `context-layout.md` | The `.context/` ten-folder layout, where each kind of document lives, the repo root, `features/` and `tasks.md` formats |
+| `context-layout.md` | The `.context/` folder layout, where each kind of document lives, the repo root, `features/` and `tasks.md` formats |
 | `dev-methods.md` | The evidence spec-, test- and data-driven work leaves behind |
 | `agent-contract.md` | What every agent does before, during and after work |
 

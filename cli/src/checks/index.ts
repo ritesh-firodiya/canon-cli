@@ -7,10 +7,10 @@ import { standardsCopies } from "./standards-copies.ts";
 import { commandChecks } from "./commands.ts";
 import { designs, designsFirst } from "./designs.ts";
 import { diagrams } from "./diagrams.ts";
-import { features } from "./features.ts";
 import { listing } from "./listing.ts";
 import { metricsDefinitions } from "./metrics-definitions.ts";
 import { pipeline } from "./pipeline.ts";
+import { records } from "./records.ts";
 import { refs } from "./refs.ts";
 import { sharedFiles } from "./shared-files.ts";
 import { sources } from "./sources.ts";
@@ -23,7 +23,7 @@ export const ALL_CHECKS: Check[] = [
   wikiFrontmatter,
   contextSize,
   tasks,
-  features,
+  records,
   listing,
   canonicalValues,
   standardsCopies,

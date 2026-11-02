@@ -1,5 +1,5 @@
 ---
-last-verified: 2026-10-27
+last-verified: 2026-11-02
 ---
 
 # Distribution
@@ -8,7 +8,9 @@ last-verified: 2026-10-27
 plugin, the standards, packs and the search server. It ships as
 `@freetesh/canon` on npm and installs as a plugin from this repo. The knowledge
 site (the UI) is private and paid; it depends on `@freetesh/canon` and holds no
-copy of the CLI.
+copy of the CLI. What runs on one machine from the repo belongs here, including
+the pipeline format, local runner and read-only connectors. What needs a server
+or other people belongs in the site.
 
 **Why:** the plugin and npm package need a public repo. The UI is what people
 pay for: every repo in one place, search and editing for a team.

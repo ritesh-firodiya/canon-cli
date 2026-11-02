@@ -133,4 +133,39 @@ describe("loadConfig", () => {
     const repo = makeTree({ ".context/context.yaml": "doctor:\n  tools:\n    - { tool: rtk, why: short output, hint: brew install rtk }\n" });
     expect(loadConfig(repo).config.doctor.tools).toEqual([{ tool: "rtk", why: "short output", hint: "brew install rtk" }]);
   });
+
+  test("reads stages an agent runs, triggers and connectors", () => {
+    const repo = makeTree({
+      ".context/context.yaml": [
+        "pipeline:",
+        "  - { id: poc, done: [.context/experiments], by: agent, optional: true, when: risky idea, cap: 5 }",
+        "connectors:",
+        "  - { id: sentry, via: cli }",
+        "triggers:",
+        "  - { id: new-error, source: sentry, when: 50 or more users, cap: 2 }",
+        "",
+      ].join("\n"),
+    });
+    const { config } = loadConfig(repo);
+    expect(config.pipeline[0]).toMatchObject({ by: "agent", optional: true, when: "risky idea", cap: 5 });
+    expect(config.connectors).toEqual([{ id: "sentry", via: "cli" }]);
+    expect(config.triggers).toEqual([{ id: "new-error", source: "sentry", when: "50 or more users", cap: 2 }]);
+  });
+
+  test("a stage with a condition must be optional", () => {
+    const repo = makeTree({ ".context/context.yaml": "pipeline:\n  - { id: poc, done: [src], when: risky }\n" });
+    expect(() => loadConfig(repo)).toThrow(/optional/);
+  });
+
+  test("a custom connector says how it is reached, naming keys and never holding them", () => {
+    const repo = makeTree({ ".context/context.yaml": "connectors:\n  - { id: acme-erp, via: api, target: https://erp.example.com, env: [ACME_ERP_TOKEN] }\n" });
+    expect(loadConfig(repo).config.connectors[0]).toEqual({ id: "acme-erp", via: "api", target: "https://erp.example.com", env: ["ACME_ERP_TOKEN"] });
+    const leaked = makeTree({ ".context/context.yaml": "connectors:\n  - { id: a, via: api, env: [secret-value-123] }\n" });
+    expect(() => loadConfig(leaked)).toThrow(/env/);
+  });
+
+  test("a new record kind needs a prefix and statuses", () => {
+    const repo = makeTree({ ".context/context.yaml": "records:\n  - { folder: campaigns, sections: [Goal] }\n" });
+    expect(() => loadConfig(repo)).toThrow(/prefix/);
+  });
 });

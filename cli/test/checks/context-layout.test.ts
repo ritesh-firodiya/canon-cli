@@ -98,4 +98,12 @@ describe("context-layout additions", () => {
     const findings = contextLayout.run(at({ ...VALID_CONTEXT, ".context/ops/release.yml": "web:\n  live: null\n" }));
     expect(findings.filter((f) => /live/.test(f.message))).toEqual([]);
   });
+
+  test("a custom record folder is allowed, a removed one is not, and removing features stops requiring it", () => {
+    const { ".context/features/index.md": _, ...rest } = VALID_CONTEXT;
+    const yaml = "modules: [docs]\nrecords:\n  - { folder: campaigns, prefix: CAMP, statuses: [draft], sections: [Goal] }\n  - { folder: features, remove: true }\n  - { folder: bugs, remove: true }\n";
+    const tree = { ...rest, ".context/context.yaml": yaml, ".context/campaigns/0001-a.md": "x" };
+    expect(contextLayout.run(contextFor(makeTree(tree)))).toEqual([]);
+    expect(contextLayout.run(contextFor(makeTree({ ...tree, ".context/bugs/0001-a.md": "x" })))[0].message).toMatch(/bugs/);
+  });
 });

@@ -109,6 +109,16 @@ modules: [docs, knowledge, code, listing, refs]
 packs: [expo]
 name: Acme                          # how the product is written; `named` copies swap it in
 formerly: [acme-old]                # older folder names, so `canon flow` counts their conversations
+pipeline:                           # your stages, in order; canon checks the gates
+  - { id: poc, done: [.context/experiments], by: agent, optional: true, when: a risky idea, cap: 5 }
+  - { id: review, done: [.github], gate: true }
+connectors:                         # your tools, read-only; keys stay in .env
+  - { id: sentry, via: cli }
+  - { id: acme-erp, via: api, target: https://erp.example.com, env: [ACME_ERP_TOKEN] }   # your own
+records:                            # add, change or remove record kinds
+  - { folder: campaigns, prefix: CAMP, statuses: [draft, live], sections: [Goal] }
+triggers:                           # what opens a Problem; source is a connector, manual or schedule
+  - { id: new-error, source: sentry, when: a new error reaches 50 users, cap: 2 }
 commands:                           # your own checkers, run by `canon check`
   - { id: lint-copy, run: ./scripts/lint-copy.sh, if: .context/designs, module: design }
 copies:                             # files copied from one source repo, kept equal to it

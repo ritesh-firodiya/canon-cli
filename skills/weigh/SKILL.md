@@ -63,7 +63,7 @@ product's `.context/context.yaml` may tighten this under `weigh.trivial`.
    the kind of source that would answer it ("an analytics tool with weekly
    active users"). Never mark a claim backed because the user said it again.
 
-5. **Duplicates and conflicts.** Check `.context/features/` and `.context/tasks.md`
+5. **Duplicates and conflicts.** Check `.context/problems/`, `plans/`, `features/`, `bugs/` and `.context/tasks.md`
    of this product, and the features collections of sibling products in qmd:
    is this already planned, built, shelved, or in progress elsewhere? Would it
    conflict with something in `## Now`?

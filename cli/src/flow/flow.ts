@@ -1,6 +1,7 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { loadConfig } from "../config/load.ts";
+import type { StageSpec } from "../config/schema.ts";
 import { gh, git, repoFacts, type Facts, type GitHub } from "./facts.ts";
 import { belongs, type Session } from "./sessions.ts";
 
@@ -15,8 +16,8 @@ import { belongs, type Session } from "./sessions.ts";
 //
 // What each stage needs:
 //   idea          the conversation exists
-//   research      it searched or fetched the web, or a commit touched .context/raw/ or .context/wiki/synthesis/
-//   plan          a commit touched .context/features/, tasks.md or wiki/decisions/
+//   research      it searched or fetched the web, or a commit touched .context/raw/, wiki/synthesis/, problems/, ideas/ or experiments/
+//   plan          a commit touched .context/plans/, features/, bugs/, tasks.md or wiki/decisions/
 //   design        a commit touched .context/designs/
 //   code          a commit touched anything outside .context/ and .claude/
 //   review        a commit is in a merged pull request
@@ -29,8 +30,8 @@ import { belongs, type Session } from "./sessions.ts";
 const MATCH_SECONDS = 120;
 export const KNOWN = ["idea", "research", "plan", "design", "code", "review", "release", "store-review", "deployed", "live"];
 const TOUCH: Record<string, string[]> = {
-  research: [".context/raw/", ".context/wiki/synthesis/"],
-  plan: [".context/features/", ".context/tasks.md", ".context/wiki/decisions/"],
+  research: [".context/raw/", ".context/wiki/synthesis/", ".context/problems/", ".context/ideas/", ".context/experiments/"],
+  plan: [".context/plans/", ".context/bugs/", ".context/features/", ".context/tasks.md", ".context/wiki/decisions/"],
   design: [".context/designs/"],
 };
 
@@ -45,13 +46,13 @@ export interface FlowResult {
 type Reached = Map<string, Date | null>;
 
 /** {stage: when it was first reached} for one conversation. */
-function reached(session: Session, commits: [string, Date][], repo: string, facts: Facts): Reached {
+function reached(session: Session, commits: [string, Date][], repo: string, facts: Facts, custom: Record<string, string[]>): Reached {
   const at: Reached = new Map([["idea", session.start]]);
   const first = (stage: string, when: Date | null | undefined) => at.has(stage) || at.set(stage, when ?? null);
   if (session.web) at.set("research", session.web);
   for (const [sha, when] of [...commits].sort((a, b) => a[1].getTime() - b[1].getTime())) {
     const files = git(repo, "show", "--name-only", "--format=", sha).split(/\s+/).filter(Boolean);
-    for (const [stage, prefixes] of Object.entries(TOUCH)) if (files.some((f) => prefixes.some((p) => f.startsWith(p)))) first(stage, when);
+    for (const [stage, prefixes] of Object.entries({ ...TOUCH, ...custom })) if (files.some((f) => prefixes.some((p) => f.startsWith(p)))) first(stage, when);
     if (files.some((f) => !f.startsWith(".context/") && !f.startsWith(".claude/"))) first("code", when);
     if (facts.merged.has(sha)) first("review", facts.merged.get(sha));
     if (facts.released.has(sha)) first("release", facts.released.get(sha));
@@ -71,17 +72,16 @@ function median(values: number[]): number | null {
 
 const isoDay = (date: Date) => date.toISOString().slice(0, 10);
 
-/** The product's own stages, as canon resolves them; each needs an evidence rule above. */
-function stagesOf(repo: string): string[] {
-  const ids = loadConfig(repo).config.pipeline.map((s) => s.id);
-  const unknown = ids.filter((id) => !KNOWN.includes(id));
-  if (unknown.length) throw new Error(`${repo}: no evidence rule for stage(s) ${unknown.join(", ")} — known: ${KNOWN.join(", ")}`);
-  return ids;
+/** A stage of the team's own has no rule above: a commit touching one of its `done` paths reaches it. */
+function customStages(stages: StageSpec[]): Record<string, string[]> {
+  return Object.fromEntries(stages.filter((stage) => !KNOWN.includes(stage.id)).map((stage) => [stage.id, stage.done]));
 }
 
 export function flow(workspace: string, product: string, sessions: Session[], formerly: string[] = [], github: GitHub = gh): FlowResult {
   const repo = join(workspace, product);
-  const stages = stagesOf(repo);
+  const pipeline = loadConfig(repo).config.pipeline;
+  const stages = pipeline.map((stage) => stage.id);
+  const custom = customStages(pipeline);
   const commits = git(repo, "log", "--all", "--format=%H %cI")
     .split("\n")
     .filter(Boolean)
@@ -103,7 +103,7 @@ export function flow(workspace: string, product: string, sessions: Session[], fo
     // Never worked in this product's folder, under any of its names, nor committed to it.
     if (![...s.where].some((w) => names.has(w)) && !mine.length) continue;
     if (!first || s.start < first) first = s.start;
-    const at = reached(s, mine, repo, facts);
+    const at = reached(s, mine, repo, facts, custom);
     furthest.push(Math.max(...stages.flatMap((st, i) => (at.has(st) ? [i] : []))));
     for (const [a, b] of pairs) {
       const from = at.get(a);

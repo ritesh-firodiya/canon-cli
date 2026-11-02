@@ -23,8 +23,28 @@ export const REMOVED_WIKI_FOLDERS: Record<string, string> = {
 export const CONFIG_FILE = ".context/context.yaml";
 export const LOCAL_CONFIG_FILE = ".context/context.local.yaml";
 
-/** The `.context/` folders every repo may have. A repo adds more under `context.folders`. */
-export const CONTEXT_FOLDERS = ["raw", "wiki", "features", "designs", "listing", "marketing", "metrics", "support", "legal", "ops", "architecture"];
+/** One kind of numbered record, in its own `.context/` folder. */
+export interface RecordKind {
+  folder: string;
+  prefix: string;
+  statuses: string[];
+  /** Frontmatter fields every record of this kind must have; a list limits the values. */
+  fields: Record<string, string[] | null>;
+  sections: string[];
+}
+
+/** The default records. A repo adds, changes or removes kinds under `records`. */
+export const DEFAULT_RECORDS: RecordKind[] = [
+  { folder: "problems", prefix: "PROB", statuses: ["open", "solving", "solved", "dismissed"], fields: { source: null, priority: ["p0", "p1", "p2", "p3"] }, sections: ["Summary", "Impact", "Expected"] },
+  { folder: "ideas", prefix: "IDEA", statuses: ["draft", "accepted", "shipped", "dropped"], fields: {}, sections: ["Summary"] },
+  { folder: "experiments", prefix: "EXP", statuses: ["planned", "running", "done", "dropped"], fields: { kind: ["poc", "experiment"] }, sections: ["Summary"] },
+  { folder: "plans", prefix: "PLAN", statuses: ["draft", "approved", "building", "done", "dropped"], fields: { problem: null }, sections: ["Approach", "Steps"] },
+  { folder: "features", prefix: "FEAT", statuses: ["planned", "building", "shipped", "shelved", "superseded"], fields: { type: ["feature", "chore", "platform"] }, sections: [] },
+  { folder: "bugs", prefix: "BUG", statuses: ["open", "fixing", "fixed", "wontfix"], fields: { severity: ["low", "medium", "high", "critical"] }, sections: ["Summary", "Expected", "Actual"] },
+];
+
+/** The other `.context/` folders every repo may have. A repo adds more under `context.folders`. */
+export const CONTEXT_FOLDERS = ["raw", "wiki", "designs", "listing", "marketing", "metrics", "support", "legal", "ops", "architecture"];
 
 /** A `standards:` entry naming a library standard rather than a folder path. */
 export function isStandardName(entry: string): boolean {
@@ -91,7 +111,47 @@ const stage = z
     done: z.array(z.string().min(1)).min(1),
     /** A person must approve this stage (`canon approve <id>`) before any later stage starts. */
     gate: z.boolean().default(false),
+    /** Who does the work; a person when absent. */
+    by: z.enum(["person", "agent"]).optional(),
+    /** A stage the run may skip. `when` says in words when it is needed. */
+    optional: z.boolean().optional(),
+    when: z.string().min(1).optional(),
+    /** The most this stage may spend per run, in US dollars. */
+    cap: z.number().positive().optional(),
   })
+  .strict()
+  .refine((entry) => !entry.when || entry.optional, { message: "a stage with `when` must be `optional: true`" });
+
+/** Sources that open a Problem with no connector behind them. */
+export const BUILT_IN_TRIGGER_SOURCES = ["manual", "schedule"];
+
+/** A way to read a team's own tool, reached the lightest way that works. Always read-only. */
+const connector = z
+  .object({
+    id: kebab,
+    via: z.enum(["tool", "cli", "api", "mcp"]),
+    /** The command, URL or server name, for a tool canon has no built-in way to reach. */
+    target: z.string().min(1).optional(),
+    /** The names of the environment variables holding its keys. Never the keys. */
+    env: z.array(z.string().regex(/^[A-Z][A-Z0-9_]*$/, "env lists variable names, like ACME_TOKEN, never their values")).optional(),
+  })
+  .strict();
+
+/** A change to the default records: a new kind, new values for a default one, or `remove: true`. */
+const recordEntry = z
+  .object({
+    folder: kebab,
+    prefix: z.string().regex(/^[A-Z]+$/, "a prefix is capital letters, like CAMP").optional(),
+    statuses: z.array(z.string().min(1)).min(1).optional(),
+    fields: z.record(z.string(), z.array(z.string()).nullable()).optional(),
+    sections: z.array(z.string().min(1)).optional(),
+    remove: z.boolean().optional(),
+  })
+  .strict();
+
+/** What opens a Problem by itself. `source` is a connector's id or a built-in source. */
+const trigger = z
+  .object({ id: kebab, source: kebab, when: z.string().min(1), cap: z.number().positive().optional() })
   .strict();
 
 const tool = z.object({ tool: z.string(), why: z.string(), hint: z.string() }).strict();
@@ -113,6 +173,9 @@ export const layerSchema = z
     context: z.object({ folders: z.array(contextFolder) }).partial(),
     /** The stages work goes through, in order. A more specific layer replaces the whole list. */
     pipeline: z.array(stage),
+    connectors: z.array(connector),
+    triggers: z.array(trigger),
+    records: z.array(recordEntry),
     /** How the product is written in prose, for files shared with only the name changed. */
     name: z.string().min(1),
     /** The repo's older folder names, so `canon flow` still counts conversations held under them. */
@@ -137,6 +200,9 @@ export type ToolSpec = z.infer<typeof tool>;
 export type WikiTypeSpec = z.infer<typeof wikiType>;
 export type ContextFolderSpec = z.infer<typeof contextFolder>;
 export type StageSpec = z.infer<typeof stage>;
+export type ConnectorSpec = z.infer<typeof connector>;
+export type TriggerSpec = z.infer<typeof trigger>;
+export type RecordEntry = z.infer<typeof recordEntry>;
 export type CopyFileSpec = z.infer<typeof copyFile>;
 
 export interface Config {
@@ -157,6 +223,10 @@ export interface Config {
   context: { folders: ContextFolderSpec[] };
   /** Ordered stages; empty when no layer declares one. */
   pipeline: StageSpec[];
+  connectors: ConnectorSpec[];
+  triggers: TriggerSpec[];
+  /** The record kinds this repo uses: the defaults with its changes applied. */
+  records: RecordKind[];
   name?: string;
   /** The space (product) this repo is part of in Canon; unset means the repo is its own. */
   space?: string;

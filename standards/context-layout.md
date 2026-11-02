@@ -1,7 +1,7 @@
 # The `.context/` layout
 
-Every repo keeps its non-code product material in `.context/`, in the same ten
-folders. Each has one job, and none is a bucket meaning "everything else". A team
+Every repo keeps its non-code product material in `.context/`, in the same
+folders below. Each has one job, and none is a bucket meaning "everything else". A team
 can replace this file with its own `context-layout.md` in a configured standards
 folder.
 
@@ -12,7 +12,12 @@ folder.
 ├── context.yaml     the repo's canon config.
 ├── raw/             sources you didn't write. Immutable.
 ├── wiki/            everything you concluded. Schema: wiki-schema.md
-├── features/        what's next.
+├── problems/        what needs solving.
+├── ideas/           ways to solve it.
+├── experiments/     proofs and tests of an idea.
+├── plans/           how it will be solved.
+├── features/        what will be built.
+├── bugs/            what will be fixed.
 ├── designs/         what it looks like.
 ├── architecture/    how it is built and what it costs: architecture.json.
 ├── listing/         what the stores show.
@@ -25,13 +30,14 @@ folder.
 
 ## Rules
 
-1. **Eleven folders, one job each.** There is no `documents/`, `research/`,
+1. **One job per folder.** There is no `documents/`, `research/`,
    `decisions/` or `email-templates/` folder: a research brief
    is a wiki synthesis page, why a part was chosen is a wiki concept, an ADR is
    `wiki/decisions/`, a transactional email is HTML in `designs/`.
    A product that truly needs another folder adds it in `.context/context.yaml`,
    with the reason: `context: { folders: [{ folder: research, reason: … }] }`.
-   The ten cannot be removed.
+   The other built-in folders cannot be redefined. Record folders are changed
+   under `records:` (see "The other records").
 2. **`README.md`, `tasks.md`, `context.yaml` and the uncommitted `context.local.yaml` are the only files at `.context/` root.**
    A repo names only what it uses. Its README, its `context.yaml` and its docs never
    list a folder, file or tool it does without; absence is shown by absence.
@@ -49,7 +55,7 @@ folder.
 | Stage | Expected |
 |---|---|
 | any repo | `README.md` · `tasks.md` · `context.yaml` |
-| uses the `docs` or `knowledge` module | + `raw/` · `wiki/` · `features/` |
+| uses the `docs` or `knowledge` module | + `raw/` · `wiki/` · `features/`; the other record folders appear with their first record |
 | draws its UI | + `designs/` (required for a mobile or web repo: designs come first) |
 | has a store presence | + `listing/` |
 | is live to users | + `marketing/` · `metrics/` · `support/` · `legal/` |
@@ -59,7 +65,8 @@ folder.
 
 - Dated sources (`raw/`) → ISO date: `YYYY-MM-DD-slug.md`. Month-grain data
   keeps `YYYY-MM.csv`.
-- Features → zero-padded number: `NNNN-slug.md`.
+- Records (problems, ideas, experiments, plans, features, bugs) → zero-padded
+  number: `NNNN-slug.md`, with the same number in the ID.
 - Everything else is named by topic and edited in place.
 - Frontmatter: `last-verified`, kebab-case keys. See the wiki schema.
 
@@ -71,19 +78,29 @@ separate folder per name.
 | Document | Home |
 |---|---|
 | ADR | `wiki/decisions/<topic>.md`, overwritten when the choice changes |
-| RFC | `features/`; once accepted, the choice goes in `wiki/decisions/` |
+| Problem, incident report from a customer, alert | `problems/`, `PROB-NNNN` |
+| Input (one event from a trigger) | a line in `raw/canon/events.jsonl`, not committed: `at`, `source`, `externalId`, `link`, `hash`, `problem`. Never the event's text, which can hold personal data. The Problem keeps what matters |
+| Idea | `ideas/`, `IDEA-NNNN` |
+| Discovery | `wiki/synthesis/`, naming its `ideas:` |
+| POC, or a test that never ships | `experiments/`, `EXP-NNNN`; the result is a decision page |
+| A plan or feature that goes live as a test | its own page, with `experiment: true` |
+| Plan | `plans/`, `PLAN-NNNN` |
+| RFC | `plans/`; once accepted, the choice goes in `wiki/decisions/` |
 | PRD | `features/`, `type: feature` |
-| Experiment | `features/`, `type: experiment`; the result is a decision page |
-| Initiative | `wiki/synthesis/`, linking its features and decisions |
-| Finding | the dated data in `raw/`; what it means in `wiki/synthesis/` or a concept |
+| Initiative | `wiki/synthesis/`, linking its plans and decisions |
+| Finding | the dated data in `raw/`; what it means in `wiki/synthesis/` or a concept, naming its `ideas:` |
+| Verdict | a line in `raw/canon/verdicts.jsonl` |
+| Gate approval | a line in `raw/canon/gates.jsonl` |
+| Agent run (stage, time, cost, result) | a line in `raw/canon/runs.jsonl`, not committed. The record it worked on keeps the total |
+| Integration | a `SOURCE.<NAME>` page in `wiki/entities/`, and `connectors:` in `context.yaml`. Keys stay in `.env` |
 | Know-how | `wiki/concepts/`; `ops/` when it is a runbook |
 | Architecture and cost | `architecture/architecture.json`, the only source: `canon ui` draws it, agents read it, `canon check` verifies it. Format and rules: `architecture-page` |
-| Bug | the issue tracker; a wiki concept only when it teaches a rule |
+| Bug | `bugs/`, `BUG-NNNN`; a wiki concept too when it teaches a rule |
 | Data source | `wiki/entities/` — see the wiki schema, "Data sources" |
 | Setup notes (account IDs, console links, where credentials live) | `ops/setup.md` |
 | What is live right now, per surface | `ops/release.yml` |
 | Runbook | `ops/runbooks/<slug>.md` |
-| Incident | `ops/incidents/YYYY-MM-DD-<slug>.md` |
+| Incident review | `ops/incidents/YYYY-MM-DD-<slug>.md` |
 | Dated engineering narrative | `CHANGELOG.md` at the repo root |
 
 If a document fits none of these for a real product, add a wiki type or a
@@ -121,12 +138,14 @@ One page per feature, `NNNN-<slug>.md`:
 ```markdown
 ---
 id: FEAT-0031
-type: feature             # feature | experiment | chore | platform
+type: feature             # feature | chore | platform
 status: building          # planned | building | shipped | shelved | superseded
 last-verified: 2026-04-02
 release: 3.4.0            # ties to CHANGELOG.md and the release notes
 superseded-by: null
 surfaces: ["[[settings-screen]]"]
+plan: PLAN-0007           # optional
+outcome: retained         # once it has run: retained | discarded | retried
 ---
 ## Summary · ## Motivation · ## Acceptance scenarios (Given/When/Then)
 ## Out of scope · ## Open questions
@@ -134,11 +153,38 @@ surfaces: ["[[settings-screen]]"]
 > One or two sentences users will read in the release notes.
 ```
 
-An experiment adds `## Hypothesis`, `## Metric` (a name from
-`metrics/definitions.yml`) and `## Result` once it has run.
-
 The wiki describes what *is*; `features/` describes what is *next*. A shipped
 feature goes `status: shipped` and is never deleted, so the reasoning survives.
+
+## The other records
+
+Every record has `id`, `status` and `last-verified`. `canon check` verifies the
+fields and sections below, and that each link names a record that exists.
+
+| Record | Status | Other fields | Sections |
+|---|---|---|---|
+| `problems/` | open · solving · solved · dismissed | `source` (who or what raised it), `priority` (p0–p3) | Summary · Impact · Expected |
+| `ideas/` | draft · accepted · shipped · dropped | `problems: [PROB-0001]`, `owner`, `due` | Summary |
+| `experiments/` | planned · running · done · dropped | `kind` (poc · experiment), `ideas: [IDEA-0001]` | Summary; Result once done. An experiment also has Hypothesis and Metric (a name from `metrics/definitions.yml`) |
+| `plans/` | draft · approved · building · done · dropped | `problem: PROB-0001`, `ideas: [IDEA-0001]` | Approach · Steps |
+| `bugs/` | open · fixing · fixed · wontfix | `severity` (low · medium · high · critical), `plan: PLAN-0001` | Summary · Expected · Actual |
+
+These are the defaults. A repo changes them in `context.yaml`: `canon check`
+follows what it says, and a link can name any kind the repo has.
+
+```yaml
+records:
+  - { folder: campaigns, prefix: CAMP, statuses: [draft, live, ended], fields: { channel: [email, ads] }, sections: [Goal] }  # add
+  - { folder: bugs, statuses: [new, closed] }   # change: only what is named
+  - { folder: ideas, remove: true }             # remove
+```
+
+### Experiments that go live
+
+Any record can run as a test and be thrown away on its results. Add
+`experiment: true`, with `## Hypothesis` and `## Metric`. When the results are
+in, set `outcome` and write `## Result`. A discarded page is never deleted, so
+nobody proposes the same thing again without seeing what happened.
 
 ## `tasks.md` — open work only
 

@@ -61,7 +61,7 @@ put a key or token on the page.
 
 ## Not for
 
-Code docs (they go next to the code) · tasks (`tasks.md`) · plans (`features/`) ·
+Code docs (they go next to the code) · tasks (`tasks.md`) · plans (`plans/`) ·
 chat logs · session notes · changelogs.
 
 ## Checked by `canon check`

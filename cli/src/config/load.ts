@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { parse } from "yaml";
-import { CONFIG_FILE, isStandardName, LOCAL_CONFIG_FILE, MODULES_BY_KIND, layerSchema, type Config, type CopyFileSpec, type Kind, type Layer, type Module } from "./schema.ts";
+import { CONFIG_FILE, isStandardName, LOCAL_CONFIG_FILE, MODULES_BY_KIND, layerSchema, type Config, type CopyFileSpec, type Kind, type Layer, type Module, DEFAULT_RECORDS, type RecordEntry, type RecordKind } from "./schema.ts";
 
 export interface ConfigSource {
   layer: "product" | "local";
@@ -72,6 +72,24 @@ function lastDefined<T>(values: Array<T | undefined>): T | undefined {
   return values.filter((value) => value !== undefined).pop();
 }
 
+/** The default record kinds with a repo's changes applied. A new kind must say its prefix and statuses. */
+function resolveRecords(changes: RecordEntry[]): RecordKind[] {
+  const removed = new Set(changes.filter((entry) => entry.remove).map((entry) => entry.folder));
+  const kinds = changes.filter((entry) => !entry.remove);
+  const changedDefaults = DEFAULT_RECORDS.filter((kind) => !removed.has(kind.folder)).map((kind) => ({ ...kind, ...kinds.find((entry) => entry.folder === kind.folder) }));
+  const added = kinds
+    .filter((entry) => !DEFAULT_RECORDS.some((kind) => kind.folder === entry.folder))
+    .map(({ folder, prefix, statuses, fields, sections }): RecordKind => {
+      if (!prefix || !statuses) throw new Error(`records: ${folder} is new, so it needs a prefix and statuses`);
+      return { folder, prefix, statuses, fields: fields ?? {}, sections: sections ?? [] };
+    });
+  const records = [...changedDefaults, ...added];
+  const prefixes = records.map((kind) => kind.prefix);
+  const repeated = prefixes.find((prefix, index) => prefixes.indexOf(prefix) !== index);
+  if (repeated) throw new Error(`records: two kinds use the prefix ${repeated}`);
+  return records;
+}
+
 function mergeBy<T>(lists: T[][], key: (item: T) => string): T[] {
   const merged = new Map<string, T>();
   for (const item of lists.flat()) merged.set(key(item), item);
@@ -110,6 +128,9 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     wiki: { types: mergeBy(pick("wiki").map((wiki) => wiki?.types ?? []), (entry) => entry.type) },
     context: { folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder) },
     pipeline: lastDefined(pick("pipeline")) ?? [],
+    connectors: mergeBy(pick("connectors").map((list) => list ?? []), (entry) => entry.id),
+    triggers: mergeBy(pick("triggers").map((list) => list ?? []), (entry) => entry.id),
+    records: resolveRecords(mergeBy(pick("records").map((list) => list ?? []), (entry) => entry.folder)),
     name: lastDefined(pick("name")),
     space: lastDefined(pick("space")),
     formerly: [...new Set(pick("formerly").flatMap((names) => names ?? []))],

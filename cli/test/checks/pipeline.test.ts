@@ -78,4 +78,11 @@ describe("approvals", () => {
       ["build", "src", null],
     ]);
   });
+
+  test("a trigger must read from a connector or a built-in source", () => {
+    const yaml = (source: string) => `connectors:\n  - { id: sentry, via: cli }\ntriggers:\n  - { id: t, source: ${source}, when: x }\n`;
+    expect(pipeline.run(contextFor(makeTree({ ".context/context.yaml": yaml("sentry") })))).toEqual([]);
+    expect(pipeline.run(contextFor(makeTree({ ".context/context.yaml": yaml("schedule") })))).toEqual([]);
+    expect(pipeline.run(contextFor(makeTree({ ".context/context.yaml": yaml("datadog") })))[0].message).toMatch(/datadog/);
+  });
 });

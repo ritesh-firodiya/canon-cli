@@ -1,15 +1,14 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join, relative } from "node:path";
-import { CONFIG_FILE, CONTEXT_FOLDERS, LOCAL_CONFIG_FILE, type Module } from "../config/schema.ts";
+import { CONFIG_FILE, CONTEXT_FOLDERS, DEFAULT_RECORDS, LOCAL_CONFIG_FILE, type Module, type RecordKind } from "../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 
-const KNOWLEDGE_CONTEXT = ["raw", "wiki", "features"];
-
 /** What .context must hold: README.md and tasks.md always, the knowledge folders only when docs or knowledge is on. */
-export function requiredContext(modules: Module[]): string[] {
+export function requiredContext(modules: Module[], records: RecordKind[] = DEFAULT_RECORDS): string[] {
   const knowledge = modules.includes("docs") || modules.includes("knowledge");
-  return ["README.md", "tasks.md", ...(knowledge ? KNOWLEDGE_CONTEXT : [])];
+  const features = records.some((kind) => kind.folder === "features") ? ["features"] : [];
+  return ["README.md", "tasks.md", ...(knowledge ? ["raw", "wiki", ...features] : [])];
 }
 const ROOT_FILES = ["README.md", "tasks.md", basename(CONFIG_FILE), basename(LOCAL_CONFIG_FILE)];
 const LIVE_FOLDERS = ["marketing", "metrics", "support", "legal"];
@@ -28,7 +27,7 @@ function ignored(repo: string, path: string): boolean {
 export const contextLayout: Check = {
   id: "context-layout",
   module: null,
-  description: ".context/ has the required folders, only the allowed ones (the eleven plus context.folders), and only README.md, tasks.md and the config at its root",
+  description: ".context/ has the required folders, only the allowed ones (the built-in folders, the repo's records and context.folders), and only README.md, tasks.md and the config at its root",
   run({ repo, config }) {
     const context = join(repo, ".context");
     const finding = (level: Finding["level"], file: string, message: string): Finding => ({
@@ -39,10 +38,10 @@ export const contextLayout: Check = {
     });
     if (!existsSync(context)) return [finding("error", ".context", "no .context/ folder — run `canon init`")];
 
-    const findings = requiredContext(config.modules).filter((name) => !existsSync(join(context, name))).map((name) =>
+    const findings = requiredContext(config.modules, config.records).filter((name) => !existsSync(join(context, name))).map((name) =>
       finding("error", `.context/${name}`, `required ${name} is missing`),
     );
-    const allowed = [...CONTEXT_FOLDERS, ...config.context.folders.map((entry) => entry.folder)];
+    const allowed = [...CONTEXT_FOLDERS, ...config.records.map((kind) => kind.folder), ...config.context.folders.map((entry) => entry.folder)];
     for (const entry of readdirSync(context, { withFileTypes: true })) {
       if (entry.name === ".DS_Store") continue;
       if (entry.isDirectory() && !allowed.includes(entry.name)) {

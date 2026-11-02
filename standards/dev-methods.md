@@ -14,7 +14,7 @@ reader (or the weigh gate) can follow. A team replaces this file with its own
 
 - **New behaviour users see** → spec-driven: the feature page comes first.
 - **Logic that can break** (money, parsing, data writes, a bug fix) → test-driven.
-- **A bet on what users want** → data-driven: an experiment page with its metric
+- **A bet on what users want** → data-driven: an `experiments/` page with its metric
   before the build, the result as a decision after.
 
 They combine. A paywall change is a spec (what users see), tests (the price

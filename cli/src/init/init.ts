@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { stringify } from "yaml";
 import { RULES_FILES } from "../checks/architecture.ts";
 import { requiredContext } from "../checks/context-layout.ts";
-import { inferKind, inferModules } from "../config/load.ts";
+import { inferKind, inferModules, loadConfig } from "../config/load.ts";
 import { CONFIG_FILE, kindCovers, MODULES_BY_KIND, type Kind, type Module } from "../config/schema.ts";
 
 export type Runner = (command: string, args: string[]) => void;
@@ -143,9 +143,10 @@ export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; 
   if (plan.config.modules.includes("knowledge")) indexKnowledge(repo, options.name, options.run);
 }
 
-/** Adds the repo's wiki and features to qmd. Safe to repeat: qmd refuses a name it already has. */
+/** Adds the repo's wiki, features and other record folders to qmd. Safe to repeat: qmd refuses a name it already has. */
 export function indexKnowledge(repo: string, name: string, run: Runner): void {
-  for (const kind of ["wiki", "features"]) {
+  const folders = loadConfig(repo).config.records.map((kind) => kind.folder).filter((folder) => folder === "features" || existsSync(join(repo, ".context", folder)));
+  for (const kind of ["wiki", ...folders]) {
     run("qmd", ["collection", "add", join(repo, ".context", kind), "--name", `${name}-${kind}`]);
   }
 }

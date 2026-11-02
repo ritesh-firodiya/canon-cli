@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { parse } from "yaml";
-import { applyInit, architectureStarters, detectExpoSdk, parseChoices, planInit } from "../src/init/init.ts";
+import { applyInit, architectureStarters, detectExpoSdk, indexKnowledge, parseChoices, planInit } from "../src/init/init.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const recorder = () => {
@@ -128,5 +128,12 @@ describe("applyInit", () => {
     const { calls, run } = recorder();
     applyInit(repo, planInit(repo, { canonVersion: "1", kind: "content", modules: ["docs"] }), { run, name: "demo", canonRoot: repo });
     expect(calls).toEqual([]);
+  });
+
+  test("knowledge search covers each record folder the repo has", () => {
+    const calls: string[][] = [];
+    const repo = makeTree({ ".context/problems/0001-a.md": "", ".context/ideas/0001-a.md": "" });
+    indexKnowledge(repo, "demo", (command, args) => calls.push([command, ...args]));
+    expect(calls.map((call) => call[call.length - 1])).toEqual(["demo-wiki", "demo-problems", "demo-ideas", "demo-features"]);
   });
 });

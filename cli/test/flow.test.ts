@@ -126,9 +126,28 @@ describe("canon flow", () => {
     expect(result.stages).toContainEqual({ id: "live", count: 1 });
   });
 
-  test("a stage with no evidence rule is an error naming the ones there are", () => {
-    const workspace = makeTree({ "myapp/.context/context.yaml": "pipeline:\n  - { id: idea, done: [x] }\n  - { id: vibes, done: [x] }\n" });
-    execFileSync("git", ["-C", join(workspace, "myapp"), "init", "-q"]);
-    expect(() => flow(workspace, "myapp", [], [], () => [])).toThrow(/no evidence rule for stage\(s\) vibes/);
+  test("a custom stage is reached by a commit touching its done paths", () => {
+    const workspace = makeTree({});
+    const repo = join(workspace, "myapp");
+    const git = (env: object, ...args: string[]) => execFileSync("git", ["-C", repo, ...args], { env: { ...process.env, ...env } });
+    const commit = (iso: string, file: string, text = "x") => {
+      mkdirSync(dirname(join(repo, file)), { recursive: true });
+      writeFileSync(join(repo, file), text);
+      git({}, "add", "-A");
+      git({ GIT_COMMITTER_DATE: iso, GIT_AUTHOR_DATE: iso }, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", file);
+    };
+    mkdirSync(repo);
+    git({}, "init", "-q");
+    git({}, "remote", "add", "origin", "git@github.com:me/myapp.git");
+    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipeline:\n  - { id: idea, done: [x] }\n  - { id: campaign, done: [.context/campaigns] }\n");
+    commit("2026-10-01T11:00:00Z", ".context/campaigns/0001-launch.md");
+    const projects = makeTree({
+      "p/one.jsonl": [
+        line({ timestamp: "2026-10-01T10:30:00Z", type: "user", cwd: repo, message: { content: "plan the launch" } }),
+        line({ timestamp: "2026-10-01T11:00:30Z", type: "assistant", message: { content: [{ type: "tool_use", name: "Bash", input: { command: "git commit -m x" } }] } }),
+      ].join("\n"),
+    });
+    const result = flow(workspace, "myapp", allSessions(workspace, projects), [], () => []);
+    expect(result.stages).toEqual([{ id: "idea", count: 1 }, { id: "campaign", count: 1 }]);
   });
 });
