@@ -14,10 +14,11 @@ export interface QueueRow {
 }
 
 function waitingStage(config: Config, data: Record<string, unknown>): string | null {
-  if (!data.stage || !config.pipelines[String(data.pipeline ?? "default")]) return null;
-  const stage = pipelineOf(config, String(data.pipeline ?? "default")).find((entry) => entry.id === data.stage);
+  const at = data.at ?? data.stage;
+  if (!at || !config.pipelines[String(data.pipeline ?? "default")]) return null;
+  const stage = pipelineOf(config, String(data.pipeline ?? "default")).find((entry) => entry.id === at);
   // A gate someone is still working inside is not waiting for its review yet.
-  if (data.drafting === data.stage) return null;
+  if (data.drafting === at) return null;
   return stage && (stage.gate || stage.by === "person") && !isApproved(stage, data) ? stage.id : null;
 }
 
@@ -31,7 +32,7 @@ export function queueOf(repo: string, config: Config): QueueRow[] {
       id,
       priority: data.priority ? String(data.priority) : null,
       status: data.status ? String(data.status) : "open",
-      stage: data.stage ? String(data.stage) : null,
+      stage: data.at || data.stage ? String(data.at ?? data.stage) : null,
       owner: data.owner ? String(data.owner) : null,
       waiting: waitingStage(config, data),
       file,

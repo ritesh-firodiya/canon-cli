@@ -153,6 +153,15 @@ describe("canon work", () => {
     expect(band(blocked).waiting).toEqual({ record: "PROB-0001", stage: "plan" });
   });
 
+  test("moving by hand or by edit breaks no check, since it claims no stage was done", () => {
+    const repo = repoWith(APPROVED_PLAN);
+    selectWork(repo, config(repo), "PROB-0001");
+    setStage(repo, config(repo), "PROB-0001", "code");
+    expect(band(repo).stage).toBe("code");
+    expect(band(repo).errors.filter((finding) => finding.message.includes("reached"))).toEqual([]);
+    expect(readFileSync(join(repo, PROBLEM), "utf8")).not.toMatch(/^stage:/m);
+  });
+
   test("an unknown stage is refused", () => {
     const repo = repoWith();
     expect(() => setStage(repo, config(repo), "PROB-0001", "nope")).toThrow('no stage "nope"');

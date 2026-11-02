@@ -1,7 +1,7 @@
 import type { Config, FieldRule, RecordKind } from "../config/schema.ts";
 
 /** Fields only canon writes, so `canon set` cannot forge them. */
-export const RESERVED_FIELDS = ["id", "name", "approvals", "rejections", "completed", "skipped", "verified", "stage", "drafting", "cost", "rules", "sources"];
+export const RESERVED_FIELDS = ["id", "name", "approvals", "rejections", "completed", "skipped", "verified", "stage", "at", "drafting", "cost", "rules", "sources"];
 export const OUTCOMES = ["retained", "discarded", "retried"];
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;

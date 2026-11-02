@@ -4,6 +4,7 @@ status: solving
 source: backfill
 priority: p2
 last-verified: 2026-11-02
+at: idea
 ---
 # Agents guess and ignore product rules
 

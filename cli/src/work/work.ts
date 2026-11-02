@@ -26,10 +26,10 @@ export function selectWork(repo: string, config: Config, recordId: string): void
 
 const stagesFor = (config: Config, record: WorkRecord): StageSpec[] => pipelineOf(config, String(record.data.pipeline ?? "default"));
 
-/** The stage a run or an edit put the record at, or else where its kind of record starts. */
+/** Where a person is working (`at`), or the stage a run reached, or else where its kind of record starts. */
 export function stageOfRecord(config: Config, record: WorkRecord): string | null {
   const stages = stagesFor(config, record);
-  const saved = stages.find((stage) => stage.id === record.data.stage);
+  const saved = stages.find((stage) => stage.id === (record.data.at ?? record.data.stage));
   // The name comes first: a repo may point a stage's done at another kind's folder.
   const named = stages.find((stage) => stage.id === record.kind.folder.replace(/s$/, ""));
   return (saved ?? named ?? stages.find((stage) => stage.done.includes(join(".context", record.kind.folder))))?.id ?? null;
@@ -44,8 +44,8 @@ function moveTo(repo: string, config: Config, record: WorkRecord, target: StageS
   const from = stages.findIndex((stage) => stage.id === current);
   const to = stages.indexOf(target);
   const blocker = stages.slice(Math.max(from, 0), Math.max(to, 0)).find((stage) => needsApproval(stage, record) && (stage.id === current || !stage.optional));
-  if (blocker) return setFields(repo, record.file, { stage: blocker.id, drafting: null });
-  setFields(repo, record.file, { stage: target.id, drafting: needsApproval(target, record) ? target.id : null });
+  if (blocker) return setFields(repo, record.file, { at: blocker.id, drafting: null });
+  setFields(repo, record.file, { at: target.id, drafting: needsApproval(target, record) ? target.id : null });
 }
 
 export function setStage(repo: string, config: Config, recordId: string, stageId: string): void {
