@@ -1,6 +1,6 @@
 {
   "name": "@freetesh/canon",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "canon CLI: keep your domain knowledge and AI rules in your repo, and enforce them.",
   "license": "MIT",
   "author": "Ritesh Firodiya",

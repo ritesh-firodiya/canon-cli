@@ -19,6 +19,7 @@ export type BandFacts = {
   problem: { id: string; title: string; source: string | null; priority: string | null; file: string } | null
   errors: Finding[]
   warnings: Finding[]
+  features?: string[]
 }
 
 export type CacheFacts = { lastAt: number; tokens: number; model: string | null }

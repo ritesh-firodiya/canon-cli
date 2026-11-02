@@ -175,6 +175,7 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     canon: lastDefined(pick("canon")),
     kind,
     modules: withDesign(repo, lastDefined(pick("modules")) ?? MODULES_BY_KIND[kind]),
+    features: lastDefined(pick("features")) ?? [],
     expo: Object.assign({}, ...pick("expo")),
     packs: [...new Set(pick("packs").flatMap((packs) => packs ?? []))].sort(),
     standards: [...new Set(layers.flatMap((layer) => (layer.data.standards ?? []).map((entry) => (isStandardName(entry) ? entry : resolve(layer.base, entry)))))],

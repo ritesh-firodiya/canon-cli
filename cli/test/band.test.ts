@@ -96,6 +96,14 @@ describe("canon band", () => {
     clearRunning(repo);
   });
 
+  test("every feature is off unless the repo names it", () => {
+    expect(buildBand(makeTree({}), options("/x")).features).toEqual([]);
+    expect(buildBand(repoWith("stage: plan"), options("/x")).features).toEqual([]);
+    const repo = makeTree({ ".context/context.yaml": "features: [routing]\n" });
+    expect(buildBand(repo, options("/x")).features).toEqual(["routing"]);
+    expect(buildBand(makeTree({ ".context/context.yaml": "pipelines: [broken\n" }), options("/x")).features).toEqual([]);
+  });
+
   test("check findings split into errors and warnings", () => {
     const repo = repoWith("stage: plan");
     const band = buildBand(repo, options("/x"));

@@ -13,6 +13,7 @@ const FACTS: BandFacts = {
   problem: { id: 'PROB-0012', title: 'Ads too frequent', source: 'reviews', priority: 'p1', file: '.context/problems/0012.md' },
   errors: [{ file: 'a.md', message: 'missing last-verified' }],
   warnings: [],
+  features: [],
 }
 
 const OPUS = 'claude-opus-5-5'
@@ -272,9 +273,9 @@ test('a model id finds its tier, and the label says who chose', () => {
   expect(routeLabel('default', 'opus', undefined)).toBe('auto: opus (default)')
 })
 
-function routed(on: any, env: Record<string, string> = {}) {
+function routed(on: any, env: Record<string, string> = {}, features: string[] = ['routing']) {
   const asked: string[] = []
-  engine(on, FACTS)
+  engine(on, { ...FACTS, features })
   on('env.get', (_: unknown, e: any) => ({ value: env[e.name] }))
   on('fs.read', () => ({ value: '' }))
   on('fs.write', () => ({ value: undefined }))
@@ -293,6 +294,16 @@ test('an interactive session decides on a typed prompt, but not on a slash comma
   expect(asked.length).toBe(0)
   await $.prompt.submit({ text: 'what is this?', origin: { kind: 'composer' } })
   expect(asked.length).toBe(1)
+})
+
+test('routing is off unless the repo turns it on: nothing is sent and no pick shows', async ($, on) => {
+  const asked = routed(on, {}, [])
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  await $.prompt.submit({ text: 'what is this?', origin: { kind: 'composer' } })
+  expect(asked.length).toBe(0)
+  const ui = await $.ui.mount(render('terminal'))
+  expect(await ui.find({ key: 'route' })).toBeUndefined()
+  await ui.unmount()
 })
 
 test('a headless session is never routed', async ($, on) => {

@@ -2,6 +2,8 @@ import { z } from "zod";
 
 /** What a repo ships: an app to the stores, a site to the web, both, a package to a registry, or no code at all. */
 export const KINDS = ["mobile", "web", "mobile-and-web", "package", "content"] as const;
+/** What a repo turns on. Everything is off unless named here. */
+export const FEATURES = ["routing"] as const;
 export const MODULES = ["docs", "design", "knowledge", "metrics", "code", "architecture", "listing", "refs"] as const;
 
 /**
@@ -152,6 +154,7 @@ export function isStandardName(entry: string): boolean {
 
 export type Kind = (typeof KINDS)[number];
 export type Module = (typeof MODULES)[number];
+export type Feature = (typeof FEATURES)[number];
 
 const principleId = z.string().regex(/^C-\d{2}$/, "principle IDs look like C-07");
 
@@ -288,6 +291,7 @@ export const layerSchema = z
     canon: z.string(),
     kind: z.enum(KINDS),
     modules: z.array(z.enum(MODULES)),
+    features: z.array(z.enum(FEATURES)),
     expo: z.object({ sdk: z.number().int().positive() }).partial(),
     packs: z.array(z.string().regex(/^[a-z0-9-]+$/, "pack names are lowercase-kebab")),
     /** Standards to add: a bare name imports canon's library standard (`design-sets`); a path (`./rules`) is a folder of the repo's own. */
@@ -347,6 +351,7 @@ export interface Config {
   canon?: string;
   kind: Kind;
   modules: Module[];
+  features: Feature[];
   expo?: { sdk?: number };
   packs: string[];
   /** Library standard names and absolute folders; a later file of the same name wins. */

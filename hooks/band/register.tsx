@@ -101,6 +101,11 @@ async function decide($: EngineInterface, text: string): Promise<void> {
   await logRoute($, entry).catch(() => undefined)
 }
 
+// Off unless the repo names it in `features:`. A session with no product has nothing to name it in.
+async function isRoutingOn($: EngineInterface): Promise<boolean> {
+  return (await read($, isRouting)) && Boolean((await read($, facts))?.features?.includes('routing'))
+}
+
 async function refreshUsage($: EngineInterface, lastAt: number | null, model: string | null): Promise<void> {
   const usage = await $.session.usage()
   await update($, windows, () => usage.rateLimits.map(w => ({ kind: w.kind, percentUsed: w.percentUsed, resetsAt: w.resetsAt })))
@@ -161,7 +166,7 @@ export const register: Register = on => {
   }).catch(($, e, next) => next(e))
 
   on('prompt.submit', async ($, e, next) => {
-    if (!(await read($, isRouting)) || !isRoutable(e.text, e.origin.kind === 'plugin')) return next(e)
+    if (!(await isRoutingOn($)) || !isRoutable(e.text, e.origin.kind === 'plugin')) return next(e)
     const mine = await read($, chosen)
     // Nothing to decide when the person chose both.
     if (!mine.model || !mine.effort) await decide($, e.text)
@@ -174,7 +179,8 @@ export const register: Register = on => {
       return
     }
     const session = tierOf(await $.session.model())
-    const routing = (await read($, isRouting)) && tierOf(e.model) === session
+    const isOn = await isRoutingOn($)
+    const routing = isOn && tierOf(e.model) === session
     const planned = routing
       ? pick({
           size: (await read($, route))?.size ?? null,
@@ -190,7 +196,7 @@ export const register: Register = on => {
     const now = await $.clock.now()
     // Each main request reads or writes the cache, so its start restarts the hour.
     await update($, cache, c => ({ lastAt: now, tokens: c?.tokens ?? 0, model }))
-    await update($, applied, () => ({ model, ...(typeof effort === 'string' ? { effort } : {}) }))
+    await update($, applied, () => (isOn ? { model, ...(typeof effort === 'string' ? { effort } : {}) } : null))
     yield* next({ ...e, model, ...(effort === undefined ? {} : { effort }) })
   })
 

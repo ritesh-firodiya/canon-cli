@@ -118,7 +118,7 @@ th { background: #ece8e0; }
   </div>
 
   <h3>Prompt routing</h3>
-  <p class="note">The band picks effort for every prompt, and the model at the start of a session. The pick sits beside the task cost and is quiet unless you change it. Click it to see why, or to choose yourself.</p>
+  <p class="note">Off unless the repo turns it on with <code>features: [routing]</code>. The band then picks effort for every prompt, and the model at the start of a session. The pick sits beside the task cost and is quiet unless you change it. Click it to see why, or to choose yourself.</p>
 
   <h2>7. Picked for you</h2>
   <p class="note">This prompt looked like medium work, so it runs on Sonnet at medium effort.</p>
@@ -207,7 +207,7 @@ th { background: #ece8e0; }
     <tr><td>Tests ok, stale or failed</td><td>After tests or a later edit</td><td>No</td><td>To build: canon's own detection</td></tr>
     <tr><td>7D and 5H left</td><td>Always. Reset time only when low</td><td>No</td><td>Ready: engine usage figures</td></tr>
     <tr><td>Cache minutes, or cold price</td><td>After the first reply</td><td>No</td><td>Ready, with a price table to maintain</td></tr>
-    <tr><td>Pick: model and effort</td><td>Always, once a prompt has run</td><td>Yes: why, and choose yourself</td><td>To build: FEAT-0025</td></tr>
+    <tr><td>Pick: model and effort</td><td>Once a prompt has run, when the repo has <code>features: [routing]</code></td><td>Yes: why, and choose yourself</td><td>To build: FEAT-0025</td></tr>
     <tr><td>Extend, with its cost</td><td>Cache warm, no reply running</td><td>Yes: sends one tiny message</td><td>Ready: <code>$.prompt.submit</code>, context size and the same price table</td></tr>
   </table>
 </main>

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1 — 2026-11-02
+
+### Changed
+
+- **Prompt routing is off by default.** Turn it on for a repo with `features: [routing]` in `.context/context.yaml`. Until then, no prompt is sent to Haiku, no model or effort changes, and no pick shows on the band.
+
 ## 1.0.0 — 2026-11-02
 
 Canon picks the effort and model for each prompt, and the band follows your work.

@@ -4,7 +4,7 @@ type: feature
 status: shipped
 priority: p2
 last-verified: 2026-11-02
-release: 1.0.0
+release: 1.0.1
 superseded-by: null
 surfaces: []
 plan: PLAN-0001
@@ -19,7 +19,8 @@ The canon mod picks effort and model from each prompt, so simple work stops runn
 Opus is 99% of cost. Most of the saving must come from building on a smaller model, if quality holds, not from quick questions alone.
 
 ## Acceptance scenarios
-- Given a prompt, then a Haiku call through the session's own login classifies it as small, medium or large, and the mod applies the result on `turn.step`.
+- Given a repo without `features: [routing]` in its config, then nothing is sent to Haiku, nothing changes and no pick shows.
+- Given a prompt in a repo that turned it on, then a Haiku call through the session's own login classifies it as small, medium or large, and the mod applies the result on `turn.step`.
 - Given a session under way, then effort may change, while the model only moves up, because moving to another model misses the cache.
 - Given a failed or unclear decision, then the session's own model and effort are used.
 - Given a pick, then the band shows it, and the owner can override it.

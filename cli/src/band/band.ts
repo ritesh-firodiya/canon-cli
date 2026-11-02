@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { runChecks } from "../checks/check.ts";
-import type { Config } from "../config/schema.ts";
+import type { Config, Feature } from "../config/schema.ts";
 import { loadConfig } from "../config/load.ts";
 import { stagesOf } from "../pipeline/pipeline.ts";
 import { queueOf, type QueueRow } from "../records/queue.ts";
@@ -28,9 +28,10 @@ export interface BandFacts {
   problem: BandProblem | null;
   errors: { file?: string; message: string }[];
   warnings: { file?: string; message: string }[];
+  features: Feature[];
 }
 
-const NOTHING: Omit<BandFacts, "product"> = { stage: null, stages: [], waiting: null, running: null, problem: null, errors: [], warnings: [] };
+const NOTHING: Omit<BandFacts, "product"> = { stage: null, stages: [], waiting: null, running: null, problem: null, errors: [], warnings: [], features: [] };
 
 function productRoot(start: string): string | null {
   let folder = resolve(start);
@@ -96,5 +97,6 @@ export function buildBand(start: string, options: { canonRoot: string }): BandFa
     problem: problemOf(repo, config, running?.record ?? current?.id),
     errors,
     warnings,
+    features: config.features,
   };
 }

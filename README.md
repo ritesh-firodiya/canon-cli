@@ -121,6 +121,7 @@ standards: [design-sets, pipeline, expo]   # canon's library standards this repo
 modules: [docs, knowledge, code, listing, refs]
 packs: [expo]
 name: Acme                          # how the product is written; `named` copies swap it in
+features: [routing]                 # what this repo turns on; everything is off unless named
 formerly: [acme-old]                # older folder names, so `canon flow` counts their conversations
 extends: [../rules/team.yaml]       # organization, product and team rules; the closest wins
 product: acme                       # repos naming one product act as one
