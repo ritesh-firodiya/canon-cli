@@ -44,12 +44,12 @@ const themed = (name: string, saved: Record<string, string>) =>
 
 describe("the shell's theme", () => {
   test("a choice saved by one product does not set another's", () => {
-    const run = themed("Canon", { "babul-theme:Chess": "dark" });
+    const run = themed("Alpha", { "babul-theme:Beta": "dark" });
     expect(run.documentElement.dataset.theme).toBe("light");
   });
 
   test("a product's own saved choice is used", () => {
-    const run = themed("Chess", { "babul-theme:Chess": "dark" });
+    const run = themed("Beta", { "babul-theme:Beta": "dark" });
     expect(run.documentElement.dataset.theme).toBe("dark");
   });
 });
