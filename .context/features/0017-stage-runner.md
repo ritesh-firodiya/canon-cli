@@ -1,9 +1,9 @@
 ---
 id: FEAT-0017
 type: feature
-status: planned
+status: shipped
 last-verified: 2026-11-02
-release: null
+release: 0.27.0
 superseded-by: null
 surfaces: []
 ---
@@ -32,7 +32,7 @@ surfaces: []
 - Marketing stages as built-ins.
 
 ## Open questions
-- How an agent stage is told what to do: a skill, or a prompt in config.
+- None.
 
 ## Store copy
 > Run a problem through your own stages, and approve only the gates.

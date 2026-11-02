@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { parse } from "yaml";
+import { DEFAULT_PIPELINE } from "../src/config/default-pipeline.ts";
 import { applyInit, architectureStarters, detectExpoSdk, indexKnowledge, parseChoices, planInit } from "../src/init/init.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
@@ -38,6 +39,7 @@ describe("planInit", () => {
       kind: "mobile",
       modules: ["docs", "knowledge", "code", "listing", "refs"],
       expo: { sdk: 57 },
+      pipelines: { default: DEFAULT_PIPELINE },
     });
   });
 
@@ -135,5 +137,11 @@ describe("applyInit", () => {
     const repo = makeTree({ ".context/problems/0001-a.md": "", ".context/ideas/0001-a.md": "" });
     indexKnowledge(repo, "demo", (command, args) => calls.push([command, ...args]));
     expect(calls.map((call) => call[call.length - 1])).toEqual(["demo-wiki", "demo-problems", "demo-ideas", "demo-features"]);
+  });
+
+  test("writes canon's default flow into context.yaml, to change at will", () => {
+    const repo = makeTree({});
+    const plan = planInit(repo, { canonVersion: "1.0.0", kind: "package" });
+    expect(plan.config.pipelines.default.map((stage) => stage.id)).toContain("plan");
   });
 });

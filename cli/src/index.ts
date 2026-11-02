@@ -11,6 +11,7 @@ import type { Env } from "./lib/env.ts";
 import { registerInit } from "./init/init.command.ts";
 import { registerLearn } from "./learn/learn.command.ts";
 import { registerPipeline } from "./pipeline/pipeline.command.ts";
+import { registerRun } from "./run/run.command.ts";
 import { registerStandards } from "./standards/standards.command.ts";
 import { registerStatus } from "./status/status.command.ts";
 import { registerSync } from "./sync/sync.command.ts";
@@ -48,6 +49,7 @@ registerWiki(program, env);
 registerLearn(program, env);
 registerApprove(program);
 registerPipeline(program, env);
+registerRun(program);
 registerWeigh(program);
 registerFlow(program, env);
 

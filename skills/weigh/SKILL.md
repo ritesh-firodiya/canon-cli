@@ -140,27 +140,28 @@ Proceed only after the user agrees in writing ("agree", or "agree to 1–4").
 "Go ahead" to a verdict is not agreement to terms that were never shown. Work
 covers only the terms agreed to.
 
-## Logging (every verdict)
+## Recording (every verdict)
 
-Log every verdict once, when you know what happened next. A trivial request
-that skipped the gate is not logged. `--outcome` is one of:
+A verdict goes on the record it judged. Record it once, when you know what
+happened next. A trivial request that skipped the gate is not recorded.
+`--outcome` is one of:
 
 - `proceeded` — work went ahead as the verdict said (DO IT, or an accepted
   *Instead*).
-- `stopped` — you stopped and asked, and the user has not answered yet. Log it
-  when you stop; if the user later overrides, log a second line.
+- `stopped` — you stopped and asked, and the user has not answered yet. If the
+  user later overrides, record a second one.
 - `overridden` — the user went on against a PUSH BACK, rejected a DO IT
   DIFFERENTLY, or agreed to terms. `--reason` is required: the user's reason,
   verbatim. Pass each agreed term with its own `--term`.
 - `dropped` — the user chose to drop the request.
 
 ```bash
-node ../../scripts/log-verdict.mjs --verdict push-back --outcome overridden \
+canon verdict --record PLAN-0001 --verdict push-back --outcome overridden \
   --principles C-04,C-14 --request "<one line>" \
   --reason "<the user's reason, verbatim>" --term "<term 1>" --term "<term 2>"
 ```
 
-(path relative to this skill). It writes to `.context/raw/canon/verdicts.jsonl`
-in the current repo. Never edit or delete existing lines. `canon learn` reads
-the log across products: how often the gate stops work, and which rules keep
-being overridden.
+With no `--record`, the request becomes a new Idea, dropped or accepted by its
+outcome, so a rejected request is not proposed again unseen. Never edit an earlier
+line of a `## Verdict` section. `canon learn` reads them across products: how
+often the gate stops work, and which rules keep being overridden.

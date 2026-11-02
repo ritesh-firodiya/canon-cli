@@ -83,7 +83,11 @@ canon update           # update the CLI and the Claude plugin to the latest rele
 canon status           # version, kind, modules, config layers, check summary
 canon doctor           # node, git, qmd — plus any tools your config lists
 canon learn            # proposals from overridden verdicts
-canon approve <stage>  # a person records a pipeline gate approval
+canon problem add <t>  # write down what needs solving
+canon run <record>     # move a record through its pipeline with an agent; stops at gates and caps
+canon trigger [id]     # read connectors, open problems, join repeats (--run works on new ones)
+canon verdict          # put a weigh verdict on the record it judged
+canon approve <stage> --record <id>   # a person approves a stage on a record, in a terminal
 canon pipeline         # the stages this repo resolves to, and where each stands
 canon weigh "<ask>"    # the decision gate from the terminal
 canon ui               # this repo's design set on localhost, with canon's shell
@@ -109,16 +113,23 @@ modules: [docs, knowledge, code, listing, refs]
 packs: [expo]
 name: Acme                          # how the product is written; `named` copies swap it in
 formerly: [acme-old]                # older folder names, so `canon flow` counts their conversations
-pipeline:                           # your stages, in order; canon checks the gates
-  - { id: poc, done: [.context/experiments], by: agent, optional: true, when: a risky idea, cap: 5 }
-  - { id: review, done: [.github], gate: true }
+extends: [../rules/team.yaml]       # organization, product and team rules; the closest wins
+product: acme                       # repos naming one product act as one
+team: growth
+cap: 5                              # dollars per stage, unless a stage sets its own
+pipelines:                          # `default` is canon's flow until you change it; add your own
+  default:
+    - { id: review, by: agent, gate: true, tools: [Read, Bash] }
+  hotfix:
+    - { id: fix, by: agent, cap: 2 }
+locked: [pipelines.default.review]  # a lower layer cannot change this
 connectors:                         # your tools, read-only; keys stay in .env
   - { id: sentry, via: cli }
   - { id: acme-erp, via: api, target: https://erp.example.com, env: [ACME_ERP_TOKEN] }   # your own
 records:                            # add, change or remove record kinds
   - { folder: campaigns, prefix: CAMP, statuses: [draft, live], sections: [Goal] }
 triggers:                           # what opens a Problem; source is a connector, manual or schedule
-  - { id: new-error, source: sentry, when: a new error reaches 50 users, cap: 2 }
+  - { id: new-error, source: sentry, when: a p0 error, pipeline: hotfix, cap: 2 }
 commands:                           # your own checkers, run by `canon check`
   - { id: lint-copy, run: ./scripts/lint-copy.sh, if: .context/designs, module: design }
 copies:                             # files copied from one source repo, kept equal to it
@@ -151,7 +162,6 @@ hooks/            session start: constitution titles, qmd refresh
 standards/        default standards
 packs/            vendor doc packs
 templates/        files init writes (dependency-cruiser base and starters)
-scripts/          log-verdict.mjs (the verdict log)
 evals/            plugin evals on a fixture product
 cli/              the canon CLI (TypeScript, vitest); `@freetesh/canon/api` for tools built on it
 ```

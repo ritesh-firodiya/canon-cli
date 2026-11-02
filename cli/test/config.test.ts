@@ -52,10 +52,10 @@ describe("loadConfig", () => {
     expect(sources).toHaveLength(1);
   });
 
-  test("a repo names the space (product) it is part of; a bad name is refused", () => {
-    expect(loadConfig(makeTree({ ".context/context.yaml": "kind: package\nspace: canon\n" })).config.space).toBe("canon");
-    expect(loadConfig(makeTree({ ".context/context.yaml": "kind: package\n" })).config.space).toBeUndefined();
-    expect(() => loadConfig(makeTree({ ".context/context.yaml": "kind: package\nspace: Not Kebab\n" }))).toThrow();
+  test("a repo names the product it is part of; a bad name is refused", () => {
+    expect(loadConfig(makeTree({ ".context/context.yaml": "kind: package\nproduct: canon\n" })).config.product).toBe("canon");
+    expect(loadConfig(makeTree({ ".context/context.yaml": "kind: package\n" })).config.product).toBeUndefined();
+    expect(() => loadConfig(makeTree({ ".context/context.yaml": "kind: package\nproduct: Not Kebab\n" }))).toThrow();
   });
 
   test("a repo still on the old .claude/canon.yaml is told to move it, not silently given defaults", () => {
@@ -137,8 +137,9 @@ describe("loadConfig", () => {
   test("reads stages an agent runs, triggers and connectors", () => {
     const repo = makeTree({
       ".context/context.yaml": [
-        "pipeline:",
-        "  - { id: poc, done: [.context/experiments], by: agent, optional: true, when: risky idea, cap: 5 }",
+        "pipelines:",
+        "  default:",
+        "    - { id: poc, done: [.context/experiments], by: agent, optional: true, when: risky idea, cap: 5 }",
         "connectors:",
         "  - { id: sentry, via: cli }",
         "triggers:",
@@ -147,13 +148,13 @@ describe("loadConfig", () => {
       ].join("\n"),
     });
     const { config } = loadConfig(repo);
-    expect(config.pipeline[0]).toMatchObject({ by: "agent", optional: true, when: "risky idea", cap: 5 });
+    expect(config.pipelines.default[0]).toMatchObject({ by: "agent", optional: true, when: "risky idea", cap: 5 });
     expect(config.connectors).toEqual([{ id: "sentry", via: "cli" }]);
     expect(config.triggers).toEqual([{ id: "new-error", source: "sentry", when: "50 or more users", cap: 2 }]);
   });
 
   test("a stage with a condition must be optional", () => {
-    const repo = makeTree({ ".context/context.yaml": "pipeline:\n  - { id: poc, done: [src], when: risky }\n" });
+    const repo = makeTree({ ".context/context.yaml": "pipelines:\n  default:\n    - { id: poc, done: [src], when: risky }\n" });
     expect(() => loadConfig(repo)).toThrow(/optional/);
   });
 

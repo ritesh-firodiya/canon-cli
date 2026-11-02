@@ -1,88 +1,55 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { pipeline } from "../../src/checks/pipeline.ts";
-import { GATES_LOG, readApprovals, recordApproval, stagesOf } from "../../src/pipeline/pipeline.ts";
 import { loadConfig } from "../../src/config/load.ts";
+import { approveStage, stagesOf } from "../../src/pipeline/pipeline.ts";
+import { findRecord } from "../../src/records/records.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 
-const PIPELINE = [
-  "pipeline:",
-  "  - { id: designs, done: [.context/designs/mobile/index.html], gate: true }",
-  "  - { id: scaffold, done: [app.config.ts] }",
-  "  - { id: schema, done: [firestore.rules], gate: true }",
-  "  - { id: build, done: [src, app] }",
-  "",
-].join("\n");
-const DESIGNS = { ".context/designs/mobile/index.html": "" };
+const YAML = "pipelines:\n  default:\n    - { id: plan, done: [.context/plans], gate: true }\n    - { id: build, by: agent }\n    - { id: ship, by: person }\n";
+const page = (extra: string) => `---\nid: PROB-0001\nstatus: solving\nsource: person\npriority: p2\n${extra}\n---\n## Summary\ns\n## Impact\ni\n## Expected\ne\n`;
+const FILE = ".context/problems/0001-a.md";
+const run = (files: Record<string, string>) => pipeline.run(contextFor(makeTree({ ".context/context.yaml": YAML, ...files })));
 
-function run(files: Record<string, string>) {
-  return pipeline.run(contextFor(makeTree({ ".context/context.yaml": PIPELINE, ...files })));
-}
-
-describe("pipeline", () => {
-  test("a repo with no pipeline in its config passes", () => {
-    expect(pipeline.run(contextFor(makeTree({ "app.config.ts": "" })))).toEqual([]);
+describe("pipeline check", () => {
+  test("a record may sit at a gate, but cannot pass it unapproved", () => {
+    expect(run({ [FILE]: page("stage: plan") })).toEqual([]);
+    expect(run({ [FILE]: page("stage: build") })[0].message).toMatch(/gate "plan"/);
   });
 
-  test("work inside the first gated stage passes before it is approved", () => {
-    expect(run(DESIGNS)).toEqual([]);
+  test("an approval or a skipped stage lets it pass", () => {
+    expect(run({ [FILE]: page("stage: build\napprovals:\n  - { stage: plan, by: me, at: 2026-11-02 }") })).toEqual([]);
+    expect(run({ [FILE]: page("stage: build\nskipped:\n  - { stage: plan, reason: no }") })).toEqual([]);
   });
 
-  test("a later stage started before an earlier gate is approved is an error", () => {
-    expect(run({ ...DESIGNS, "app.config.ts": "" })).toEqual([
-      expect.objectContaining({ level: "error", file: "app.config.ts", message: expect.stringContaining("canon approve designs") }),
-    ]);
+  test("a record naming a missing pipeline is an error", () => {
+    expect(run({ [FILE]: page("pipeline: nope") })[0].message).toMatch(/pipeline nope/);
   });
 
-  test("each unapproved gate is reported once, at the first stage after it", () => {
-    const findings = run({ ...DESIGNS, "app.config.ts": "", "firestore.rules": "", "src/index.ts": "" });
-    expect(findings.map((f) => [f.file, f.message.match(/approve (\w+)/)?.[1]])).toEqual([
-      ["app.config.ts", "designs"],
-      ["src", "schema"],
-    ]);
-  });
-
-  test("any one of a stage's done paths marks it started", () => {
-    // build started with both earlier gates unapproved: one finding per gate, both at app/.
-    expect(run({ ...DESIGNS, "app/index.tsx": "" }).map((f) => f.file)).toEqual(["app", "app"]);
-  });
-
-  test("an approved gate lets later stages start", () => {
-    const repo = makeTree({ ".context/context.yaml": PIPELINE, ...DESIGNS, "app.config.ts": "" });
-    recordApproval(repo, "designs", "reviewed all screens");
-    expect(pipeline.run(contextFor(repo))).toEqual([]);
+  test("a trigger must name a real source and pipeline", () => {
+    const yaml = (source: string, more = "") => `connectors:\n  - { id: sentry, via: cli }\ntriggers:\n  - { id: t, source: ${source}, when: x${more} }\n`;
+    const check = (text: string) => pipeline.run(contextFor(makeTree({ ".context/context.yaml": text })));
+    expect(check(yaml("sentry"))).toEqual([]);
+    expect(check(yaml("schedule"))).toEqual([]);
+    expect(check(yaml("datadog"))[0].message).toMatch(/datadog/);
+    expect(check(yaml("sentry", ", pipeline: nope"))[0].message).toMatch(/nope/);
   });
 });
 
 describe("approvals", () => {
-  test("an approval is appended with its date and note, never rewritten", () => {
-    const repo = makeTree({});
-    recordApproval(repo, "designs", "first pass");
-    recordApproval(repo, "schema", "");
-    expect(readApprovals(repo)).toEqual([
-      expect.objectContaining({ stage: "designs", note: "first pass", at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/) }),
-      expect.objectContaining({ stage: "schema" }),
-    ]);
-    expect(readFileSync(join(repo, GATES_LOG), "utf8").trim().split("\n")).toHaveLength(2);
-  });
-  test("stagesOf lists every stage in order with where it started and its gate", () => {
-    const repo = makeTree({ ".context/context.yaml": PIPELINE, ...DESIGNS, src: "" });
-    recordApproval(repo, "designs", "");
-    const stages = stagesOf(repo, loadConfig(repo).config.pipeline);
-    expect(stages.map((s) => [s.id, s.startedAt, s.approved])).toEqual([
-      ["designs", ".context/designs/mobile/index.html", true],
-      ["scaffold", null, null],
-      ["schema", null, false],
-      ["build", "src", null],
-    ]);
+  test("go on the record, name the person, and only for stages that need one", () => {
+    const repo = makeTree({ ".context/context.yaml": YAML, [FILE]: page("stage: plan") });
+    const { config } = loadConfig(repo);
+    approveStage(repo, config, "PROB-0001", "plan", "ritesh", "read it", new Date("2026-11-02T00:00:00Z"));
+    expect(findRecord(repo, config, "PROB-0001").data.approvals).toEqual([{ stage: "plan", by: "ritesh", at: "2026-11-02T00:00:00.000Z", note: "read it" }]);
+    expect(() => approveStage(repo, config, "PROB-0001", "build", "ritesh", "")).toThrow(/needs no approval/);
+    expect(stagesOf(repo, config).find((stage) => stage.id === "plan")).toMatchObject({ approved: true, startedAt: null });
   });
 
-  test("a trigger must read from a connector or a built-in source", () => {
-    const yaml = (source: string) => `connectors:\n  - { id: sentry, via: cli }\ntriggers:\n  - { id: t, source: ${source}, when: x }\n`;
-    expect(pipeline.run(contextFor(makeTree({ ".context/context.yaml": yaml("sentry") })))).toEqual([]);
-    expect(pipeline.run(contextFor(makeTree({ ".context/context.yaml": yaml("schedule") })))).toEqual([]);
-    expect(pipeline.run(contextFor(makeTree({ ".context/context.yaml": yaml("datadog") })))[0].message).toMatch(/datadog/);
+  test("the body of the page is left as written", () => {
+    const repo = makeTree({ ".context/context.yaml": YAML, [FILE]: page("stage: plan") });
+    const { config } = loadConfig(repo);
+    approveStage(repo, config, "PROB-0001", "plan", "me", "");
+    expect(findRecord(repo, config, "PROB-0001").body).toBe("## Summary\ns\n## Impact\ni\n## Expected\ne\n");
   });
 });

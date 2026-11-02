@@ -107,17 +107,23 @@ const copyFile = z.union([
 const stage = z
   .object({
     id: kebab,
-    /** Paths that exist once the stage has started; any one is enough. */
-    done: z.array(z.string().min(1)).min(1),
-    /** A person must approve this stage (`canon approve <id>`) before any later stage starts. */
+    /** Paths that show the stage has started, for `canon pipeline` and `canon flow`; any one is enough. */
+    done: z.array(z.string().min(1)).default([]),
+    /** A person must approve this stage on the record (`canon approve <id> --record <id>`) before any later stage runs. */
     gate: z.boolean().default(false),
     /** Who does the work; a person when absent. */
     by: z.enum(["person", "agent"]).optional(),
     /** A stage the run may skip. `when` says in words when it is needed. */
     optional: z.boolean().optional(),
     when: z.string().min(1).optional(),
-    /** The most this stage may spend per run, in US dollars. */
+    /** The most this stage may spend per run, in US dollars. Falls back to the top-level `cap`. */
     cap: z.number().positive().optional(),
+    /** What the agent is told to do at this stage. */
+    prompt: z.string().min(1).optional(),
+    /** The model for this stage: the smallest one that does the job well. */
+    model: z.string().min(1).optional(),
+    /** The tools an agent may use here. Absent: read and write files in the repo, with no shell. */
+    tools: z.array(z.string().min(1)).optional(),
   })
   .strict()
   .refine((entry) => !entry.when || entry.optional, { message: "a stage with `when` must be `optional: true`" });
@@ -151,7 +157,16 @@ const recordEntry = z
 
 /** What opens a Problem by itself. `source` is a connector's id or a built-in source. */
 const trigger = z
-  .object({ id: kebab, source: kebab, when: z.string().min(1), cap: z.number().positive().optional() })
+  .object({
+    id: kebab,
+    source: kebab,
+    when: z.string().min(1),
+    /** The most one trigger run may spend on the work it starts, in US dollars. */
+    cap: z.number().positive().optional(),
+    /** The named pipeline its problems follow. */
+    pipeline: kebab.optional(),
+    priority: z.enum(["p0", "p1", "p2", "p3"]).optional(),
+  })
   .strict();
 
 const tool = z.object({ tool: z.string(), why: z.string(), hint: z.string() }).strict();
@@ -171,8 +186,14 @@ export const layerSchema = z
     weigh: z.object({ weights: z.record(principleId, z.number().nonnegative()) }).partial(),
     wiki: z.object({ types: z.array(wikiType) }).partial(),
     context: z.object({ folders: z.array(contextFolder) }).partial(),
-    /** The stages work goes through, in order. A more specific layer replaces the whole list. */
-    pipeline: z.array(stage),
+    /** Named pipelines. A more specific layer replaces a pipeline of the same name and keeps the others. */
+    pipelines: z.record(kebab, z.array(stage)),
+    /** The default spend cap per stage, in US dollars. */
+    cap: z.number().positive(),
+    /** The layers this one builds on, furthest first: an organization's rules, a product's, a team's. Paths are relative to this file. */
+    extends: z.array(z.string().min(1)),
+    /** Values lower layers may not change: `cap`, `pipelines.default.review`, `records.bugs`, `connectors.sentry`. */
+    locked: z.array(z.string().min(1)),
     connectors: z.array(connector),
     triggers: z.array(trigger),
     records: z.array(recordEntry),
@@ -180,11 +201,10 @@ export const layerSchema = z
     name: z.string().min(1),
     /** The repo's older folder names, so `canon flow` still counts conversations held under them. */
     formerly: z.array(z.string().min(1)),
-    /**
-     * The product this repo is part of, as a space in Canon. Repos naming the same space form one (a site and
-     * its CLI, a backend and its app); a repo without it is a space of its own, named after the repo.
-     */
-    space: kebab,
+    /** The product this repo is part of. Repos naming the same product act as one; a repo without it is a product of its own. */
+    product: kebab,
+    /** The team that owns this repo's work. */
+    team: kebab,
     /**
      * Files copied from one source repo. The source names sets of them in its own context.yaml; a
      * product names the source and lists the sets it uses, and only those are held equal to it.
@@ -221,15 +241,19 @@ export interface Config {
   wiki: { types: WikiTypeSpec[] };
   /** `.context/` folders added to the built-in ten. */
   context: { folders: ContextFolderSpec[] };
-  /** Ordered stages; empty when no layer declares one. */
-  pipeline: StageSpec[];
+  /** Ordered stages by name. `default` is canon's flow unless a layer sets its own. */
+  pipelines: Record<string, StageSpec[]>;
+  cap?: number;
+  /** What each layer locked, with the value it locked and where. */
+  locks: { key: string; value: unknown; layer: string }[];
   connectors: ConnectorSpec[];
   triggers: TriggerSpec[];
   /** The record kinds this repo uses: the defaults with its changes applied. */
   records: RecordKind[];
   name?: string;
-  /** The space (product) this repo is part of in Canon; unset means the repo is its own. */
-  space?: string;
+  /** The product this repo is part of; unset means the repo is its own. */
+  product?: string;
+  team?: string;
   /** Older folder names of the repo. */
   formerly: string[];
   /** `source` is absolute, resolved from the layer that set it. `use` adds up across layers. */

@@ -79,7 +79,7 @@ function customStages(stages: StageSpec[]): Record<string, string[]> {
 
 export function flow(workspace: string, product: string, sessions: Session[], formerly: string[] = [], github: GitHub = gh): FlowResult {
   const repo = join(workspace, product);
-  const pipeline = loadConfig(repo).config.pipeline;
+  const pipeline = loadConfig(repo).config.pipelines.default;
   const stages = pipeline.map((stage) => stage.id);
   const custom = customStages(pipeline);
   const commits = git(repo, "log", "--all", "--format=%H %cI")

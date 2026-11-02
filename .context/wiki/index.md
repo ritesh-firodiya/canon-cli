@@ -8,3 +8,4 @@ last-verified: 2026-10-27
 - [architecture-diagrams](decisions/architecture-diagrams.md) — one page per product: how it fits together, what it costs, what breaks
 - [config-location](decisions/config-location.md) — config is .context/context.yaml; the old .claude/canon.yaml is an error
 - [work-records](decisions/work-records.md) — one home and format for problems, inputs, integrations, ideas, features, experiments, verdicts and runs
+- [rule-layers](decisions/rule-layers.md) — extends: organization, product, team, repo, machine; the closest wins unless locked

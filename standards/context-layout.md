@@ -79,7 +79,7 @@ separate folder per name.
 |---|---|
 | ADR | `wiki/decisions/<topic>.md`, overwritten when the choice changes |
 | Problem, incident report from a customer, alert | `problems/`, `PROB-NNNN` |
-| Input (one event from a trigger) | a line in `raw/canon/events.jsonl`, not committed: `at`, `source`, `externalId`, `link`, `hash`, `problem`. Never the event's text, which can hold personal data. The Problem keeps what matters |
+| Input (one event from a trigger) | `sources:` on its Problem: `source`, `id`, `link`, `count`, `first`, `last`. The event stays in its own tool; its text can hold personal data and is never kept |
 | Idea | `ideas/`, `IDEA-NNNN` |
 | Discovery | `wiki/synthesis/`, naming its `ideas:` |
 | POC, or a test that never ships | `experiments/`, `EXP-NNNN`; the result is a decision page |
@@ -89,9 +89,9 @@ separate folder per name.
 | PRD | `features/`, `type: feature` |
 | Initiative | `wiki/synthesis/`, linking its plans and decisions |
 | Finding | the dated data in `raw/`; what it means in `wiki/synthesis/` or a concept, naming its `ideas:` |
-| Verdict | a line in `raw/canon/verdicts.jsonl` |
-| Gate approval | a line in `raw/canon/gates.jsonl` |
-| Agent run (stage, time, cost, result) | a line in `raw/canon/runs.jsonl`, not committed. The record it worked on keeps the total |
+| Verdict | `## Verdict` on the record it judged, written by `canon verdict`. A request with no record becomes an Idea |
+| Gate approval | `approvals:` on the record, written by `canon approve`; code review stays on the pull request |
+| Agent run (stage, time, cost, result) | `~/.canon/runs.jsonl` on the machine. The record keeps `cost:` |
 | Integration | a `SOURCE.<NAME>` page in `wiki/entities/`, and `connectors:` in `context.yaml`. Keys stay in `.env` |
 | Know-how | `wiki/concepts/`; `ops/` when it is a runbook |
 | Architecture and cost | `architecture/architecture.json`, the only source: `canon ui` draws it, agents read it, `canon check` verifies it. Format and rules: `architecture-page` |
@@ -178,6 +178,9 @@ records:
   - { folder: bugs, statuses: [new, closed] }   # change: only what is named
   - { folder: ideas, remove: true }             # remove
 ```
+
+The runner keeps its place on the record: `pipeline`, `stage`, `completed`,
+`skipped` (with the reason) and `cost`.
 
 ### Experiments that go live
 

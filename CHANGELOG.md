@@ -1,6 +1,26 @@
 # Changelog
 
-## Unreleased
+## 0.27.0 — 2026-11-02
+
+Canon now runs work, not only checks it. Everything here is a default a repo can change in config.
+
+### Added
+
+- **`canon run <record>`** moves a record through its pipeline with Claude Code. It stops at each gate, at a person's stage and at a spend cap, resumes where it stopped, and shows agents what failed before. Optional stages ask a small yes-or-no first.
+- **`canon problem add`** and **`canon trigger`**. A trigger reads a connector or a schedule, joins repeats to the open problem, and keeps only each event's address and count, never its text.
+- **Named pipelines:** `pipelines:` holds `default` (canon's flow until changed) and any others. A trigger or a record picks one.
+- **Rule layers:** `extends:` builds on organization, product and team files; the closest wins. `locked:` keeps a value from being changed below, and the `locks` check enforces it. A top-level `cap:` sets the spend per stage.
+- **Record kinds:** `problems/`, `ideas/`, `experiments/`, `plans/` and `bugs/` beside `features/`. `records:` adds, changes or removes kinds. The `records` check replaces `features`.
+- **Live experiments:** any record can set `experiment: true`, then `outcome: retained | discarded | retried` with a `## Result`.
+- **Custom connectors:** `connectors:` names any tool, how it is reached and its key names, read-only.
+
+### Changed
+
+- **BREAKING:** `pipeline:` is now `pipelines: { default: [...] }`, and `space:` is now `product:`, with `team:` beside it.
+- **BREAKING:** a verdict is now `## Verdict` on the record it judged, written by `canon verdict`, and `scripts/log-verdict.mjs` is gone. `canon learn` reads the records. A request with no record becomes an Idea.
+- **BREAKING:** an approval is now `approvals:` on a record: `canon approve <stage> --record <id>`, in a terminal. The `pipeline` check is per record, and `gates.jsonl` is gone.
+- **BREAKING:** experiments moved from `features/` (`type: experiment`) to `experiments/`, `EXP-NNNN`.
+- `canon flow` counts custom stages by their `done` paths, instead of failing on them.
 
 ### Fixed
 

@@ -63,7 +63,7 @@ describe("refs", () => {
   });
 
   test("a pipeline stage's done paths in context.yaml name what will exist later", () => {
-    expect(run({ ".context/context.yaml": "pipeline:\n  - { id: live, done: [.context/support] }\n" })).toEqual([]);
+    expect(run({ ".context/context.yaml": "pipelines:\n  default:\n    - { id: live, done: [.context/support] }\n" })).toEqual([]);
   });
 
   test("a folder that is not a git repo has nothing to check", () => {

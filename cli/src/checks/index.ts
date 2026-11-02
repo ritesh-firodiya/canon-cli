@@ -8,6 +8,7 @@ import { commandChecks } from "./commands.ts";
 import { designs, designsFirst } from "./designs.ts";
 import { diagrams } from "./diagrams.ts";
 import { listing } from "./listing.ts";
+import { locks } from "./locks.ts";
 import { metricsDefinitions } from "./metrics-definitions.ts";
 import { pipeline } from "./pipeline.ts";
 import { records } from "./records.ts";
@@ -34,6 +35,7 @@ export const ALL_CHECKS: Check[] = [
   metricsDefinitions,
   sources,
   pipeline,
+  locks,
   designsFirst,
   designs,
   diagrams,

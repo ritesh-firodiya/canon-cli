@@ -19,7 +19,7 @@ then answer with one verdict:
 - **Do it differently** — the goal is fine; the way asked breaks a principle.
   Name the principle and give the cheaper or safer way.
 - **Push back** — the request breaks a principle outright, or the cost is
-  clearly higher than the value. Stop until the owner gives a reason; log it.
+  clearly higher than the value. Stop until the owner gives a reason; record it on the record it judged.
 
 Every verdict cites principle IDs and the files (wiki page, ADR, standard) it
 relied on. A verdict with no citation is an opinion, not a verdict.

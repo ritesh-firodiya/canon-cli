@@ -1,10 +1,11 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { parse } from "yaml";
+import { DEFAULT_PIPELINE } from "./default-pipeline.ts";
 import { CONFIG_FILE, isStandardName, LOCAL_CONFIG_FILE, MODULES_BY_KIND, layerSchema, type Config, type CopyFileSpec, type Kind, type Layer, type Module, DEFAULT_RECORDS, type RecordEntry, type RecordKind } from "./schema.ts";
 
 export interface ConfigSource {
-  layer: "product" | "local";
+  layer: "extends" | "product" | "local";
   path: string;
 }
 
@@ -26,6 +27,24 @@ function readLayer(path: string): Layer {
 }
 
 /** The repo root plus each app in a monorepo's apps/ folder. */
+/** Everything a layer builds on, furthest first. Paths are relative to the file naming them. */
+function extendedFiles(path: string, seen: string[] = []): string[] {
+  if (seen.includes(path)) throw new Error(`extends goes in a circle at ${path}`);
+  return (readLayer(path).extends ?? []).flatMap((entry) => {
+    const parent = resolve(dirname(path), entry);
+    if (!existsSync(parent)) throw new Error(`${path} extends ${entry}, which does not exist`);
+    return [...extendedFiles(parent, [...seen, path]), parent];
+  });
+}
+
+/** A value by its dotted path; a list is searched by each item's `id` or `folder`. */
+export function valueAt(root: unknown, key: string): unknown {
+  return key.split(".").reduce<unknown>((value, part) => {
+    if (Array.isArray(value)) return value.find((item) => item?.id === part || item?.folder === part);
+    return value && typeof value === "object" ? (value as Record<string, unknown>)[part] : undefined;
+  }, root);
+}
+
 function appRoots(repo: string): string[] {
   const apps = join(repo, "apps");
   if (!existsSync(apps)) return [repo];
@@ -109,8 +128,10 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     { layer: "product", path: configPath(repo) },
     { layer: "local", path: join(repo, LOCAL_CONFIG_FILE) },
   ];
-  const sources = candidates.filter((source) => existsSync(source.path));
-  const layers = sources.map((source) => ({ data: readLayer(source.path), base: dirname(dirname(source.path)) }));
+  const own = candidates.filter((source) => existsSync(source.path));
+  const inherited = [...new Set(own.flatMap((source) => extendedFiles(source.path)))].map((path): ConfigSource => ({ layer: "extends", path }));
+  const sources = [...inherited, ...own];
+  const layers = sources.map((source) => ({ path: source.path, data: readLayer(source.path), base: source.layer === "extends" ? dirname(source.path) : dirname(dirname(source.path)) }));
   const pick = <K extends keyof Layer>(key: K) => layers.map((layer) => layer.data[key]);
 
   const kind = lastDefined(pick("kind")) ?? inferKind(repo);
@@ -127,12 +148,15 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     weigh: { weights: Object.assign({}, ...pick("weigh").map((weigh) => weigh?.weights)) },
     wiki: { types: mergeBy(pick("wiki").map((wiki) => wiki?.types ?? []), (entry) => entry.type) },
     context: { folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder) },
-    pipeline: lastDefined(pick("pipeline")) ?? [],
+    pipelines: { default: DEFAULT_PIPELINE, ...Object.assign({}, ...pick("pipelines")) },
+    locks: layers.flatMap((layer) => (layer.data.locked ?? []).map((key) => ({ key, value: valueAt(layer.data, key), layer: layer.path }))),
     connectors: mergeBy(pick("connectors").map((list) => list ?? []), (entry) => entry.id),
     triggers: mergeBy(pick("triggers").map((list) => list ?? []), (entry) => entry.id),
     records: resolveRecords(mergeBy(pick("records").map((list) => list ?? []), (entry) => entry.folder)),
     name: lastDefined(pick("name")),
-    space: lastDefined(pick("space")),
+    cap: lastDefined(pick("cap")),
+    product: lastDefined(pick("product")),
+    team: lastDefined(pick("team")),
     formerly: [...new Set(pick("formerly").flatMap((names) => names ?? []))],
     copies: {
       source,
@@ -141,7 +165,9 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     },
   };
   if (config.name === undefined) delete config.name;
-  if (config.space === undefined) delete config.space;
+  if (config.cap === undefined) delete config.cap;
+  if (config.product === undefined) delete config.product;
+  if (config.team === undefined) delete config.team;
   if (Object.keys(config.expo ?? {}).length === 0) delete config.expo;
   return { config, sources };
 }

@@ -1,9 +1,9 @@
 ---
 id: FEAT-0016
 type: feature
-status: planned
+status: shipped
 last-verified: 2026-11-02
-release: null
+release: 0.27.0
 superseded-by: null
 surfaces: []
 ---

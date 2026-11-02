@@ -3,8 +3,9 @@ import { dirname, join } from "node:path";
 import { stringify } from "yaml";
 import { RULES_FILES } from "../checks/architecture.ts";
 import { requiredContext } from "../checks/context-layout.ts";
+import { DEFAULT_PIPELINE } from "../config/default-pipeline.ts";
 import { inferKind, inferModules, loadConfig } from "../config/load.ts";
-import { CONFIG_FILE, kindCovers, MODULES_BY_KIND, type Kind, type Module } from "../config/schema.ts";
+import { CONFIG_FILE, kindCovers, MODULES_BY_KIND, type Kind, type Module, type StageSpec } from "../config/schema.ts";
 
 export type Runner = (command: string, args: string[]) => void;
 
@@ -17,7 +18,7 @@ export interface InitAnswers {
 }
 
 export interface InitPlan {
-  config: { canon: string; kind: Kind; modules: Module[]; expo?: { sdk: number }; packs?: string[] };
+  config: { canon: string; kind: Kind; modules: Module[]; pipelines: Record<string, StageSpec[]>; expo?: { sdk: number }; packs?: string[] };
   /** Files under the repo that will be created; existing files are never touched. */
   create: string[];
 }
@@ -116,7 +117,7 @@ export function planInit(repo: string, answers: InitAnswers): InitPlan {
   const modules = answers.modules ?? (answers.kind ? MODULES_BY_KIND[kind] : inferModules(repo, kind));
   const sdk = kindCovers(kind, "mobile") ? detectExpoSdk(repo) : undefined;
   const packs = answers.packs?.length ? { packs: answers.packs } : {};
-  const config: InitPlan["config"] = { canon: answers.canonVersion, kind, modules, ...(sdk ? { expo: { sdk } } : {}), ...packs };
+  const config: InitPlan["config"] = { canon: answers.canonVersion, kind, modules, pipelines: { default: DEFAULT_PIPELINE }, ...(sdk ? { expo: { sdk } } : {}), ...packs };
 
   const create = requiredContext(modules).filter((name) => !existsSync(join(repo, ".context", name))).map((name) => FIRST_FILE[name]);
   if (modules.includes("architecture")) {
