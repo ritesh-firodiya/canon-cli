@@ -7,7 +7,7 @@ last-verified: 2026-11-02
 # Session cost and the canon band
 
 ## Approach
-Measure first, then cut what the numbers point at, then put it in one band above the prompt. In the 30 days to 2026-11-02, at list prices: cache rereads were 79% of cost, a session held a median 65,600 tokens before its first reply, Opus was 98% of cost, quick questions were 3.6%, and cold-cache reloads were 0.4%.
+Measure first, then cut what the numbers point at, then put it in one band above the prompt. In the 30 days to 2026-11-02, at list prices: cache reads were 61% of cost and cache writes 26%, a session held a median 64,800 tokens before its first reply, Opus was 99% of cost, and cold-cache reloads were 5.8%.
 
 Routing runs inside a mod, on the `turn.step` event. It uses the session's own login, so no proxy sits between Claude Code and Anthropic.
 
@@ -21,6 +21,6 @@ Routing runs inside a mod, on the `turn.step` event. It uses the session's own l
 
 ## Rejected
 - laya-code-router: a young proxy that carries all traffic and login headers, on a request format that is not a public contract. Its Laya model stays an option as the classifier.
-- Automatic cache pings: warm pings are not a documented feature, and cold reloads cost little. A manual button with its price shown is enough.
+- Automatic cache pings, for now: keeping a chat warm is not a documented feature, and a ping is wasted when nobody returns. Start with a manual button with its price shown, and revisit with what the button saves.
 - A separate `canon-op` tool: `canon run` already does this job.
 - Jev through OpenRouter: sends prompts to another company, and Haiku through the session's own login needs no new account.

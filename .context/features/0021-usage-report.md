@@ -1,7 +1,7 @@
 ---
 id: FEAT-0021
 type: feature
-status: planned
+status: building
 priority: p2
 last-verified: 2026-11-02
 release: null

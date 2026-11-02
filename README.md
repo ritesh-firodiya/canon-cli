@@ -100,6 +100,7 @@ canon ui               # this repo's design set on localhost, with canon's shell
 canon wiki             # every product wiki on localhost
 canon search "<q>"     # search the knowledge index
 canon flow <product>   # how far each local Claude conversation got against the pipeline (--write: metrics/flow.json)
+canon usage            # what local Claude sessions used and cost at list prices (--skill <name>, --unused, --json, --save)
 canon mcp              # the search MCP server, for any MCP client
 ```
 
@@ -181,7 +182,7 @@ index.ts          the program: registers every command
 api.ts            what other tools import (`@freetesh/canon/api`)
 <feature>/        one folder per feature: its logic, and a <command>.command.ts per command
                   (options and output only) — check, init, packs, sync, update, status,
-                  doctor, pipeline, standards, learn, wiki, ui, flow, search, weigh
+                  doctor, pipeline, standards, learn, wiki, ui, flow, usage, search, weigh
 checks/           one file per check, named by its id; index.ts lists them
                   (design-set/ is the design checks, one file per group)
 config/           .context/context.yaml: schema and loading

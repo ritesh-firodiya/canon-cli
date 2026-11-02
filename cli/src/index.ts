@@ -24,6 +24,7 @@ import { findWorkspace } from "./checks/check.ts";
 import { registerMcp } from "./search/mcp.command.ts";
 import { registerSearch } from "./search/search.command.ts";
 import { registerFlow } from "./flow/flow.command.ts";
+import { registerUsage } from "./usage/usage.command.ts";
 import { canonVersion } from "./status/status.ts";
 
 const env: Env = {
@@ -54,6 +55,7 @@ registerRecords(program);
 registerRun(program);
 registerWeigh(program);
 registerFlow(program, env);
+registerUsage(program, env);
 
 registerSearch(program);
 registerMcp(program);

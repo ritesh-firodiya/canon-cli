@@ -16,7 +16,7 @@ plan: PLAN-0001
 The canon mod picks effort and model from each prompt, so simple work stops running on the largest model at high effort.
 
 ## Motivation
-Opus is 98% of cost. Quick questions alone are only 3.6%, so most of the saving must come from building on a smaller model, if quality holds.
+Opus is 99% of cost. Most of the saving must come from building on a smaller model, if quality holds, not from quick questions alone.
 
 ## Acceptance scenarios
 - Given a prompt, then a Haiku call through the session's own login classifies it as small, medium or large, and the mod applies the result on `turn.step`.
