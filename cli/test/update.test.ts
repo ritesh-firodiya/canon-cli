@@ -6,13 +6,13 @@ import { makeTree } from "./helpers/fixture.ts";
 const installed = (version: string, extra: Record<string, string> = {}) =>
   makeTree({ "canon/.claude-plugin/plugin.json": JSON.stringify({ version }), ...extra });
 
-function harness(latest: string, failing: string[] = []) {
+function harness(latest: string, failing: string[] = [], pluginOutput = "") {
   const calls: string[] = [];
   return {
     calls,
     run: (command: string, args: string[]) => {
       calls.push([command, ...args].join(" "));
-      return failing.includes(command) ? { status: 1, output: `${command} broke\nmore` } : { status: 0, output: "" };
+      return failing.includes(command) ? { status: 1, output: `${command} broke\nmore` } : { status: 0, output: args[1] === "update" && args[2] === "canon@canon" ? pluginOutput : "" };
     },
     fetchText: async () => JSON.stringify({ version: latest }),
   };
@@ -26,6 +26,12 @@ describe("updateCanon", () => {
     expect(lines).toEqual(["cli: 0.20.1 → 0.21.0", "plugin: updated — restart Claude Code to load it"]);
   });
 
+  test("a plugin already at the latest says so, with no restart asked", async () => {
+    const h = harness("0.20.1", [], "✔ canon is already at the latest version (0.20.1).");
+    const lines = await updateCanon({ canonRoot: join(installed("0.20.1"), "canon"), ...h });
+    expect(lines).toEqual(["cli: already the latest (0.20.1)", "plugin: already the latest"]);
+  });
+
   test("a pnpm global install updates with pnpm", async () => {
     const h = harness("0.21.0");
     const root = makeTree({ "pnpm/global/canon/.claude-plugin/plugin.json": JSON.stringify({ version: "0.20.1" }) });
@@ -35,7 +41,7 @@ describe("updateCanon", () => {
 
   test("the latest installs nothing, and a git checkout is left to git", async () => {
     const latest = harness("0.20.1");
-    expect((await updateCanon({ canonRoot: join(installed("0.20.1"), "canon"), ...latest }))[0]).toBe("cli: 0.20.1 is the latest");
+    expect((await updateCanon({ canonRoot: join(installed("0.20.1"), "canon"), ...latest }))[0]).toBe("cli: already the latest (0.20.1)");
     const checkout = harness("0.21.0");
     const lines = await updateCanon({ canonRoot: join(installed("0.20.1", { "canon/.git/HEAD": "" }), "canon"), ...checkout });
     expect(lines[0]).toMatch(/checkout .* git pull there/);
@@ -44,7 +50,7 @@ describe("updateCanon", () => {
 
   test("an install newer than npm's latest, as before a publish, is never moved back", async () => {
     const h = harness("0.20.1");
-    expect((await updateCanon({ canonRoot: join(installed("0.21.0"), "canon"), ...h }))[0]).toBe("cli: 0.21.0 is the latest");
+    expect((await updateCanon({ canonRoot: join(installed("0.21.0"), "canon"), ...h }))[0]).toBe("cli: already the latest (0.21.0)");
     expect(h.calls.some((call) => call.startsWith("npm"))).toBe(false);
     expect([isOlder("0.9.0", "0.10.0"), isOlder("1.0.0", "0.10.0"), isOlder("1.0.0", "1.0.0")]).toEqual([true, false, false]);
   });

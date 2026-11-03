@@ -30,7 +30,7 @@ export async function updateCanon(options: UpdateOptions): Promise<string[]> {
   if (existsSync(join(canonRoot, ".git"))) {
     lines.push(`cli: running from a checkout at ${canonRoot} (${current}, latest ${latest}) — git pull there`);
   } else if (!isOlder(current, latest)) {
-    lines.push(`cli: ${current} is the latest`);
+    lines.push(`cli: already the latest (${current})`);
   } else {
     // A pnpm global install lives under pnpm's store; anything else came from npm.
     const [manager, ...args] = canonRoot.split(sep).includes("pnpm") ? ["pnpm", "add", "-g"] : ["npm", "install", "-g"];
@@ -41,6 +41,7 @@ export async function updateCanon(options: UpdateOptions): Promise<string[]> {
 
   run("claude", ["plugin", "marketplace", "update", MARKETPLACE]);
   const plugin = run("claude", ["plugin", "update", PLUGIN]);
-  lines.push(plugin.status === 0 ? "plugin: updated — restart Claude Code to load it" : `plugin: not updated — ${plugin.output.trim().split("\n")[0]}`);
+  const isLatest = /already at the latest/i.test(plugin.output);
+  lines.push(plugin.status !== 0 ? `plugin: not updated — ${plugin.output.trim().split("\n")[0]}` : isLatest ? "plugin: already the latest" : "plugin: updated — restart Claude Code to load it");
   return lines;
 }
