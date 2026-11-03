@@ -228,14 +228,24 @@ describe("experiments", () => {
     expect(pipeline.run(contextFor(repo))).toEqual([]);
   });
 
+  test("an experiment started at an optional stage runs it without asking", () => {
+    const repo = makeTree({});
+    const { config } = loadConfig(repo);
+    const { id } = startExperiment(repo, config, "screens-first", { from: "design", to: "design" });
+    const { agent, calls } = recording();
+    runRecord(repo, config, id, agent);
+    expect(calls.map(stageOf)).toEqual(["design"]);
+    expect(findRecord(repo, config, id).data.skipped).toBeUndefined();
+  });
+
   test("an experiment can start inside the fork and stop at research", () => {
     const repo = makeTree({});
     const { config } = loadConfig(repo);
     const { id } = startExperiment(repo, config, "pricing-signal", { from: "discovery", to: "research" });
     const { agent, calls } = recording();
     expect(runRecord(repo, config, id, agent).status).toBe("done");
-    expect(calls.filter((call) => !call.small).map(stageOf)).toEqual(["research"]);
-    expect((findRecord(repo, config, id).data.skipped as { stage: string }[]).map((entry) => entry.stage)).toEqual(["problem", "idea", "discovery"]);
+    expect(calls.filter((call) => !call.small).map(stageOf)).toEqual(["discovery", "research"]);
+    expect((findRecord(repo, config, id).data.skipped as { stage: string }[]).map((entry) => entry.stage)).toEqual(["problem", "idea"]);
     expect(pipeline.run(contextFor(repo))).toEqual([]);
   });
 

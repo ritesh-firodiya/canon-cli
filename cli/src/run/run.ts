@@ -277,7 +277,8 @@ function moveRecord(repo: string, config: Config, recordId: string, agent: Agent
     setFields(repo, record.file, { stage: stage.id, at: null, drafting: null });
 
     if (!completed.includes(stage.id)) {
-      if (stage.optional && !options.with?.includes(stage.id)) {
+      // Starting work at a stage asks for it, as --with does.
+      if (stage.optional && !options.with?.includes(stage.id) && stage.id !== first.data["started-at"]) {
         if (options.skip?.includes(stage.id)) {
           skipStage(stage, "skipped by request");
           continue;
