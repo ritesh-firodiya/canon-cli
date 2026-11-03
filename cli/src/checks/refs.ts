@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join, normalize } from "node:path";
 import { CONFIG_FILE } from "../config/schema.ts";
 import { usedCopies } from "./shared-files.ts";
@@ -26,6 +26,15 @@ function git(repo: string, args: string[]): { status: number; stdout: string } {
   return { status: result.status ?? 1, stdout: result.stdout ?? "" };
 }
 
+/** Every file under `.context/`, read from disk: a local-only `.context/` has no tracked files. */
+function onDisk(repo: string): string[] {
+  const root = join(repo, ".context");
+  if (!existsSync(root)) return [];
+  return (readdirSync(root, { recursive: true }) as string[])
+    .map((path) => `.context/${path}`)
+    .filter((path) => statSync(join(repo, path)).isFile());
+}
+
 /** The part of a path that names something real: cut back to the last whole folder before a placeholder. */
 function literalPart(token: string, restOfLine: string): string | null {
   let path = token.replace(/[.,;:]+$/, "");
@@ -41,11 +50,14 @@ export const refs: Check = {
   id: "refs",
   // A module, not always on: a repo whose docs describe other repos' .context/ (a tool, a portfolio) does not use it.
   module: "refs",
-  description: "every .context/ path a tracked file names exists; a [[link]] names a page (a link to a page not yet written is a note)",
+  description: "every .context/ path a tracked or local .context/ file names exists; a [[link]] names a page (a link to a page not yet written is a note)",
   run({ repo, config }) {
     const listed = git(repo, ["ls-files", "-z"]);
     if (listed.status !== 0) return [];
-    const files = listed.stdout.split("\0").filter((file) => file && !BINARY.test(file));
+    // A .context/ listed in .gitignore (kept local because it cannot be pushed) is still the repo's knowledge.
+    const localOnly = git(repo, ["check-ignore", "-q", ".context/"]).status === 0;
+    const tracked = listed.stdout.split("\0").filter(Boolean);
+    const files = [...new Set([...tracked, ...(localOnly ? onDisk(repo) : [])])].filter((file) => !BINARY.test(file));
     // A copy of the source repo's file carries the source's paths; the product cannot edit it.
     const copied = new Set(usedCopies(config).map((pair) => pair.to));
     const pages = new Set(files.filter((f) => f.startsWith(".context/wiki/") && f.endsWith(".md")).map((f) => basename(f, ".md")));
@@ -54,7 +66,9 @@ export const refs: Check = {
     const exists = new Map<string, boolean>();
     const present = (path: string) => {
       if (!exists.has(path)) {
-        exists.set(path, existsSync(join(repo, path)) || git(repo, ["check-ignore", "-q", path]).status === 0);
+        // An ignored path is build output that may not exist yet, unless all of .context/ is ignored.
+        const ignored = !localOnly && git(repo, ["check-ignore", "-q", path]).status === 0;
+        exists.set(path, existsSync(join(repo, path)) || ignored);
       }
       return exists.get(path)!;
     };

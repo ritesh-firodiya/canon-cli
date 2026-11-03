@@ -66,6 +66,22 @@ describe("refs", () => {
     expect(run({ ".context/context.yaml": "pipelines:\n  default:\n    - { id: live, done: [.context/support] }\n" })).toEqual([]);
   });
 
+  test("a local-only .context/ (listed in .gitignore) is checked from disk", () => {
+    const findings = run({
+      ".gitignore": ".context/\n",
+      ".context/wiki/concepts/a.md": page("[[b]] [[nowhere]] and .context/wiki/gone.md"),
+      ".context/wiki/concepts/b.md": page("x"),
+    });
+    expect(findings).toEqual([
+      expect.objectContaining({ level: "error", file: ".context/wiki/concepts/a.md:4", message: ".context/wiki/gone.md does not exist" }),
+      expect.objectContaining({ level: "warn", message: "[[nowhere]] names no page yet" }),
+    ]);
+  });
+
+  test("a .gitignore that lists .context/ before the folder exists has nothing to check", () => {
+    expect(run({ ".gitignore": ".context/\n", "README.md": "intro\n" })).toEqual([]);
+  });
+
   test("a folder that is not a git repo has nothing to check", () => {
     expect(refs.run(contextFor(makeTree({ "README.md": ".context/gone\n" })))).toEqual([]);
   });
