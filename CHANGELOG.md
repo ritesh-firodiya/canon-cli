@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.0.0 — 2026-11-03
+
+### Changed
+
+- **A new default flow.** `intake → (problem | idea | discovery) → research → options → design → plan → feature → code → review → release → outcome`. `idea` as the weighed choices is now `options`, `result` is now `outcome`, and design comes before the plan. Rename these ids in your own `pipelines:`; there are no aliases.
+- **Experiments begin at `started-at:`.** Their run and `canon check` start there, so they no longer write skip entries for earlier stages. `--to` must be a stage reachable from `--from`.
+- A record's own stage (a problem's `problem`, an idea's `idea`) is done because its page exists. This replaces the special case for `problem`.
+- `canon flow` counts a conversation at the pipeline's first stage, not at `idea`.
+
+### Added
+
+- **Forks with `after:`.** A stage lists the stages it may follow. With no `after:` it follows the stage above it, so a plain list is a straight line. In the default, problem, idea and discovery follow intake or each other, in any order, or not at all; each is optional with a `when:`. `canon pipeline` shows the forks. A stage named for a default inherits its wording but not its `after:`. A config whose `after:` names an unknown stage, the stage itself, or leaves a stage unreachable is refused.
+- A problem opened by a trigger starts at the first stage (`intake`), so its signal is checked before anything uses it.
+- Every stage is told to check that what it was given is true before using it, not only stages with `verify:`.
+
 ## 2.4.0 — 2026-11-03
 
 ### Added
