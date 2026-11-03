@@ -35,7 +35,8 @@ The code folders follow the same groups, with one shared `lib`; repeated code (t
 4. Move code into the six groups with one `lib`; no behaviour change, tests unchanged.
 5. The knowledge gate: schema, one home, duplicate and conflict check, size budgets.
 6. `learn` as one history report, and the `learn` skill feeding `weigh`.
-7. Context diet: weigh's skill body under half, the qmd collection list out of the instructions, session-start text under 600 chars. Re-measure against the baseline.
+7. Enforce weigh, without changing its logic: when the routing call sizes a prompt as large, the band refuses the first Edit, Write or changing Bash command of that turn until the `weigh` skill has run in it, with the reason in the refusal. Logged, and checked after a week like routing.
+8. Context diet: weigh's skill body under half, the qmd collection list out of the instructions, session-start text under 600 chars. Re-measure against the baseline.
 
 ## Rejected
 - Cut `run`, `trigger`, `learn` and `flow` as unused: they are the automation and the learning that are canon's purpose.
