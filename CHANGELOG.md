@@ -1,5 +1,19 @@
 # Changelog
 
+## 3.1.0 — 2026-11-03
+
+### Changed
+
+- **A new band order.** Left: ☾ or ☀, session cost, project › stage, the task by its title. Right: WAITING ON YOU, reply size, model·effort in short form (`son·med`), checks (`✓ checks`, `! 3`, `✗ 2`), 7D, 5H, context left and the cache. Limits turn amber under 40% and red under 20%.
+- The task shows in words, never by ID, and a click opens its page. The band no longer picks work or moves stages: `canon work` does both.
+- A click on a short item says what it means in one line.
+
+### Added
+
+- **Keep the Mac awake.** A click on ☾ runs `caffeinate` while the session is open; ☀ shows it is on. macOS only.
+- **Reply size S, M or L.** A click moves to the next size. It goes beside each typed prompt, so changing it keeps the cache.
+- **Context left** (`ctx 62%`), from the session's own context figures.
+
 ## 3.0.1 — 2026-11-03
 
 ### Fixed
