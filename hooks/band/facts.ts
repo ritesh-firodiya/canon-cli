@@ -1,10 +1,11 @@
 // Pure helpers for the band: no `$`, so the tests call them directly.
 
 import { priceOf } from '../../cli/src/usage/prices'
-import type { BandFacts, CacheFacts, Panel, Tests, UsageWindow } from './types'
+import type { BandFacts, CacheFacts, Info, Level, Panel, ReplySize, Tests, UsageWindow } from './types'
 
 export const TTL_MS = 60 * 60 * 1000
-const LOW_AT = 15
+const LOW_AT = 20
+const WARN_AT = 40
 const PER_MILLION = 1_000_000
 const NARROW_BELOW = 110
 
@@ -19,7 +20,8 @@ export const afterTestRun = (failed: boolean): Tests => (failed ? 'failed' : 'ok
 // Code changed after a run: its result no longer says anything.
 export const afterEdit = (tests: Tests, file: string): Tests => (tests !== 'none' && isCodeFile(file) ? 'stale' : tests)
 
-export const testsLabel = (tests: Tests): string => (tests === 'none' ? '' : `tests ${tests}`)
+const TESTS: Record<Tests, string> = { none: '', ok: '✓ tests', stale: '~ tests', failed: '✗ tests' }
+export const testsLabel = (tests: Tests): string => TESTS[tests]
 
 export const money = (usd: number): string => `$${usd.toFixed(2)}`
 const CENT = 0.01
@@ -36,9 +38,16 @@ export function duration(ms: number): string {
 }
 
 export interface WindowView {
+  name: string
+  left: number
+  /** Only when it is low, since that is when it matters. */
+  reset: string | null
   label: string
-  isLow: boolean
+  level: Level
 }
+
+/** How much is left decides the colour: red when it is about to run out. */
+export const levelOf = (left: number): Level => (left < LOW_AT ? 'bad' : left < WARN_AT ? 'warn' : 'ok')
 
 const NAMES: Record<string, string> = { seven_day: '7D', five_hour: '5H' }
 const ORDER: Record<string, number> = { seven_day: 0, five_hour: 1 }
@@ -50,10 +59,10 @@ export function windowViews(windows: readonly UsageWindow[], now: number): Windo
     .sort((a, b) => (ORDER[a.kind] ?? 9) - (ORDER[b.kind] ?? 9))
     .map(w => {
       const left = Math.max(0, Math.round(100 - w.percentUsed))
-      const isLow = left < LOW_AT
-      const reset = isLow && w.resetsAt ? Date.parse(w.resetsAt) - now : NaN
-      const name = NAMES[w.kind]
-      return { label: `${name} ${left}%${isLow ? ` LOW${Number.isNaN(reset) ? '' : ` ${duration(reset)}`}` : ''}`, isLow }
+      const level = levelOf(left)
+      const name = NAMES[w.kind] as string
+      const reset = level === 'bad' && w.resetsAt ? duration(Date.parse(w.resetsAt) - now) : null
+      return { name, left, reset, label: `${name} ${left}%${reset ? ` ${reset}` : ''}`, level }
     })
 }
 
@@ -70,8 +79,16 @@ export function cacheView(cache: CacheFacts | null, now: number): CacheView | nu
   return { mode: 'warm', minutesLeft: Math.ceil((TTL_MS - idle) / 60000), extendUsd: price ? (cache.tokens * price.cacheRead) / PER_MILLION : null }
 }
 
-export const extendLabel = (usd: number | null): string => (usd === null ? 'extend' : `extend ${usd < CENT ? '' : '~'}${round(usd)}`)
-export const coldLabel = (usd: number | null): string => (usd === null ? 'cold' : `cold · next ${usd < CENT ? '' : '~'}${round(usd)}`)
+/** Room left in the context window, from the share the engine says is used. */
+export function contextView(percentUsed: number | null): WindowView | null {
+  if (percentUsed === null) return null
+  const left = Math.max(0, 100 - Math.round(percentUsed))
+  return { name: 'ctx', left, reset: null, label: `ctx ${left}%`, level: levelOf(left) }
+}
+
+const about = (usd: number): string => `${usd < CENT ? '' : '~'}${round(usd)}`
+export const extendLabel = (minutes: number, usd: number | null): string => `↻ ${minutes}m${usd === null ? '' : ` +${round(usd)}`}`
+export const coldLabel = (usd: number | null): string => (usd === null ? '◌ cold' : `◌ cold ${about(usd)}`)
 
 /** Extend shows only when it can do something: the cache is warm and no reply is running. */
 export const canExtend = (view: CacheView | null, isBusy: boolean): boolean => view?.mode === 'warm' && !isBusy
@@ -88,13 +105,53 @@ export function panelLines(panel: Panel, facts: BandFacts): string[] {
       `Then approve it yourself  canon approve ${facts.waiting.stage} --record ${facts.waiting.record} --note "what you reviewed"`,
     ]
   }
-  if (panel === 'problem') {
-    const p = facts.problem
-    if (!p) return []
-    return [`${p.id}  ${p.title}`, `Source  ${p.source ?? 'unknown'}   Priority  ${p.priority ?? 'none'}`, `Doc  ${p.file}`]
-  }
   return []
 }
+
+export const SIZES: readonly ReplySize[] = ['S', 'M', 'L']
+export const nextSize = (size: ReplySize): ReplySize => SIZES[(SIZES.indexOf(size) + 1) % SIZES.length] as ReplySize
+
+const SIZE_WORDS: Record<ReplySize, string> = {
+  S: 'one to three lines, no headings or tables',
+  M: 'the answer first, then a short bullet list',
+  L: 'the answer first, then steps, reasons and trade-offs',
+}
+
+/** What the model reads beside each prompt, so the size holds without touching the cached system prompt. */
+export const replyRule = (size: ReplySize): string => `Reply size ${size}: write ${SIZE_WORDS[size]}. The person set this on the band; it overrides other length guidance.`
+
+export interface InfoFacts {
+  isAwake: boolean
+  size: ReplySize
+  sessionUsd: number
+  running: BandFacts['running']
+  tests: Tests
+  windows: readonly WindowView[]
+  context: WindowView | null
+  cache: CacheView | null
+}
+
+/** The one line a click on a short item shows, so a glyph never has to be guessed. */
+export function infoLine(info: Info, f: InfoFacts): string {
+  const limit = (name: string, what: string) => {
+    const w = f.windows.find(entry => entry.name === name)
+    return w ? `${name}: ${w.left}% of your ${what} limit is left.${w.reset ? ` It resets in ${w.reset}.` : ''}` : `${name}: no reading yet.`
+  }
+  if (info === 'awake') return f.isAwake ? '☀ Awake: this Mac will not sleep while this session is open. Click again to let it sleep.' : '☾ Asleep: this Mac sleeps as usual. Click to keep it awake for this session.'
+  if (info === 'size') return `Reply size ${f.size}: ${SIZE_WORDS[f.size]}. Click again for the next size.`
+  if (info === 'cost') return f.running ? `This run has spent ${money(f.running.spendUsd)} of its ${money(f.running.capUsd)} cap.` : `This session has spent ${money(f.sessionUsd)}.`
+  if (info === 'checks') return '✓ canon check found nothing wrong in this repo.'
+  if (info === 'tests') return { none: '', ok: '✓ Tests passed, and no code changed since.', stale: '~ Code changed since tests last ran. Run them again.', failed: '✗ The last test run failed.' }[f.tests]
+  if (info === '7D') return limit('7D', 'weekly')
+  if (info === '5H') return limit('5H', 'five-hour')
+  if (info === 'ctx') return f.context ? `ctx: ${f.context.left}% of the context window is left. Under ${LOW_AT}%, compact or start a new session.` : 'ctx: no reading yet.'
+  if (f.cache?.mode === 'cold') return `◌ Cache is cold: the next reply reads the whole chat again${f.cache.nextUsd === null ? '' : `, about ${round(f.cache.nextUsd)}`}.`
+  if (f.cache?.mode === 'warm') return `↻ Cache warm for ${f.cache.minutesLeft} more minutes.${f.cache.extendUsd === null ? '' : ` A click keeps it warm for an hour, for ${round(f.cache.extendUsd)}.`}`
+  return ''
+}
+
+/** A title cut to fit, so one long name cannot push the band off the line. */
+export const cut = (text: string, max: number): string => (text.length > max ? `${text.slice(0, max - 1)}…` : text)
 
 const WORDS: Record<string, string> = { ok: ' ok', waiting: ' waiting on you', running: ' running', here: ' in progress', todo: '' }
 export const stageWord = (id: string, state: string): string => `${id[0]?.toUpperCase() ?? ''}${id.slice(1)}${WORDS[state] ?? ''}`

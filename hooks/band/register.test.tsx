@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { fileLink, isInside, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, extendLabel, isNarrow, isTestCommand, panelLines, windowViews } from './facts'
+import { fileLink, isInside, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, contextView, cut, extendLabel, infoLine, isNarrow, isTestCommand, nextSize, panelLines, replyRule, windowViews } from './facts'
 import { classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
 import type { BandFacts } from './types'
 
@@ -42,16 +42,16 @@ test('the cache is warm for an hour, and each state prices what it costs', () =>
   expect(warm).toEqual({ mode: 'warm', minutesLeft: 53, extendUsd: 0.2 })
   const cold = cacheView({ lastAt: 1_000_000, tokens: 1_000_000, model: OPUS }, 1_000_000 + 60 * 60000)
   expect(cold).toEqual({ mode: 'cold', nextUsd: 8 })
-  expect(extendLabel(0.2)).toBe('extend ~$0.20')
-  expect(coldLabel(8)).toBe('cold · next ~$8.00')
+  expect(extendLabel(53, 0.2)).toBe('↻ 53m +$0.20')
+  expect(coldLabel(8)).toBe('◌ cold ~$8.00')
 })
 
 test('with nothing cached, or an unknown model, nothing false is shown', () => {
   expect(cacheView(null, 1)).toBeNull()
   expect(cacheView({ lastAt: 0, tokens: 5, model: OPUS }, 1)).toBeNull()
   expect(cacheView({ lastAt: 1, tokens: 5, model: 'new-model' }, 2)).toEqual({ mode: 'warm', minutesLeft: 60, extendUsd: null })
-  expect(extendLabel(null)).toBe('extend')
-  expect(extendLabel(0.001)).toBe('extend <$0.01')
+  expect(extendLabel(5, null)).toBe('↻ 5m')
+  expect(extendLabel(5, 0.001)).toBe('↻ 5m +<$0.01')
 })
 
 test('extend shows only on a warm cache with no reply running', () => {
@@ -62,17 +62,49 @@ test('extend shows only on a warm cache with no reply running', () => {
   expect(canExtend(null, false)).toBe(false)
 })
 
-test('usage shows what is left, low only under 15%, with the reset only then', () => {
+test('usage shows what is left, red under 20% with the reset only then, amber under 40%', () => {
   const now = Date.parse('2026-11-02T00:00:00Z')
   const views = windowViews(
     [
-      { kind: 'five_hour', percentUsed: 4 },
+      { kind: 'five_hour', percentUsed: 65 },
       { kind: 'seven_day', percentUsed: 91, resetsAt: '2026-11-05T09:00:00Z' },
       { kind: 'other', percentUsed: 1 },
     ],
     now,
   )
-  expect(views).toEqual([{ label: '7D 9% LOW 3d 9h', isLow: true }, { label: '5H 96%', isLow: false }])
+  expect(views).toEqual([
+    { name: '7D', left: 9, reset: '3d 9h', label: '7D 9% 3d 9h', level: 'bad' },
+    { name: '5H', left: 35, reset: null, label: '5H 35%', level: 'warn' },
+  ])
+})
+
+test('the context shows the room left, and nothing before the first reading', () => {
+  expect(contextView(38.4)).toMatchObject({ label: 'ctx 62%', level: 'ok' })
+  expect(contextView(88)).toMatchObject({ label: 'ctx 12%', level: 'bad' })
+  expect(contextView(null)).toBeNull()
+})
+
+test('a long title is cut to fit, and a short one is left alone', () => {
+  expect(cut('Agents guess and ignore product rules when they plan', 40)).toBe('Agents guess and ignore product rules w…')
+  expect(cut('Ads too frequent', 40)).toBe('Ads too frequent')
+})
+
+test('reply size goes S, M, L and round, and each size tells the model what to write', () => {
+  expect([nextSize('S'), nextSize('M'), nextSize('L')]).toEqual(['M', 'L', 'S'])
+  expect(replyRule('S')).toContain('one to three lines')
+  expect(replyRule('L')).toContain('trade-offs')
+})
+
+test('a click on a short item says what it means in one line', () => {
+  const base = { isAwake: false, size: 'M' as const, sessionUsd: 1.2, running: null, tests: 'stale' as const, windows: windowViews([{ kind: 'seven_day', percentUsed: 91, resetsAt: '2026-11-05T09:00:00Z' }], Date.parse('2026-11-02T00:00:00Z')), context: contextView(40), cache: null }
+  expect(infoLine('awake', base)).toContain('sleeps as usual')
+  expect(infoLine('awake', { ...base, isAwake: true })).toContain('will not sleep')
+  expect(infoLine('size', base)).toContain('short bullet list')
+  expect(infoLine('cost', base)).toBe('This session has spent $1.20.')
+  expect(infoLine('7D', base)).toBe('7D: 9% of your weekly limit is left. It resets in 3d 9h.')
+  expect(infoLine('5H', base)).toBe('5H: no reading yet.')
+  expect(infoLine('ctx', base)).toContain('60% of the context window is left')
+  expect(infoLine('tests', base)).toContain('Run them again')
 })
 
 test('a test run sets the state, and a later code edit makes it stale', () => {
@@ -87,7 +119,6 @@ test('a test run sets the state, and a later code edit makes it stale', () => {
 test('a panel tells you the command, and no panel approves anything', () => {
   expect(panelLines('review', FACTS)[1]).toContain('canon approve design --record PROB-0012')
   expect(panelLines('errors', FACTS)).toEqual(['error  a.md  missing last-verified'])
-  expect(panelLines('problem', FACTS)[0]).toBe('PROB-0012  Ads too frequent')
   expect(panelLines('warnings', FACTS)).toEqual([])
 })
 
@@ -103,7 +134,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount(render(surface))
     expect((await ui.find({ type: 'Text', text: /shop/ }))?.text).toContain('shop')
     expect(await ui.find({ key: 'waiting' })).toBeDefined()
-    expect(await ui.find({ key: 'problem' })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /WAITING ON YOU/ })).toBeDefined()
     await ui.unmount()
   })
 
@@ -122,7 +153,7 @@ for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount(render(surface))
     expect(await ui.find({ type: 'Text', text: /shop/ })).toBeUndefined()
     expect(await ui.find({ key: 'waiting' })).toBeUndefined()
-    expect(await ui.find({ type: 'Text', text: /checks ok/ })).toBeUndefined()
+    expect(await ui.find({ key: 'checks' })).toBeUndefined()
     await ui.unmount()
   })
 
@@ -149,25 +180,29 @@ test('a click on extend sends one tiny message', async ($, on) => {
   const sent: string[] = []
   await resumed($, on, 7 * 60, sent)
   const ui = await $.ui.mount(render('terminal'))
-  expect(await ui.find({ type: 'Text', text: /cache 53m/ })).toBeDefined()
-  await ui.press({ key: 'extend' })
+  expect(await ui.find({ type: 'Text', text: /↻ 53m \+\$0\.20/ })).toBeDefined()
+  await ui.press({ key: 'cache' })
   expect(sent).toEqual(['Reply with only: ok'])
-  expect(await ui.find({ key: 'extend' })).toBeUndefined()
+  expect(await ui.find({ type: 'Text', text: /extending/ })).toBeDefined()
   await ui.unmount()
 })
 
 test('no extend button while a reply runs', async ($, on) => {
   await resumed($, on, 7 * 60)
   const ui = await $.ui.mount(render('terminal', 140, true))
-  expect(await ui.find({ key: 'extend' })).toBeUndefined()
+  expect(await ui.find({ key: 'cache' })).toBeUndefined()
+  expect(await ui.find({ type: 'Text', text: /^↻ 53m$/ })).toBeDefined()
   await ui.unmount()
 })
 
 test('no extend button on a cold cache, which shows its price', async ($, on) => {
-  await resumed($, on, 2 * 60 * 60)
+  const sent: string[] = []
+  await resumed($, on, 2 * 60 * 60, sent)
   const ui = await $.ui.mount(render('terminal'))
-  expect(await ui.find({ key: 'extend' })).toBeUndefined()
-  expect(await ui.find({ type: 'Text', text: /cold · next ~\$8\.00/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /◌ cold ~\$8\.00/ })).toBeDefined()
+  await ui.press({ key: 'cache' })
+  expect(sent).toEqual([])
+  expect(await ui.find({ type: 'Text', text: /next reply reads the whole chat again/ })).toBeDefined()
   await ui.unmount()
 })
 
@@ -252,18 +287,64 @@ function picking(on: any, band: BandFacts = PICKING) {
   return calls
 }
 
-test('a click on a record selects it, and a click on a stage moves it', async ($, on) => {
+test('the task shows in words and opens its page, and the band cannot change the task or move a stage', async ($, on) => {
   const calls = picking(on)
   await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
   const ui = await $.ui.mount(render('terminal'))
-  await ui.press({ key: 'problem' })
-  await ui.press({ key: 'pick-PLAN-0003' })
-  expect(calls).toContainEqual(['canon', 'work', 'PLAN-0003', '--repo', '/w/shop'])
-  await ui.press({ key: 'problem' })
-  await ui.press({ key: 'problem' })
+  expect(await ui.find({ type: 'Link', label: /Ads too frequent/ } as any)).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /PROB-0012/ })).toBeUndefined()
+  expect(await ui.find({ type: 'Button', text: /pick work/ })).toBeUndefined()
   await ui.press({ key: 'stage' })
-  await ui.press({ key: 'stage-design' })
-  expect(calls).toContainEqual(['canon', 'work', '--stage', 'design', '--repo', '/w/shop'])
+  expect(await ui.find({ key: 'stage-design' })).toBeUndefined()
+  expect(calls.some(argv => argv[1] === 'work')).toBe(false)
+  await ui.unmount()
+})
+
+test('the reply size starts at M, a click moves it on, and a typed prompt carries it', async ($, on) => {
+  const seen: (readonly string[] | undefined)[] = []
+  picking(on)
+  on('prompt.submit', (_: unknown, e: any) => {
+    seen.push(e.context)
+    return { text: e.text }
+  })
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  const ui = await $.ui.mount(render('terminal'))
+  expect((await ui.find({ type: 'Text', text: /^M$/ }))).toBeDefined()
+  await ui.press({ key: 'size' })
+  expect((await ui.find({ type: 'Text', text: /^L$/ }))).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /Reply size L/ })).toBeDefined()
+  await $.prompt.submit({ text: 'why?', origin: { kind: 'composer' } })
+  await $.prompt.submit({ text: '/clear', origin: { kind: 'composer' } })
+  expect(seen[0]?.at(-1)).toContain('Reply size L')
+  expect(seen[1]).toBeUndefined()
+  await ui.unmount()
+})
+
+test('the moon keeps the Mac awake with caffeinate, and says so', async ($, on) => {
+  const spawned: string[][] = []
+  picking(on)
+  on('process.spawn', async function* (_: unknown, e: any) {
+    spawned.push(e.argv)
+    return { value: { code: 0, signal: null } }
+  })
+  on('ui.toast', () => ({ value: undefined }))
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  const ui = await $.ui.mount(render('terminal'))
+  expect(await ui.find({ type: 'Text', text: /☾/ })).toBeDefined()
+  await ui.press({ key: 'awake' })
+  expect(spawned).toEqual([['caffeinate', '-i']])
+  expect(await ui.find({ type: 'Text', text: /will not sleep|sleeps as usual/ })).toBeDefined()
+  await ui.unmount()
+})
+
+test('a click on the cost says what it counts', async ($, on) => {
+  picking(on)
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  const ui = await $.ui.mount(render('terminal'))
+  await ui.press({ key: 'cost' })
+  expect(await ui.find({ type: 'Text', text: /This session has spent \$0\.00/ })).toBeDefined()
+  await ui.press({ key: 'cost' })
+  expect(await ui.find({ type: 'Text', text: /This session has spent/ })).toBeUndefined()
   await ui.unmount()
 })
 
@@ -331,9 +412,9 @@ test('a model id finds its tier, and the label says who chose', () => {
   expect(routeMode(NONE, 'small')).toBe('auto')
   expect(routeMode(NONE, null)).toBe('default')
   expect(routeMode({ model: 'opus', effort: null }, 'small')).toBe('you')
-  expect(routeLabel('auto', 'sonnet', 'medium')).toBe('auto: sonnet · medium')
-  expect(routeLabel('you', 'opus', 'high')).toBe('you: opus · high')
-  expect(routeLabel('default', 'opus', undefined)).toBe('auto: opus (default)')
+  expect(routeLabel('auto', 'sonnet', 'medium')).toBe('son·med')
+  expect(routeLabel('you', 'opus', 'high')).toBe('opus·hi')
+  expect(routeLabel('default', 'opus', undefined)).toBe('opus ?')
 })
 
 function routed(on: any, env: Record<string, string> = {}, features: string[] = ['routing']) {

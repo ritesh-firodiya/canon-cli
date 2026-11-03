@@ -3,54 +3,47 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Canon Band Sample</title>
+<title>Canon Band</title>
 <style>
 :root {
   --page: #f4f2ee; --ink: #24211c; --soft: #6d675d; --line: #dcd7cd;
   --term: #171614; --band: #26241f; --panel: #1f1d19; --text: #e7e2d8; --muted: #8f897d; --hover: #47433a;
-  --amber: #f0b429; --amber-hover: #ffcb52; --amber-ink: #241a00; --red: #ff7b72; --red-bg: #4a1f1c; --red-hover: #6b2a25;
-  --blue: #8cc4ff;
+  --amber: #f0b429; --amber-ink: #241a00; --red: #ff7b72; --red-bg: #4a1f1c; --blue: #8cc4ff; --blue-bg: #1c3148;
+  --green: #56d364; --green-bg: #1b3a24; --empty: #4a463d;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.45 -apple-system, "Segoe UI", sans-serif; }
-main { width: 1040px; margin: 0 auto; padding: 32px 20px 44px; }
+main { max-width: 1100px; margin: 0 auto; padding: 32px 16px 48px; }
 h1 { font-size: 26px; margin: 0 0 4px; }
-.lead { color: var(--soft); margin: 0 0 16px; }
-h2 { font-size: 15px; margin: 26px 0 2px; }
-h3 { font-size: 20px; margin: 40px 0 0; padding-top: 18px; border-top: 1px solid var(--line); }
-.note { color: var(--soft); margin: 0 0 8px; font-size: 14px; }
-.term { background: var(--term); border-radius: 8px; padding: 12px 0; width: max-content; font: 13px/20px ui-monospace, Menlo, monospace; color: var(--text); }
+h2 { font-size: 15px; margin: 22px 0 2px; }
+h3 { font-size: 20px; margin: 40px 0 6px; padding-top: 18px; border-top: 1px solid var(--line); }
+.lead, .note { color: var(--soft); margin: 0 0 10px; font-size: 14px; }
+code { font-size: 13px; }
+
+/* A terminal is never wider than the page; on a small screen it scrolls inside itself. */
+.term { background: var(--term); border-radius: 8px; padding: 12px 0; width: var(--cols); max-width: 100%; overflow-x: auto; font: 13px/20px ui-monospace, Menlo, monospace; color: var(--text); }
 .w120 { --cols: 120ch; } .w80 { --cols: 80ch; }
-.line { width: var(--cols); padding: 0 1ch; white-space: pre; }
-.dim { color: var(--muted); }
-.band { width: var(--cols); padding: 0 1ch; background: var(--band); display: flex; justify-content: space-between; gap: 2ch; white-space: pre; margin-top: 8px; }
+.line, .band, .prompt, .panel { min-width: max-content; }
+.line { padding: 0 1ch; white-space: pre; color: var(--muted); }
+.band { padding: 0 1ch; background: var(--band); display: flex; justify-content: space-between; gap: 2ch; white-space: pre; margin-top: 8px; }
 .band + .band { margin-top: 0; }
-.group { display: flex; gap: 2ch; }
-.brand { font-weight: 700; }
-.m { color: var(--muted); }
-.run { color: var(--blue); font-weight: 700; }
-.warn { color: var(--amber); }
-.low { color: var(--red); font-weight: 700; }
-.prompt { width: var(--cols); padding: 6px 1ch 0; margin-top: 6px; border-top: 1px solid #3a372f; }
+.group { display: flex; gap: 2ch; align-items: center; }
+.prompt { padding: 6px 1ch 0; margin-top: 6px; border-top: 1px solid #3a372f; }
+.size .c { text-decoration: none; }
+
+.m { color: var(--muted); } .ok { color: var(--green); } .warn { color: var(--amber); } .bad { color: var(--red); font-weight: 700; } .run { color: var(--blue); font-weight: 700; }
+.lit { color: var(--amber); font-weight: 700; }
+.gate { background: var(--amber); color: var(--amber-ink); font-weight: 700; padding: 0 1ch; }
+.empty { color: var(--empty); }
 
 /* Clickable: dotted underline at rest, filled on hover. */
-button.c { all: unset; cursor: pointer; color: var(--text); text-decoration: underline dotted; text-underline-offset: 3px; }
-button.c:hover, button.c.show-hover, button.c:focus-visible { background: var(--hover); color: #fff; text-decoration-style: solid; }
-button.c:focus-visible { outline: 1px solid var(--text); }
-button.c.quiet { color: var(--muted); }
-button.c.warn { color: var(--amber); }
-button.c.wait { background: var(--amber); color: var(--amber-ink); font-weight: 700; padding: 0 1ch; }
-button.c.wait:hover, button.c.wait.show-hover, button.c.wait:focus-visible { background: var(--amber-hover); color: var(--amber-ink); }
-button.c.bad { background: var(--red-bg); color: var(--red); font-weight: 700; padding: 0 1ch; }
-button.c.bad:hover, button.c.bad.show-hover, button.c.bad:focus-visible { background: var(--red-hover); color: #fff; }
+.c { all: unset; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.c:hover, .c:focus-visible { background: var(--hover); color: #fff; text-decoration-style: solid; }
+.c:focus-visible { outline: 1px solid var(--text); }
 
-.panel { width: var(--cols); padding: 6px 1ch; background: var(--panel); white-space: pre; }
+.panel { padding: 6px 1ch; background: var(--panel); white-space: pre; }
 .panel .here { color: var(--amber); font-weight: 700; }
-.panel .err { color: var(--red); }
 
-.key { display: flex; gap: 24px; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font-size: 14px; }
-.key .term { padding: 4px 10px; }
-.key .band { width: auto; margin: 0; padding: 0; background: none; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; background: #fff; margin-top: 8px; }
 th, td { text-align: left; padding: 7px 10px; border: 1px solid var(--line); vertical-align: top; }
 th { background: #ece8e0; }
@@ -58,216 +51,190 @@ th { background: #ece8e0; }
 </head>
 <body>
 <main>
-  <h1>One band: canon</h1>
-  <p class="lead">Sample only, with made-up numbers. Canon is the only band: Ribbon's mod is turned off and Ponytail's band is hidden with <code>/ponytail band off</code>. Ponytail itself stays. Colour appears only when something needs you. In this page, hover and click the marked items.</p>
+  <h1>The canon band</h1>
+  <p class="lead">Sample only, made-up numbers. One row above the prompt. Left is the work; right is how Claude runs and what you have left. Colour appears only when something needs you. Every underlined item can be clicked on this page.</p>
 
-  <div class="key">
-    <strong>Key</strong>
-    <div class="term"><div class="band"><button class="c" type="button" tabindex="-1">clickable</button></div></div>
-    <div class="term"><div class="band"><button class="c show-hover" type="button" tabindex="-1">on hover</button></div></div>
-    <div class="term"><div class="band"><span>only for reading</span></div></div>
-  </div>
-
-  <h2>1. Waiting on you</h2>
-  <p class="note">The most important state. Everything else stays quiet.</p>
-  <div class="term w120">
-    <div class="line dim">  Design set is ready for review.</div>
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c" data-panel="stage" type="button">Design</button></span><button class="c wait" data-panel="review" type="button">WAITING ON YOU</button><button class="c quiet" data-panel="problem" type="button">PROB-0012</button><span>$1.20 of $5</span></div><div class="group"><span class="m">checks ok</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>2. A run is moving</h2>
-  <p class="note">The stage and spend update as the run goes.</p>
-  <div class="term w120">
-    <div class="line dim">  Running review checks...</div>
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c" data-panel="stage-review" type="button">Review</button></span><span class="run">running 12m</span><button class="c quiet" data-panel="problem" type="button">PROB-0012</button><span>$3.40 of $5</span></div><div class="group"><button class="c warn" data-panel="warnings" type="button">3 warnings</button><span class="m">tests ok</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>3. Normal chat, no run</h2>
-  <p class="note">The run slot shows the cost of this task instead.</p>
-  <div class="term w120">
-    <div class="line dim">  Fixed the board redraw.</div>
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c" data-panel="stage-dev" type="button">Development</button></span><span class="m">task $8.18</span></div><div class="group"><span class="m">checks ok</span><span class="warn">tests stale</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>4. Things are wrong</h2>
-  <p class="note">Errors, low usage and a cold cache all get colour. Only the errors are clickable.</p>
-  <div class="term w120">
-    <div class="line dim">  Back after a long break.</div>
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c" data-panel="stage-dev" type="button">Development</button></span><button class="c bad" data-panel="errors" type="button">2 ERRORS</button></div><div class="group"><span class="low">tests failed</span><span class="low">7D 9% LOW 3d 9h</span><span>5H 96%</span><span class="warn">cold · next ~$1.94</span></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>5. Outside a product repo</h2>
-  <p class="note">The default for every repo: only usage and cache, because the <code>process</code> feature is off, and also the view outside a product. With <code>process</code> on and no product yet, the same. Only extend is clickable. Once you edit a file in a product or cd into one, the band shows that product, and follows you to the next one.</p>
-  <div class="term w120">
-    <div class="line dim">  Listed the folder.</div>
-    <div class="band"><div class="group"><span class="brand">canon</span><span class="m">no product here</span></div><div class="group"><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>6. Narrow terminal (80 columns)</h2>
-  <p class="note">Two rows at most: the work on top, your limits below. The same items stay clickable.</p>
-  <div class="term w80">
-    <div class="line dim">  Design set is ready for review.</div>
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c" data-panel="stage" type="button">Design</button></span><button class="c wait" data-panel="review" type="button">WAITING ON YOU</button><span>$1.20 of $5</span></div></div>
-    <div class="band"><div class="group"><span class="m">checks ok</span><span class="m">tests ok</span></div><div class="group"><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h3>Prompt routing</h3>
-  <p class="note">Off unless the repo turns it on with <code>features: [routing]</code>. The band then picks effort for every prompt, and the model at the start of a session. The pick sits beside the task cost and is quiet unless you change it. Click it to see why, or to choose yourself.</p>
-
-  <h2>7. Picked for you</h2>
-  <p class="note">This prompt looked like medium work, so it runs on Sonnet at medium effort.</p>
-  <div class="term w120">
-    <div class="line dim">  Fixed the board redraw.</div>
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c" data-panel="stage-dev" type="button">Development</button></span><button class="c quiet" data-panel="route" type="button">auto: sonnet · medium</button><span class="m">task $0.42</span></div><div class="group"><span class="m">checks ok</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>8. You chose</h2>
-  <p class="note">Your choice holds until you go back to auto. Amber, so a forgotten choice is easy to see.</p>
-  <div class="term w120">
-    <div class="line dim">  Planning the migration.</div>
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c" data-panel="stage-dev" type="button">Development</button></span><button class="c warn" data-panel="route-fixed" type="button">you: opus · high</button><span class="m">task $3.10</span></div><div class="group"><span class="m">checks ok</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet" data-extend type="button">extend ~$0.17</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>9. Could not decide</h2>
-  <p class="note">A failed or unclear answer uses your normal settings and says so. Nothing else changes.</p>
-  <div class="term w120">
-    <div class="line dim">  Working on it...</div>
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c" data-panel="stage-dev" type="button">Development</button></span><button class="c quiet" data-panel="route-failed" type="button">auto: opus · medium (default)</button></div><div class="group"><span class="m">checks ok</span><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>Pick, clicked</h2>
-  <div class="term w120" data-open="route">
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · Development</span><button class="c quiet show-hover" type="button" tabindex="-1">auto: sonnet · medium</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h3>What each click shows</h3>
-  <p class="note">A panel folds open under the band. A second click closes it. No click approves anything. Extend sends one tiny message and spends what its label says. The model and effort choices change how later prompts run.</p>
-
-  <h2>WAITING ON YOU, hovered and clicked</h2>
-  <div class="term w120" data-open="review">
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · Design</span><button class="c wait show-hover" type="button" tabindex="-1">WAITING ON YOU</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>Stage, clicked</h2>
-  <div class="term w120" data-open="stage">
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · <button class="c show-hover" type="button" tabindex="-1">Design</button></span></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>Errors, clicked</h2>
-  <div class="term w120" data-open="errors">
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · Development</span><button class="c bad show-hover" type="button" tabindex="-1">2 ERRORS</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>Warnings, clicked</h2>
-  <div class="term w120" data-open="warnings">
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · Review</span><button class="c warn show-hover" type="button" tabindex="-1">3 warnings</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>Problem, clicked</h2>
-  <div class="term w120" data-open="problem">
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · Review</span><button class="c quiet show-hover" type="button" tabindex="-1">PROB-0012</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h2>Extend, clicked</h2>
-  <p class="note">The label gives the cost first. A click sends one tiny message, then the hour starts again. It shows only when the cache is warm and no reply is running. A cold cache has nothing left to extend, so state 4 has no button.</p>
-  <div class="term w120">
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · Development</span></div><div class="group"><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><button class="c quiet show-hover" type="button" tabindex="-1">extend ~$0.17</button></div></div>
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · Development</span></div><div class="group"><span>7D 41%</span><span>5H 96%</span><span class="m">cache 53m</span><span class="m">extending...</span></div></div>
-    <div class="band"><div class="group"><span class="brand">canon</span><span>myapp · Development</span></div><div class="group"><span>7D 41%</span><span>5H 96%</span><span class="m">cache 60m</span><button class="c quiet" type="button" tabindex="-1">extend ~$0.17</button></div></div>
-    <div class="prompt">&gt; </div>
-  </div>
-
-  <h3>What it shows</h3>
   <table>
-    <tr><th>Item</th><th>When it shows</th><th>Click</th><th>Data today</th></tr>
-    <tr><td>Product</td><td>In a product repo</td><td>No</td><td>Ready: <code>canon status</code></td></tr>
-    <tr><td>Stage</td><td>In a product repo</td><td>Yes: all stages</td><td>Ready: <code>canon pipeline --json</code></td></tr>
-    <tr><td>Waiting on you</td><td>A gate is open</td><td>Yes: what to review</td><td>Ready: <code>canon pipeline --json</code></td></tr>
-    <tr><td>Running time</td><td>A run is active</td><td>No</td><td>Needs T001</td></tr>
-    <tr><td>Problem ID</td><td>A run is active</td><td>Yes: the Problem</td><td>Needs T001</td></tr>
-    <tr><td>Spend of cap</td><td>A run is active</td><td>No</td><td>Needs T001</td></tr>
-    <tr><td>Task cost</td><td>No run active</td><td>No</td><td>Ready: engine usage figures</td></tr>
-    <tr><td>Checks ok</td><td>In a product repo, nothing wrong</td><td>No</td><td>Ready: <code>canon check</code></td></tr>
-    <tr><td>Errors or warnings</td><td>In a product repo, something wrong</td><td>Yes: the list</td><td>Ready: <code>canon check</code></td></tr>
-    <tr><td>Tests ok, stale or failed</td><td>After tests or a later edit</td><td>No</td><td>To build: canon's own detection</td></tr>
-    <tr><td>7D and 5H left</td><td>Always. Reset time only when low</td><td>No</td><td>Ready: engine usage figures</td></tr>
-    <tr><td>Cache minutes, or cold price</td><td>After the first reply</td><td>No</td><td>Ready, with a price table to maintain</td></tr>
-    <tr><td>Pick: model and effort</td><td>Once a prompt has run, when the repo has <code>features: [routing]</code></td><td>Yes: why, and choose yourself</td><td>To build: FEAT-0025</td></tr>
-    <tr><td>Extend, with its cost</td><td>Cache warm, no reply running</td><td>Yes: sends one tiny message</td><td>Ready: <code>$.prompt.submit</code>, context size and the same price table</td></tr>
+    <tr><th>Side</th><th>Order</th></tr>
+    <tr><td>Left</td><td>☾ or ☀ · Session cost · Project › Stage · running · Task</td></tr>
+    <tr><td>Right</td><td>WAITING ON YOU · Reply size S, M or L · Model·effort · Checks · 7D left · 5H left · Context left · Cache (click to extend)</td></tr>
+  </table>
+  <p class="note">Glyphs are plain Unicode, no Nerd Font needed. The sun and moon carry the text-style selector (U+FE0E), so terminals draw them one column wide instead of as emoji.</p>
+
+  <h3>States</h3>
+  <div id="states"></div>
+
+  <h3>What each click does</h3>
+  <p class="note">Terminals have no hover, so every short item explains itself on click: a one-line panel under the band. A second click closes it. Actions (☾/☀, size, cache) act and say what they did. No click approves anything.</p>
+  <table>
+    <tr><th>Item</th><th>Click</th></tr>
+    <tr><td>Sun or moon</td><td>Toggles. ☾ asleep is the default. ☀ awake keeps the Mac from sleeping while this session is open (<code>caffeinate</code>). It stops by itself when the session ends.</td></tr>
+    <tr><td>Phase</td><td>Panel: every phase and where the task is.</td></tr>
+    <tr><td>WAITING ON YOU</td><td>Panel: what to review and the approve command.</td></tr>
+    <tr><td>Task</td><td>Opens the task's page in your editor. Shown in words, never by ID; cut at 40 characters. The band cannot change the task.</td></tr>
+    <tr><td>Reply size</td><td>One letter: S, M or L. A click moves to the next size and says what it means. Holds for the session, starts at M, keeps the cache.</td></tr>
+    <tr><td>Model·effort</td><td>Short form: <code>son·med</code>, <code>opus·hi</code>. Grey when canon picked, amber when you chose, <code>?</code> when it could not decide and used your settings. Panel: why it was picked, and choose yourself. Only with <code>features: [routing]</code>.</td></tr>
+    <tr><td>Warnings, errors</td><td>Panel: the list.</td></tr>
+    <tr><td>Cache</td><td>Sends one tiny message so the hour starts again. Its cost is in the label. Only when warm and no reply is running.</td></tr>
+  </table>
+
+  <h3>Reply sizes</h3>
+  <table>
+    <tr><th>Size</th><th>What Claude writes</th></tr>
+    <tr><td>S</td><td>The answer in one to three lines. No headings, no tables.</td></tr>
+    <tr><td>M</td><td>The answer first, then the key points as a short bullet list.</td></tr>
+    <tr><td>L</td><td>The answer first, then full detail: steps, reasons, trade-offs and what was not checked.</td></tr>
+  </table>
+
+  <h3>Data</h3>
+  <table>
+    <tr><th>Item</th><th>When it shows</th><th>Data today</th></tr>
+    <tr><td>Sun or moon</td><td>Always on macOS</td><td>To build: <code>caffeinate</code>; hidden on other systems</td></tr>
+    <tr><td>Project, phase, gate, run</td><td>In a product repo with <code>process</code> on</td><td>Ready: <code>canon band</code></td></tr>
+    <tr><td>Session cost</td><td>Always; during a run, with its cap</td><td>Ready</td></tr>
+    <tr><td>Task title</td><td>A task is in focus</td><td>Ready: <code>canon band</code></td></tr>
+    <tr><td>Replies</td><td>Always</td><td>To build</td></tr>
+    <tr><td>Model and effort</td><td>With <code>features: [routing]</code></td><td>Ready</td></tr>
+    <tr><td>Checks and tests</td><td>In a product repo</td><td>Ready: <code>canon check</code></td></tr>
+    <tr><td>7D and 5H left</td><td>Always; reset time only when low</td><td>Ready</td></tr>
+    <tr><td>Context left</td><td>After the first reply; red under 20%</td><td>To build: tokens are known, the window size is not</td></tr>
+    <tr><td>Cache</td><td>After the first reply</td><td>Ready</td></tr>
   </table>
 </main>
 
 <template id="p-route"><div class="panel">This prompt: medium work → Sonnet · medium     Decided by Haiku, about $0.001
-Model   <button class="c" type="button" tabindex="-1">auto</button>  <button class="c" type="button" tabindex="-1">haiku</button>  <button class="c" type="button" tabindex="-1">sonnet</button>  <button class="c" type="button" tabindex="-1">opus</button>      <span class="m">changing model mid-session reloads the chat: ~$1.94</span>
-Effort  <button class="c" type="button" tabindex="-1">auto</button>  <button class="c" type="button" tabindex="-1">low</button>  <button class="c" type="button" tabindex="-1">medium</button>  <button class="c" type="button" tabindex="-1">high</button>      <span class="m">changing effort keeps the cache</span></div></template>
+Model   auto  haiku  <span class="here">sonnet</span>  opus      <span class="m">changing model mid-session reloads the chat: ~$1.94</span>
+Effort  auto  low  <span class="here">medium</span>  high      <span class="m">changing effort keeps the cache</span></div></template>
 <template id="p-route-fixed"><div class="panel">You chose Opus · high. Auto is off for this session.
-Model   <button class="c" type="button" tabindex="-1">auto</button>  <button class="c" type="button" tabindex="-1">haiku</button>  <button class="c" type="button" tabindex="-1">sonnet</button>  <span class="here">opus</span>
-Effort  <button class="c" type="button" tabindex="-1">auto</button>  <button class="c" type="button" tabindex="-1">low</button>  <button class="c" type="button" tabindex="-1">medium</button>  <span class="here">high</span></div></template>
+Model   auto  haiku  sonnet  <span class="here">opus</span>
+Effort  auto  low  medium  <span class="here">high</span></div></template>
 <template id="p-route-failed"><div class="panel">Could not decide for this prompt: Haiku did not answer. Used your normal settings.</div></template>
 <template id="p-review"><div class="panel">Review the design set     canon ui
 Then approve it yourself  canon approve design --note "what you reviewed"</div></template>
-<template id="p-stage"><div class="panel">Problem ok · Idea ok · POC skipped · Plan ok · Feature ok · <span class="here">Design waiting on you</span> · Development · Review · Release</div></template>
-<template id="p-stage-review"><div class="panel">Problem ok · Idea ok · POC skipped · Plan ok · Feature ok · Design ok · Development ok · <span class="here">Review running</span> · Release</div></template>
-<template id="p-stage-dev"><div class="panel">Problem ok · Idea ok · POC skipped · Plan ok · Feature ok · Design ok · <span class="here">Development in progress</span> · Review · Release</div></template>
-<template id="p-errors"><div class="panel"><span class="err">error</span>  features/0007-ads.md  missing last-verified
-<span class="err">error</span>  context.yaml          stage "qa" has no gate owner</div></template>
-<template id="p-warnings"><div class="panel"><span class="warn">warning</span>  wiki/ads.md           not verified for 90 days
-<span class="warn">warning</span>  features/index.md     lists a removed feature
-<span class="warn">warning</span>  tasks.md              horizon has passed</div></template>
-<template id="p-problem"><div class="panel">PROB-0012  Ad frequency too high on small screens
-Source     App Store reviews     Priority  high
-Doc        .context/problems/PROB-0012.md</div></template>
+<template id="p-stage"><div class="panel">Problem ✓ · Idea ✓ · POC skipped · Plan ✓ · Feature ✓ · <span class="here">Design waiting on you</span> · Development · Review · Release</div></template>
+<template id="p-errors"><div class="panel"><span class="bad">✗</span>  features/0007-ads.md  missing last-verified
+<span class="bad">✗</span>  context.yaml          stage "qa" has no gate owner</div></template>
+<template id="p-warnings"><div class="panel"><span class="warn">!</span>  wiki/ads.md           not verified for 90 days
+<span class="warn">!</span>  features/index.md     lists a removed feature
+<span class="warn">!</span>  tasks.md              horizon has passed</div></template>
 
 <script>
-const panelFor = name => document.getElementById('p-' + name).content.firstElementChild.cloneNode(true);
+// One list of states, drawn once each. Clicks change a state and redraw.
+const TASK = 'Ad frequency too high on small screens';
+const STATES = [
+  { h: '1. Waiting on you', note: 'The most important state. The gate sits after the phase it belongs to.', line: 'Design set is ready for review.',
+    awake: false, product: 'myapp', phase: 'Design', gate: 'wait', sessionUsd: 1.2, task: TASK, size: 'M',
+    route: { label: 'son·med', panel: 'route' }, errors: 0, warnings: 0, tests: null, d7: 59, h5: 96, ctx: 62, cache: { min: 53, cost: 0.17 } },
+  { h: '2. A run is moving, Mac kept awake', note: 'During a run the cost shows its cap. The sun is lit, so you can see the Mac will not sleep.', line: 'Running review checks...',
+    awake: true, product: 'myapp', phase: 'Review', gate: 'run', runFor: '12m', spend: 3.4, cap: 5, task: TASK, size: 'M',
+    route: { label: 'opus·hi', panel: 'route' }, errors: 0, warnings: 3, tests: 'ok', d7: 41, h5: 72, ctx: 35, cache: { min: 58, cost: 0.31 } },
+  { h: '3. Normal chat, you chose the model', note: 'Your model choice is amber so it is not forgotten.', line: 'Fixed the board redraw.',
+    awake: false, product: 'myapp', phase: 'Development', task: TASK, sessionUsd: 8.18, size: 'S',
+    route: { label: 'opus·hi', panel: 'route-fixed', mine: true }, errors: 0, warnings: 0, tests: 'stale', d7: 41, h5: 96, ctx: 48, cache: { min: 12, cost: 0.22 } },
+  { h: '4. Things are wrong', note: 'Errors, low limits, a nearly full context and a cold cache all get colour. A cold cache has nothing to extend.', line: 'Back after a long break.',
+    awake: false, product: 'myapp', phase: 'Development', task: 'Agents guess and ignore product rules when they plan', sessionUsd: 8.18, size: 'L',
+    route: { label: 'opus·med ?', panel: 'route-failed' }, errors: 2, warnings: 0, tests: 'failed', d7: 9, d7reset: '3d 9h', h5: 96, ctx: 12, cache: { cold: true, next: 1.94 } },
+  { h: '5. Outside a product repo', note: 'With process off, or outside a product, the left side shows only the moon and the session cost.', line: 'Listed the folder.',
+    awake: false, sessionUsd: 0.42, size: 'M', d7: 59, h5: 96, ctx: 80, cache: { min: 53, cost: 0.17 } },
+  { h: '6. Narrow terminal (80 columns)', note: 'Two rows: the work on top, the rest below, same order.', line: 'Design set is ready for review.', narrow: true,
+    awake: false, product: 'myapp', phase: 'Design', gate: 'wait', sessionUsd: 1.2, task: TASK, size: 'M',
+    route: { label: 'son·med', panel: 'route' }, errors: 0, warnings: 0, tests: null, d7: 59, h5: 96, ctx: 62, cache: { min: 53, cost: 0.17 } },
+];
 
-// Static views: the panel is always open.
-document.querySelectorAll('[data-open]').forEach(term => {
-  term.querySelector('.band').after(panelFor(term.dataset.open));
+const LOW = 20;
+const level = left => (left < LOW ? 'bad' : left < 40 ? 'warn' : 'ok');
+const cut = (text, n) => (text.length > n ? text.slice(0, n - 1) + '…' : text);
+const money = n => '$' + n.toFixed(2).replace(/\.00$/, '');
+const btn = (label, act, cls = '') => `<button class="c ${cls}" type="button" data-act="${act}">${label}</button>`;
+
+// The band's items, in order.
+function items(s) {
+  const left = [];
+  const right = [];
+  left.push(btn(s.awake ? '☀︎' : '☾︎', 'awake', s.awake ? 'lit' : 'm'));
+  left.push(s.cap ? btn(`${money(s.spend)} of ${money(s.cap)}`, 'info:cost') : btn(money(s.sessionUsd), 'info:cost', 'm'));
+  if (s.product) {
+    left.push(`${s.product} › ${btn(s.phase, 'panel:stage')}`);
+    if (s.gate === 'run') left.push(`<span class="run">▶ running ${s.runFor}</span>`);
+    if (s.task) left.push(btn('▸ ' + cut(s.task, s.narrow ? 28 : 40), 'open', 'm'));
+  }
+  if (s.gate === 'wait') right.push(`<span class="gate">${btn('▲ WAITING ON YOU', 'panel:review')}</span>`);
+  right.push(btn(s.size, 'size', 'lit'));
+  if (s.route) right.push(btn(s.route.label, 'panel:' + s.route.panel, s.route.mine ? 'warn' : 'm'));
+  if (s.product) {
+    if (s.errors) right.push(btn(`✗ ${s.errors}`, 'panel:errors', 'bad'));
+    else if (s.warnings) right.push(btn(`! ${s.warnings}`, 'panel:warnings', 'warn'));
+    else right.push(btn('✓ checks', 'info:checks', 'ok'));
+    if (s.tests) right.push(btn({ ok: '✓ tests', stale: '~ tests', failed: '✗ tests' }[s.tests], 'info:tests', { ok: 'ok', stale: 'warn', failed: 'bad' }[s.tests]));
+  }
+  const limit = (name, left, extra = '') => btn(`${name} ${left}%${extra}`, 'info:' + name, level(left));
+  right.push(limit('7D', s.d7, s.d7reset ? ` ${s.d7reset}` : ''));
+  right.push(limit('5H', s.h5));
+  right.push(limit('ctx', s.ctx));
+  right.push(s.cache.cold
+    ? btn(`◌ cold ~${money(s.cache.next)}`, 'info:cold', 'warn')
+    : btn(`↻ ${s.cache.min}m +${money(s.cache.cost)}`, 'extend', 'ok'));
+  return { left, right };
+}
+
+// What a click on a short item says, in one line.
+const SIZES = { S: 'one to three lines, no headings or tables', M: 'the answer first, then a short bullet list', L: 'the answer first, then steps, reasons and trade-offs' };
+const INFO = {
+  awake: s => (s.awake ? '☀ Awake: this Mac will not sleep while this session is open. Click again to let it sleep.' : '☾ Asleep: this Mac sleeps as usual. Click to keep it awake for this session.'),
+  size: s => `Reply size ${s.size}: ${SIZES[s.size]}. Click again for the next size.`,
+  cost: s => (s.cap ? `This run has spent ${money(s.spend)} of its ${money(s.cap)} cap.` : `This session has spent ${money(s.sessionUsd)}.`),
+  checks: () => '✓ canon check found nothing wrong in this repo.',
+  tests: s => ({ ok: '✓ Tests passed, and no code changed since.', stale: '~ Code changed since tests last ran. Run them again.', failed: '✗ The last test run failed.' }[s.tests]),
+  '7D': s => `7D: ${s.d7}% of your weekly limit is left.${s.d7reset ? ` It resets in ${s.d7reset}.` : ''}`,
+  '5H': s => `5H: ${s.h5}% of your five-hour limit is left.`,
+  ctx: s => `ctx: ${s.ctx}% of the context window is left. Under 20%, start a new session or compact.`,
+  cold: s => `◌ Cache is cold: the next reply rereads the chat, about ${money(s.cache.next)}.`,
+  extend: s => `↻ Cache kept warm for ${s.cache.min} more minutes, for ${money(s.cache.cost)}.`,
+};
+
+function bandHtml(s) {
+  const { left, right } = items(s);
+  const row = (l, r) => `<div class="band"><div class="group">${l.join('')}</div><div class="group">${r.join('')}</div></div>`;
+  return s.narrow ? row(left, []) + row(right.slice(0, 3), right.slice(3)) : row(left, right);
+}
+
+function termHtml(s, i) {
+  return `<div class="term ${s.narrow ? 'w80' : 'w120'}" data-i="${i}">` +
+    (s.line ? `<div class="line">  ${s.line}</div>` : '') + bandHtml(s) + '<div class="prompt">&gt; </div></div>';
+}
+
+function draw() {
+  document.getElementById('states').innerHTML = STATES
+    .map((s, i) => `<h2>${s.h}</h2><p class="note">${s.note}</p>${termHtml(s, i)}`).join('');
+}
+
+// A second click on the same item closes its panel. A redraw replaces the terminal, so find it again by index.
+function showPanel(term, key, html) {
+  const box = document.querySelector(`.term[data-i="${term.dataset.i}"]`);
+  const open = box.querySelector('.panel');
+  const same = open && open.dataset.from === key && !['awake', 'size', 'extend'].includes(key);
+  if (open) open.remove();
+  if (same) return;
+  box.querySelector('.prompt').insertAdjacentHTML('beforebegin', html);
+  box.querySelector('.panel').dataset.from = key;
+}
+
+document.addEventListener('click', event => {
+  const target = event.target.closest('[data-act]');
+  if (!target) return;
+  const term = target.closest('.term');
+  const s = STATES[Number(term.dataset.i)];
+  const [act, arg] = target.dataset.act.split(':');
+  const say = key => showPanel(term, key, `<div class="panel">${INFO[key](s)}</div>`);
+  if (act === 'awake') { s.awake = !s.awake; draw(); return say('awake'); }
+  if (act === 'size') { s.size = { S: 'M', M: 'L', L: 'S' }[s.size]; draw(); return say('size'); }
+  if (act === 'extend') { s.cache = { ...s.cache, min: 60 }; draw(); return say('extend'); }
+  if (act === 'info') return say(arg);
+  if (act === 'open') { target.textContent = '▸ opened in your editor'; return; }
+  if (act === 'panel') showPanel(term, arg, document.getElementById('p-' + arg).innerHTML);
 });
 
-// Sample only: the real button sends the message, and the hour restarts when the reply lands.
-document.querySelectorAll('button[data-extend]').forEach(button => {
-  button.addEventListener('click', () => {
-    const minutes = button.previousElementSibling;
-    const label = button.textContent;
-    button.textContent = 'extending...';
-    setTimeout(() => {
-      minutes.textContent = 'cache 60m';
-      button.textContent = label;
-    }, 900);
-  });
-});
-
-// Live states: a click opens the panel under the band, a second click closes it.
-document.querySelectorAll('button[data-panel]').forEach(button => {
-  button.addEventListener('click', () => {
-    const term = button.closest('.term');
-    const lastBand = [...term.querySelectorAll('.band')].pop();
-    const open = term.querySelector('.panel');
-    const same = open && open.dataset.from === button.dataset.panel;
-    if (open) open.remove();
-    if (same) return;
-    const panel = panelFor(button.dataset.panel);
-    panel.dataset.from = button.dataset.panel;
-    lastBand.after(panel);
-  });
-});
+draw();
 </script>
 </body>
 </html>

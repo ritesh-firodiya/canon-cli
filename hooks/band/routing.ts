@@ -62,8 +62,10 @@ export type RouteMode = 'auto' | 'you' | 'default'
 
 export const routeMode = (chosen: Chosen, size: Size | null): RouteMode => (chosen.model || chosen.effort ? 'you' : size ? 'auto' : 'default')
 
+const SHORT: Record<string, string> = { haiku: 'hai', sonnet: 'son', opus: 'opus', low: 'lo', medium: 'med', high: 'hi' }
+
+/** `son·med`: canon's pick. Colour says who chose; `?` says canon could not decide and the session's own settings ran. */
 export function routeLabel(mode: RouteMode, tier: string, effort: string | undefined): string {
-  const what = effort ? `${tier} · ${effort}` : tier
-  if (mode === 'you') return `you: ${what}`
-  return mode === 'default' ? `auto: ${what} (default)` : `auto: ${what}`
+  const what = effort ? `${SHORT[tier] ?? tier}·${SHORT[effort] ?? effort}` : (SHORT[tier] ?? tier)
+  return mode === 'default' ? `${what} ?` : what
 }

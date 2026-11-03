@@ -9,15 +9,20 @@ import {
   cacheView,
   capitalise,
   coldLabel,
+  contextView,
+  cut,
   duration,
   extendLabel,
   fileLink,
+  infoLine,
   isNarrow,
   isInside,
   isTestCommand,
   money,
   movedTo,
+  nextSize,
   panelLines,
+  replyRule,
   reloadUsd,
   stageWord,
   testsLabel,
@@ -26,16 +31,17 @@ import {
 } from './facts'
 import { latestModel } from '../../cli/src/usage/models'
 import { CLASSIFIER_SYSTEM, EFFORTS, TIERS, classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
-import type { Applied, BandFacts, CacheFacts, Chosen, Effort, Panel, Route, Tests, Tier, UsageWindow } from './types'
+import type { Applied, BandFacts, CacheFacts, Chosen, Effort, Info, Level, Panel, ReplySize, Route, Tests, Tier, UsageWindow } from './types'
 
-// The band above the prompt: the work in one line, in colour only when something needs you.
+// The band above the prompt: the work on the left, how Claude runs and what is left on the right, in colour only when something needs you.
 // Cache and usage logic follow ribbon (MIT, robonuggets/ribbon); test state follows ponytail's band (MIT, DietrichGebert/ponytail).
 
 const TICK_MS = 30_000
 const EXTEND_MESSAGE = 'Reply with only: ok'
 const CLASSIFIER_TIMEOUT_MS = 3000
 const CLASSIFIER_MAX_TOKENS = 5
-const WORK_ROWS = 8
+const TITLE_MAX = 40
+const TITLE_MAX_NARROW = 28
 
 const WARN_SPEND = 0.7
 
@@ -59,6 +65,39 @@ const taskUsd = atom({ plugin: 'canon', key: 'taskUsd' } as const, 0)
 const tests = atom({ plugin: 'canon', key: 'tests' } as const, 'none' as Tests)
 const panel = atom({ plugin: 'canon', key: 'panel' } as const, null as Panel | null)
 const isExtending = atom({ plugin: 'canon', key: 'isExtending' } as const, false)
+const contextUsed = atom({ plugin: 'canon', key: 'contextUsed' } as const, null as number | null)
+const isAwake = atom({ plugin: 'canon', key: 'isAwake' } as const, false)
+const replySize = atom({ plugin: 'canon', key: 'replySize' } as const, 'M' as ReplySize)
+
+const LEVEL_COLOR: Record<Level, string> = { ok: GREEN, warn: AMBER, bad: RED }
+const TEST_LEVEL: Record<Tests, Level> = { none: 'ok', ok: 'ok', stale: 'warn', failed: 'bad' }
+
+// The caffeinate child behind ☀. Module state, so a reload, which kills it, starts asleep again.
+let awakeChild: ReturnType<EngineInterface['process']['spawn']> | null = null
+
+// shortcut: caffeinate is macOS only, so elsewhere a click says it could not start; hide ☾ off macOS if anyone uses it there.
+async function setAwake($: EngineInterface, isOn: boolean): Promise<void> {
+  const before = awakeChild
+  awakeChild = null
+  // Ending the loop ends the child; not awaited, since the loop sits on a read that only the child's end settles.
+  void before?.return(undefined as never)
+  await update($, isAwake, () => isOn)
+  if (!isOn) return
+  const child = $.process.spawn({ argv: ['caffeinate', '-i'] })
+  awakeChild = child
+  void (async () => {
+    try {
+      for await (const _ of child) {
+        // caffeinate prints nothing; the loop only marks its life.
+      }
+    } catch {
+      await $.ui.toast('Could not keep this Mac awake: caffeinate did not start.')
+    }
+    if (awakeChild !== child) return
+    awakeChild = null
+    await update($, isAwake, () => false)
+  })()
+}
 
 async function refreshFacts($: EngineInterface): Promise<void> {
   const path = (await read($, workPath)) ?? (await $.session.cwd())
@@ -83,13 +122,6 @@ async function followWork($: EngineInterface, path: string | null): Promise<void
     await update($, workPath, () => previous)
     await refreshFacts($)
   }
-}
-
-/** Runs a `canon work` choice from a click, then redraws. A refusal shows, since the person is looking. */
-async function runWork($: EngineInterface, root: string, args: string[]): Promise<void> {
-  const run = await $.process.run(['canon', 'work', ...args, '--repo', root]).catch(() => undefined)
-  if (run?.exitCode !== 0) await $.ui.toast(run?.stderr.trim() || 'canon could not run')
-  await refreshFacts($)
 }
 
 // shortcut: rewrites the whole log per prompt, since $.fs has no append; use `canon` to log if the file ever grows large.
@@ -123,6 +155,7 @@ async function refreshUsage($: EngineInterface, lastAt: number | null, model: st
   const usage = await $.session.usage()
   await update($, windows, () => usage.rateLimits.map(w => ({ kind: w.kind, percentUsed: w.percentUsed, resetsAt: w.resetsAt })))
   await update($, taskUsd, value => usage.cost?.usd ?? value)
+  await update($, contextUsed, value => usage.context.percent ?? value)
   const known = model ?? (await $.session.model())
   await update($, cache, c => ({
     lastAt: lastAt ?? c?.lastAt ?? 0,
@@ -136,6 +169,7 @@ export const register: Register = on => {
     await refreshFacts($)
     // A `canon run` agent has its own model and cap per stage, and a headless run has nobody to override a pick.
     await update($, isRouting, () => e.isInteractive)
+    await setAwake($, false)
     if (await $.env.get('CANON_RUN')) await update($, isRouting, () => false)
     $.clock.every(TICK_MS, async () => {
       // A run moves on its own, so only then are its facts read again between turns.
@@ -150,6 +184,7 @@ export const register: Register = on => {
     const result = await next(e)
     if (e.source === 'clear' || e.source === 'compact') {
       await update($, cache, () => null)
+      await update($, contextUsed, () => null)
       if (e.source === 'clear') {
         await update($, workPath, () => null)
         await update($, route, () => null)
@@ -179,11 +214,14 @@ export const register: Register = on => {
   }).catch(($, e, next) => next(e))
 
   on('prompt.submit', async ($, e, next) => {
-    if (!(await isRoutingOn($)) || !isRoutable(e.text, e.origin.kind === 'plugin')) return next(e)
+    const isTyped = isRoutable(e.text, e.origin.kind === 'plugin')
+    // Beside the prompt, not in the system prompt, so a new size keeps the cache.
+    const sized = isTyped ? { ...e, context: [...(e.context ?? []), replyRule(await read($, replySize))] } : e
+    if (!isTyped || !(await isRoutingOn($))) return next(sized)
     const mine = await read($, chosen)
     // Nothing to decide when the person chose both.
     if (!mine.model || !mine.effort) await decide($, e.text)
-    return next(e)
+    return next(sized)
   }).catch(($, e, next) => next(e))
 
   on('turn.step', async function* ($, e, next) {
@@ -251,15 +289,21 @@ export const register: Register = on => {
     const view = cacheView(await read($, cache), now)
     const usage = windowViews(await read($, windows), now)
     const testState = await read($, tests)
-    const task = await read($, taskUsd)
+    const sessionUsd = await read($, taskUsd)
+    const context = contextView(await read($, contextUsed))
+    const awake = await read($, isAwake)
+    const size = await read($, replySize)
     const choice = await read($, chosen)
     const lastRoute = await read($, route)
     const running = await read($, applied)
     const cached = await read($, cache)
 
     const toggle = (name: Panel) => () => update($, panel, value => (value === name ? null : name))
+    // An action says what it did, so a second click acts again instead of closing.
+    const say = (name: Info) => update($, panel, () => name)
     const extend = async () => {
       await update($, isExtending, () => true)
+      await say('cache')
       void $.prompt.submit({ text: EXTEND_MESSAGE })
     }
 
@@ -267,7 +311,7 @@ export const register: Register = on => {
     const routeWord = running ? routeLabel(mode, tierOf(running.model) ?? running.model, running.effort) : null
     const pickButton = routeWord ? (
       <Button key="route" plain onPress={toggle('route')}>
-        <Text color={mode === 'you' ? GREEN : undefined} dimColor={mode !== 'you'}>{routeWord}</Text>
+        <Text color={mode === 'you' ? AMBER : undefined} dimColor={mode !== 'you'}>{routeWord}</Text>
       </Button>
     ) : null
 
@@ -296,92 +340,73 @@ export const register: Register = on => {
       </Box>
     ) : null
 
-    // Without `process` the band is usage, cache and extend: no product, stage or checks.
+    // Without `process` the band is the session's: no product, stage, task or checks.
     const hasProcess = Boolean(f?.features?.includes('process'))
-    const work = hasProcess && f?.product
-      ? [
-          <Text key="product">{f.product}{f.stage ? ' · ' : ''}</Text>,
-          f.stage ? <Button key="stage" plain label={capitalise(f.stage)} onPress={toggle('stage')} /> : null,
-          f.waiting ? <Button key="waiting" plain onPress={toggle('review')}><Text backgroundColor={AMBER} color={AMBER_INK} bold> WAITING ON YOU </Text></Button> : null,
-          f.errors.length ? <Button key="errors" plain onPress={toggle('errors')}><Text backgroundColor={RED_BG} color={RED} bold> {f.errors.length} ERROR{f.errors.length === 1 ? '' : 'S'} </Text></Button> : null,
-          f.running ? <Text key="running" color={BLUE} bold>running {duration(now - Date.parse(f.running.startedAt))}</Text> : null,
-          <Button key="problem" plain dimColor={!f.selected} label={f.problem?.id ?? 'pick work'} onPress={toggle('work')} />,
-          pickButton,
-          f.running ? <Text key="spend" color={spendColor(f.running.spendUsd, f.running.capUsd)}>{money(f.running.spendUsd)} of {money(f.running.capUsd)}</Text> : null,
-          !f.running && !f.waiting && task > 0 ? <Text key="task" dimColor>task {money(task)}</Text> : null,
-        ]
-      : [pickButton]
-
-    const health = hasProcess && f?.product
-      ? [
-          f.warnings.length ? <Button key="warnings" plain onPress={toggle('warnings')}><Text color={AMBER}>{f.warnings.length} warning{f.warnings.length === 1 ? '' : 's'}</Text></Button> : null,
-          !f.errors.length && !f.warnings.length ? <Text key="checks" color={GREEN}>checks ok</Text> : null,
-          testState === 'ok' ? <Text key="tests" color={GREEN}>{testsLabel(testState)}</Text> : null,
-          testState === 'stale' ? <Text key="tests" color={AMBER}>{testsLabel(testState)}</Text> : null,
-          testState === 'failed' ? <Text key="tests" color={RED} bold>{testsLabel(testState)}</Text> : null,
-        ]
-      : []
-
-    const limits = [
-      ...usage.map(w => (w.isLow ? <Text key={w.label} color={RED} bold>{w.label}</Text> : <Text key={w.label} color={GREEN}>{w.label}</Text>)),
-      view?.mode === 'cold' ? <Text key="cache" color={AMBER}>{coldLabel(view.nextUsd)}</Text> : null,
-      view?.mode === 'warm' ? <Text key="cache" color={GREEN}>cache {view.minutesLeft}m</Text> : null,
-      extending ? <Text key="extending" dimColor>extending...</Text> : null,
-      !extending && view?.mode === 'warm' && canExtend(view, e.props.isWorking) ? <Button key="extend" plain dimColor label={extendLabel(view.extendUsd)} onPress={extend} /> : null,
-    ]
-
-    const row = (key: string, left: RenderChildren[], right: RenderChildren[]) => (
-      <Box key={key} flexDirection="row" gap={2} width={e.props.bodyColumns}>
-        {left}
-        <Box key="grow" flexGrow={1} />
-        {right}
-      </Box>
+    const narrow = isNarrow(e.props.bodyColumns)
+    const isWork = hasProcess && Boolean(f?.product)
+    const item = (key: Panel, label: string, color?: string, onPress: () => unknown = toggle(key)) => (
+      <Button key={key} plain onPress={onPress}><Text color={color} dimColor={!color}>{label}</Text></Button>
     )
 
-    const rows = isNarrow(e.props.bodyColumns)
-      ? [row('work', work, []), row('limits', health, limits)]
-      : [row('work', work, [...health, ...limits])]
+    const left = [
+      <Button key="awake" plain onPress={async () => { await setAwake($, !awake); await say('awake') }}>
+        <Text color={awake ? AMBER : undefined} dimColor={!awake} bold={awake}>{awake ? '☀︎' : '☾︎'}</Text>
+      </Button>,
+      f?.running ? item('cost', `${money(f.running.spendUsd)} of ${money(f.running.capUsd)}`, spendColor(f.running.spendUsd, f.running.capUsd)) : item('cost', money(sessionUsd)),
+      isWork && f ? <Text key="product">{f.product}{f.stage ? ' › ' : ''}</Text> : null,
+      isWork && f?.stage ? <Button key="stage" plain label={capitalise(f.stage)} onPress={toggle('stage')} /> : null,
+      isWork && f?.running ? <Text key="running" color={BLUE} bold>▶ running {duration(now - Date.parse(f.running.startedAt))}</Text> : null,
+      isWork && f?.problem && f.root ? <Text key="task" dimColor><Link href={fileLink(f.root, f.problem.file)} label={`▸ ${cut(f.problem.title, narrow ? TITLE_MAX_NARROW : TITLE_MAX)}`} /></Text> : null,
+    ]
+
+    const how = [
+      isWork && f?.waiting ? <Button key="waiting" plain onPress={toggle('review')}><Text backgroundColor={AMBER} color={AMBER_INK} bold> ▲ WAITING ON YOU </Text></Button> : null,
+      <Button key="size" plain onPress={async () => { await update($, replySize, nextSize); await say('size') }}><Text color={AMBER} bold>{size}</Text></Button>,
+      pickButton,
+      isWork && f?.errors.length ? item('errors', `✗ ${f.errors.length}`, RED) : null,
+      isWork && f && !f.errors.length && f.warnings.length ? item('warnings', `! ${f.warnings.length}`, AMBER) : null,
+      isWork && f && !f.errors.length && !f.warnings.length ? item('checks', '✓ checks', GREEN) : null,
+      isWork && testState !== 'none' ? item('tests', testsLabel(testState), LEVEL_COLOR[TEST_LEVEL[testState]]) : null,
+    ]
+
+    const warm = view?.mode === 'warm' ? view : null
+    const limits = [
+      ...usage.map(w => item(w.name as Info, w.label, LEVEL_COLOR[w.level])),
+      context ? item('ctx', context.label, LEVEL_COLOR[context.level]) : null,
+      view?.mode === 'cold' ? item('cache', coldLabel(view.nextUsd), AMBER) : null,
+      extending ? <Text key="extending" dimColor>extending...</Text> : null,
+      !extending && warm && canExtend(warm, e.props.isWorking) ? item('cache', extendLabel(warm.minutesLeft, warm.extendUsd), GREEN, extend) : null,
+      !extending && warm && !canExtend(warm, e.props.isWorking) ? <Text key="cache-time" color={GREEN}>{extendLabel(warm.minutesLeft, null)}</Text> : null,
+    ]
+
+    const row = (key: string, start: RenderChildren[], end: RenderChildren[]) => (
+      <Box key={key} flexDirection="row" gap={2} width={e.props.bodyColumns}>
+        {start}
+        <Box key="grow" flexGrow={1} />
+        {end}
+      </Box>
+    )
+    const rows = narrow ? [row('work', left, []), row('limits', how, limits)] : [row('work', left, [...how, ...limits])]
 
     const stages = open === 'stage' && f ? (
       <Box key="stages" flexDirection="row" flexWrap="wrap">
-        {f.stages.map((s, i) => {
-          const word = (
-            <Text key={s.id} color={s.state === 'waiting' || s.state === 'running' || s.state === 'here' ? AMBER : undefined} dimColor={s.state === 'todo'} bold={s.state === 'waiting'}>
-              {i ? ' · ' : ''}{stageWord(s.id, s.state)}
-            </Text>
-          )
-          return f.selected && f.root ? <Button key={`stage-${s.id}`} plain onPress={() => runWork($, f.root as string, ['--stage', s.id])}>{word}</Button> : word
-        })}
+        {f.stages.map((s, i) => (
+          <Text key={s.id} color={s.state === 'waiting' || s.state === 'running' || s.state === 'here' ? AMBER : undefined} dimColor={s.state === 'todo'} bold={s.state === 'waiting'}>
+            {i ? ' · ' : ''}{stageWord(s.id, s.state)}
+          </Text>
+        ))}
       </Box>
     ) : null
     const openLink = (key: string, file: string) => (f?.root ? <Text key={key}><Link href={fileLink(f.root, file)} label="open" /></Text> : null)
-    const allWork = f?.work ?? []
-    const workPanel = open === 'work' && f?.root ? (
-      <Box key="work" flexDirection="column">
-        {f.problem ? <Text key="current">{panelLines('problem', f).join('   ')}</Text> : null}
-        {allWork.length ? null : <Text key="none" dimColor>Nothing open. Start with canon new.</Text>}
-        {allWork.slice(0, WORK_ROWS).map(row => (
-          <Box key={row.id} flexDirection="row" gap={2}>
-            <Button key={`pick-${row.id}`} plain onPress={() => runWork($, f.root as string, [row.id])}>
-              <Text color={row.id === f.selected ? AMBER : undefined}>{row.id}</Text>
-            </Button>
-            <Text key="title">{row.title}</Text>
-            {row.stage ? <Text key="at" dimColor>{row.waiting ? `${row.stage} waiting` : row.stage}</Text> : null}
-            {openLink(`open-${row.id}`, row.file)}
-          </Box>
-        ))}
-        {allWork.length > WORK_ROWS ? <Text key="more" dimColor>{allWork.length - WORK_ROWS} more: canon queue, then canon work ID</Text> : null}
-        {f.selected ? <Button key="clear-work" plain dimColor label="select nothing" onPress={() => runWork($, f.root as string, ['--clear'])} /> : null}
-      </Box>
-    ) : null
-    const lines = open && open !== 'stage' && open !== 'route' && open !== 'work' && f ? panelLines(open, f) : []
+    const isListPanel = open === 'review' || open === 'errors' || open === 'warnings'
+    const info = { isAwake: awake, size, sessionUsd, running: f?.running ?? null, tests: testState, windows: usage, context, cache: view }
+    const lines = !open || open === 'stage' || open === 'route' ? [] : isListPanel ? (f ? panelLines(open, f) : []) : [infoLine(open, info)]
 
     const mine = (
       <Box flexDirection="column" width={e.props.bodyColumns}>
         {rows}
         {stages}
         {routePanel}
-        {workPanel}
         {lines.map(line => <Text key={line}>{line}</Text>)}
         {open === 'review' && f?.problem ? openLink('open-review', f.problem.file) : null}
       </Box>

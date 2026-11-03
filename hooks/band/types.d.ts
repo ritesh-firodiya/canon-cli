@@ -5,7 +5,10 @@ export type Chosen = { model: Tier | null; effort: Effort | null }
 
 export type StageMark = 'ok' | 'here' | 'waiting' | 'running' | 'todo'
 export type Tests = 'none' | 'ok' | 'stale' | 'failed'
-export type Panel = 'stage' | 'review' | 'errors' | 'warnings' | 'problem' | 'route' | 'work'
+export type Info = 'awake' | 'size' | 'cost' | 'checks' | 'tests' | '7D' | '5H' | 'ctx' | 'cache'
+export type Panel = 'stage' | 'review' | 'errors' | 'warnings' | 'route' | Info
+export type Level = 'ok' | 'warn' | 'bad'
+export type ReplySize = 'S' | 'M' | 'L'
 
 export type Finding = { file?: string; message: string }
 
@@ -50,6 +53,9 @@ declare module 'claude-code' {
       route: Route | null
       chosen: Chosen
       applied: Applied | null
+      contextUsed: number | null
+      isAwake: boolean
+      replySize: ReplySize
     }
   }
 }
