@@ -26,9 +26,9 @@ Knowledge, not only rules, comes in layers: a repo's own `.context/`, then the c
 - Given a new fact, then canon proposes the narrowest layer that is true for it, and proposes moving it up only when a second repo needs it; the move is a pull request the layer's owners approve.
 - Given a context repo cloned anywhere, then canon finds it from the git remote's owner and a `canon-context` repo topic, or a path in user config.
 - Given a layer's folders (`company/`, `departments/`, `domains/`), then they are declared with `context.folders`, as today.
-- Given a user config outside every repo (for example `~/.config/canon/config.yaml`), then it names the person's own layer by path and every folder that holds repos (one per organization, such as `~/Code/<org>/`); no folder layout is assumed.
-- Given a repo whose `.context/` is local only (listed in `.gitignore` because it cannot be pushed), then every check reads the files on disk, not only tracked ones. Today `refs` reads `git ls-files` and silently skips an ignored `.context/`, so a broken link passes.
-- Given an organization whose knowledge lives in a wiki such as Confluence, then that layer is a read-only connector source (`connectors:` with `via: mcp`, `cli` or `api`), searched like a context repo and never written to.
+- Given a user config outside every repo (for example `~/.config/canon/config.yaml`), then it names the person's own layer by path. Repos can sit in any folders on any drive, one organization's repos spread across several; canon finds a repo's organization from its git remote, never from its folder.
+- Given a repo whose `.context/` is local only (listed in `.gitignore` because it cannot be pushed), then every check reads the files on disk, not only tracked ones (`refs` does since 2026-11-04).
+- Given an organization whose knowledge lives in an outside tool (a wiki, a docs site, a shared drive), then that layer is a read-only connector source (`connectors:` with `via: mcp`, `cli` or `api`), searched like a context repo and never written to.
 - Given a folder of many flat repos where some are products and others support them (internal tools, admin platforms), then each repo says which product it serves with the existing `product:` key, and repos naming one product share that product's layer.
 - Given a machine where the person's layer is a read-only clone, then canon reads it and never commits or pushes to it.
 ## Out of scope
@@ -43,7 +43,7 @@ Knowledge, not only rules, comes in layers: a repo's own `.context/`, then the c
 
 ## Open questions
 - Where the user config lives on each OS, and whether an environment variable can point to it.
-- Which connector reads Confluence, and whether its pages are indexed locally or fetched each time.
+- How an outside knowledge tool is read: through which connector, and whether its pages are indexed locally or fetched each time.
 - How "the same fact" is detected: canonical values in entity tables only, or any line.
 - Whether a search index is built per person, and where it is kept.
 
