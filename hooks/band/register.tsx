@@ -72,10 +72,13 @@ const replySize = atom({ plugin: 'canon', key: 'replySize' } as const, 'M' as Re
 const LEVEL_COLOR: Record<Level, string> = { ok: GREEN, warn: AMBER, bad: RED }
 const TEST_LEVEL: Record<Tests, Level> = { none: 'ok', ok: 'ok', stale: 'warn', failed: 'bad' }
 
-// The caffeinate child behind ☀. Module state, so a reload, which kills it, starts asleep again.
+// The caffeinate child behind ☀; ☼ when there is none. Module state, so a reload, which kills it, starts asleep again.
+// -w ties caffeinate to the process that started it, so a crash or kill -9 of Claude Code cannot leave the Mac awake.
+const CAFFEINATE = 'exec caffeinate -i -w "$PPID"'
+
 let awakeChild: ReturnType<EngineInterface['process']['spawn']> | null = null
 
-// shortcut: caffeinate is macOS only, so elsewhere a click says it could not start; hide ☾ off macOS if anyone uses it there.
+// shortcut: caffeinate is macOS only, so elsewhere a click says it could not start; hide the sun off macOS if anyone uses it there.
 async function setAwake($: EngineInterface, isOn: boolean): Promise<void> {
   const before = awakeChild
   awakeChild = null
@@ -83,7 +86,7 @@ async function setAwake($: EngineInterface, isOn: boolean): Promise<void> {
   void before?.return(undefined as never)
   await update($, isAwake, () => isOn)
   if (!isOn) return
-  const child = $.process.spawn({ argv: ['caffeinate', '-i'] })
+  const child = $.process.spawn({ argv: ['/bin/sh', '-c', CAFFEINATE] })
   awakeChild = child
   void (async () => {
     try {
@@ -350,7 +353,7 @@ export const register: Register = on => {
 
     const left = [
       <Button key="awake" plain onPress={async () => { await setAwake($, !awake); await say('awake') }}>
-        <Text color={awake ? AMBER : undefined} dimColor={!awake} bold={awake}>{awake ? '☀︎' : '☾︎'}</Text>
+        <Text color={awake ? GREEN : undefined} bold={awake}>{awake ? '☀︎' : '☼'}</Text>
       </Button>,
       f?.running ? item('cost', `${money(f.running.spendUsd)} of ${money(f.running.capUsd)}`, spendColor(f.running.spendUsd, f.running.capUsd)) : item('cost', money(sessionUsd)),
       isWork && f ? <Text key="product">{f.product}{f.stage ? ' › ' : ''}</Text> : null,

@@ -137,7 +137,7 @@ export function infoLine(info: Info, f: InfoFacts): string {
     const w = f.windows.find(entry => entry.name === name)
     return w ? `${name}: ${w.left}% of your ${what} limit is left.${w.reset ? ` It resets in ${w.reset}.` : ''}` : `${name}: no reading yet.`
   }
-  if (info === 'awake') return f.isAwake ? '☀ Awake: this Mac will not sleep while this session is open. Click again to let it sleep.' : '☾ Asleep: this Mac sleeps as usual. Click to keep it awake for this session.'
+  if (info === 'awake') return f.isAwake ? '☀ Awake: this Mac will not sleep while this session is open. Click again to let it sleep.' : '☼ This session is not keeping the Mac awake. Click to keep it awake while this session is open.'
   if (info === 'size') return `Reply size ${f.size}: ${SIZE_WORDS[f.size]}. Click again for the next size.`
   if (info === 'cost') return f.running ? `This run has spent ${money(f.running.spendUsd)} of its ${money(f.running.capUsd)} cap.` : `This session has spent ${money(f.sessionUsd)}.`
   if (info === 'checks') return '✓ canon check found nothing wrong in this repo.'

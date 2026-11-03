@@ -97,7 +97,7 @@ test('reply size goes S, M, L and round, and each size tells the model what to w
 
 test('a click on a short item says what it means in one line', () => {
   const base = { isAwake: false, size: 'M' as const, sessionUsd: 1.2, running: null, tests: 'stale' as const, windows: windowViews([{ kind: 'seven_day', percentUsed: 91, resetsAt: '2026-11-05T09:00:00Z' }], Date.parse('2026-11-02T00:00:00Z')), context: contextView(40), cache: null }
-  expect(infoLine('awake', base)).toContain('sleeps as usual')
+  expect(infoLine('awake', base)).toContain('not keeping the Mac awake')
   expect(infoLine('awake', { ...base, isAwake: true })).toContain('will not sleep')
   expect(infoLine('size', base)).toContain('short bullet list')
   expect(infoLine('cost', base)).toBe('This session has spent $1.20.')
@@ -330,10 +330,10 @@ test('the moon keeps the Mac awake with caffeinate, and says so', async ($, on) 
   on('ui.toast', () => ({ value: undefined }))
   await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
   const ui = await $.ui.mount(render('terminal'))
-  expect(await ui.find({ type: 'Text', text: /☾/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /☼/ })).toBeDefined()
   await ui.press({ key: 'awake' })
-  expect(spawned).toEqual([['caffeinate', '-i']])
-  expect(await ui.find({ type: 'Text', text: /will not sleep|sleeps as usual/ })).toBeDefined()
+  expect(spawned).toEqual([['/bin/sh', '-c', 'exec caffeinate -i -w "$PPID"']])
+  expect(await ui.find({ type: 'Text', text: /will not sleep|not keeping the Mac awake/ })).toBeDefined()
   await ui.unmount()
 })
 

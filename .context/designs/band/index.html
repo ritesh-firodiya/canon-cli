@@ -31,15 +31,15 @@ code { font-size: 13px; }
 .prompt { padding: 6px 1ch 0; margin-top: 6px; border-top: 1px solid #3a372f; }
 .size .c { text-decoration: none; }
 
+/* Clickable: dotted underline at rest, filled on hover. First, so the colour classes below win. */
+.c { all: unset; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.c:hover, .c:focus-visible { background: var(--hover); color: #fff; text-decoration-style: solid; }
+.c:focus-visible { outline: 1px solid var(--text); }
 .m { color: var(--muted); } .ok { color: var(--green); } .warn { color: var(--amber); } .bad { color: var(--red); font-weight: 700; } .run { color: var(--blue); font-weight: 700; }
 .lit { color: var(--amber); font-weight: 700; }
 .gate { background: var(--amber); color: var(--amber-ink); font-weight: 700; padding: 0 1ch; }
 .empty { color: var(--empty); }
 
-/* Clickable: dotted underline at rest, filled on hover. */
-.c { all: unset; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
-.c:hover, .c:focus-visible { background: var(--hover); color: #fff; text-decoration-style: solid; }
-.c:focus-visible { outline: 1px solid var(--text); }
 
 .panel { padding: 6px 1ch; background: var(--panel); white-space: pre; }
 .panel .here { color: var(--amber); font-weight: 700; }
@@ -56,7 +56,7 @@ th { background: #ece8e0; }
 
   <table>
     <tr><th>Side</th><th>Order</th></tr>
-    <tr><td>Left</td><td>☾ or ☀ · Session cost · Project › Stage · running · Task</td></tr>
+    <tr><td>Left</td><td>☀ awake (green, filled) or ☼ asleep (white, outlined) · Session cost · Project › Stage · running · Task</td></tr>
     <tr><td>Right</td><td>WAITING ON YOU · Reply size S, M or L · Model·effort · Checks · 7D left · 5H left · Context left · Cache (click to extend)</td></tr>
   </table>
   <p class="note">Glyphs are plain Unicode, no Nerd Font needed. The sun and moon carry the text-style selector (U+FE0E), so terminals draw them one column wide instead of as emoji.</p>
@@ -65,10 +65,10 @@ th { background: #ece8e0; }
   <div id="states"></div>
 
   <h3>What each click does</h3>
-  <p class="note">Terminals have no hover, so every short item explains itself on click: a one-line panel under the band. A second click closes it. Actions (☾/☀, size, cache) act and say what they did. No click approves anything.</p>
+  <p class="note">Terminals have no hover, so every short item explains itself on click: a one-line panel under the band. A second click closes it. Actions (☀, size, cache) act and say what they did. No click approves anything.</p>
   <table>
     <tr><th>Item</th><th>Click</th></tr>
-    <tr><td>Sun or moon</td><td>Toggles. ☾ asleep is the default. ☀ awake keeps the Mac from sleeping while this session is open (<code>caffeinate</code>). It stops by itself when the session ends.</td></tr>
+    <tr><td>Sun</td><td>A sun. White outlined ☼ is the default: the Mac sleeps as usual. Green filled ☀ keeps the Mac from sleeping while this session is open (<code>caffeinate</code>). It stops by itself when the session ends.</td></tr>
     <tr><td>Phase</td><td>Panel: every phase and where the task is.</td></tr>
     <tr><td>WAITING ON YOU</td><td>Panel: what to review and the approve command.</td></tr>
     <tr><td>Task</td><td>Opens the task's page in your editor. Shown in words, never by ID; cut at 40 characters. The band cannot change the task.</td></tr>
@@ -151,7 +151,7 @@ const btn = (label, act, cls = '') => `<button class="c ${cls}" type="button" da
 function items(s) {
   const left = [];
   const right = [];
-  left.push(btn(s.awake ? '☀︎' : '☾︎', 'awake', s.awake ? 'lit' : 'm'));
+  left.push(btn(s.awake ? '☀︎' : '☼', 'awake', s.awake ? 'ok' : ''));
   left.push(s.cap ? btn(`${money(s.spend)} of ${money(s.cap)}`, 'info:cost') : btn(money(s.sessionUsd), 'info:cost', 'm'));
   if (s.product) {
     left.push(`${s.product} › ${btn(s.phase, 'panel:stage')}`);
@@ -180,7 +180,7 @@ function items(s) {
 // What a click on a short item says, in one line.
 const SIZES = { S: 'one to three lines, no headings or tables', M: 'the answer first, then a short bullet list', L: 'the answer first, then steps, reasons and trade-offs' };
 const INFO = {
-  awake: s => (s.awake ? '☀ Awake: this Mac will not sleep while this session is open. Click again to let it sleep.' : '☾ Asleep: this Mac sleeps as usual. Click to keep it awake for this session.'),
+  awake: s => (s.awake ? '☀ Awake: this Mac will not sleep while this session is open. Click again to let it sleep.' : '☼ This session is not keeping the Mac awake. Click to keep it awake while this session is open.'),
   size: s => `Reply size ${s.size}: ${SIZES[s.size]}. Click again for the next size.`,
   cost: s => (s.cap ? `This run has spent ${money(s.spend)} of its ${money(s.cap)} cap.` : `This session has spent ${money(s.sessionUsd)}.`),
   checks: () => '✓ canon check found nothing wrong in this repo.',

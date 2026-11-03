@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.1.1 — 2026-11-03
+
+### Fixed
+
+- The awake sun is one icon: green filled ☀ while this session keeps the Mac awake, white outlined ☼ when it does not.
+- `caffeinate` exits with the Claude Code process that started it, so a crash or forced quit cannot leave the Mac awake.
+
 ## 3.1.0 — 2026-11-03
 
 ### Changed
