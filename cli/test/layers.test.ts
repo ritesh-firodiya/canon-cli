@@ -61,6 +61,6 @@ describe("rule layers", () => {
 
   test("with no pipeline set, canon's default flow applies", () => {
     const { config } = loadConfig(makeTree({ ".context/context.yaml": "kind: package\n" }));
-    expect(config.pipelines.default.map((stage) => stage.id)).toEqual(["problem", "research", "idea", "plan", "feature", "design", "code", "review", "release", "result"]);
+    expect(config.pipelines.default.map((stage) => stage.id)).toEqual(["intake", "problem", "idea", "discovery", "research", "options", "design", "plan", "feature", "code", "review", "release", "outcome"]);
   });
 });

@@ -4,7 +4,8 @@ import { appendFileSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import type { Config, ConnectorSpec, StageSpec } from "../config/schema.ts";
-import { isApproved, pipelineOf } from "../pipeline/pipeline.ts";
+import { stagesAfter, stagesBefore } from "../pipeline/graph.ts";
+import { isApproved, pipelineOf, stageOfKind, startOf } from "../pipeline/pipeline.ts";
 import { describeRecords } from "../records/describe.ts";
 import { clearRunning, markRunning } from "./running.ts";
 import { allRecords, appendToSection, approvalsOf, findRecord, setFields, type WorkRecord } from "../records/records.ts";
@@ -190,7 +191,7 @@ function stagePrompt(repo: string, config: Config, record: WorkRecord, stage: St
       ? `- This is the last stage. If the work is finished, set the closing status on ${record.id} and on every idea, plan, feature and bug made for it.`
       : `- Leave ${record.id} open: its status closes only at the last stage.`,
     ...(record.data.experiment || record.kind.named ? [`- Any record you make for this names it with experiment: ${record.data.experiment ?? record.id}.`] : []),
-    ...(stage.verify?.length ? [] : ["- Before you change anything, check it is right against what you can reach, and say what you could not check."]),
+    "- Check that what you were given (signals, records, earlier stages' work) is true before you use it: check it is right against what you can reach, and say what you could not check.",
     ...(stage.changes ? ["- This stage must change files. If none need changing, start your final message with NO CHANGE NEEDED: and the reason. If something blocks you, say what, and do not use those words."] : []),
     "- Before you finish, check every part of the stage is done. If something blocks you, say what.",
   ].join("\n");
@@ -222,6 +223,15 @@ export interface RunOptions {
   readSource?: ReadSource;
 }
 
+/** The stages a run walks, in list order: from where the work began, up to where it stops. */
+function stagesToRun(all: StageSpec[], record: WorkRecord): StageSpec[] {
+  const start = startOf(all, record);
+  const stopsAt = all.find((stage) => stage.id === record.data["stops-at"])?.id;
+  const fromStart = start ? new Set([start, ...stagesAfter(all, start)]) : new Set<string>();
+  const toStop = stopsAt ? new Set([stopsAt, ...stagesBefore(all, stopsAt)]) : null;
+  return all.filter((stage) => fromStart.has(stage.id) && (!toStop || toStop.has(stage.id)));
+}
+
 /** Moves one record through its pipeline, from where it stopped, until a person is needed or something stops it. */
 export function runRecord(repo: string, config: Config, recordId: string, agent: Agent, options: RunOptions = {}): RunResult {
   markRunning(repo, recordId);
@@ -234,9 +244,8 @@ export function runRecord(repo: string, config: Config, recordId: string, agent:
 
 function moveRecord(repo: string, config: Config, recordId: string, agent: Agent, options: RunOptions): RunResult {
   const first = findRecord(repo, config, recordId);
-  const all = pipelineOf(config, String(first.data.pipeline ?? "default"));
-  const stopsAt = all.findIndex((stage) => stage.id === first.data["stops-at"]);
-  const stages = stopsAt >= 0 ? all.slice(0, stopsAt + 1) : all;
+  const stages = stagesToRun(pipelineOf(config, String(first.data.pipeline ?? "default")), first);
+  const ownStage = stageOfKind(stages, first)?.id;
   for (const id of [...(options.with ?? []), ...(options.skip ?? [])]) {
     if (!stages.find((stage) => stage.id === id)?.optional) throw new Error(`"${id}" is not an optional stage here`);
   }
@@ -255,9 +264,12 @@ function moveRecord(repo: string, config: Config, recordId: string, agent: Agent
   };
   const skipStage = (stage: StageSpec, reason: string) => setFields(repo, reread().file, { skipped: [...((reread().data.skipped ?? []) as object[]), { stage: stage.id, reason }] });
 
+  // The stage that writes this kind of record is done: its page is the work.
+  if (ownStage && !((first.data.completed ?? []) as string[]).includes(ownStage)) {
+    setFields(repo, first.file, { completed: [...((first.data.completed ?? []) as string[]), ownStage] });
+  }
+
   for (const stage of stages) {
-    // A problem stage is done once its page exists.
-    if (stage.id === "problem" && !stage.prompt) continue;
     const record = reread();
     const completed = (record.data.completed ?? []) as string[];
     const skippedEarlier = ((record.data.skipped ?? []) as { stage: string }[]).some((entry) => entry.stage === stage.id);

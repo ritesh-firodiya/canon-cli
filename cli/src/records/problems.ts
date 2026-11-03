@@ -32,6 +32,8 @@ export function recordEvent(repo: string, config: Config, source: string, event:
     }
   }
   const created = addProblem(repo, config, { title: `${source} ${event.id}`, source, priority: options.priority, pipeline: options.pipeline });
-  setFields(repo, created.file, { sources: [{ source, id: event.id, ...(event.link ? { link: event.link } : {}), count: 1, first: now, last: now }] });
+  // A signal is not yet a checked problem, so its work begins at the pipeline's first stage (intake by default).
+  const firstStage = config.pipelines[options.pipeline ?? "default"]?.[0]?.id;
+  setFields(repo, created.file, { sources: [{ source, id: event.id, ...(event.link ? { link: event.link } : {}), count: 1, first: now, last: now }], ...(firstStage ? { "started-at": firstStage } : {}) });
   return { ...created, isNew: true };
 }

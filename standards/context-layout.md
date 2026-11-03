@@ -201,19 +201,54 @@ records:
 
 ### The flow
 
-`problem → research → idea → plan → feature → design → code → review → release → result`
+```
+intake ─┬─ problem ──┐
+        ├─ idea ─────┼─ research → options → design → plan → feature → code → review → release → outcome
+        └─ discovery ┘
+```
+
+| Stage | What it means |
+|---|---|
+| `intake` | Read the signals (a user, an email, an error, a bug report, a metric) and check they are true. |
+| `problem` | What is wrong, and what should be true instead. `problems/`. |
+| `idea` | A proposed change, before research. `ideas/`. |
+| `discovery` | Something learned: data, user behavior, a market fact. `wiki/synthesis/`. |
+| `research` | What is already known about it. `wiki/synthesis/` and dated data in `raw/`. |
+| `options` | Candidate ways to solve it, not yet chosen. `ideas/`. |
+| `design` | The screens that change. Optional, gated. Before the plan, so the plan is weighed with them. |
+| `plan` | One option chosen, and why the others lost. Gated. |
+| `feature` | The plan split into features, bugs and chores. |
+| `code`, `review`, `release` | Built, checked (gated), shipped. |
+| `outcome` | Whether it worked: `outcome: retained`, `discarded` or `retried`, and `## Result`. |
+
+A signal is not a stage: it is where work comes from, kept as `source:` and `sources:`
+on the record. Every stage checks that what it was given is true before it uses it.
+
+**Forks.** `after: [stage, ...]` on a stage names the stages it may follow. With no
+`after:`, a stage follows the one above it, so a plain list is a straight line. In the
+default, problem, idea and discovery each follow intake or one another, in any order;
+each is optional with a `when:`, so a work item takes any of them, or none. `canon
+pipeline` shows the forks. `after:` must name stages in the same pipeline, never the
+stage itself, and every stage must be reachable from the first.
+
+**Where work starts.** A record starts at its `started-at:` stage, else the stage named
+for its kind (a problem at `problem`, an idea at `idea`), else the first stage. The
+stage named for its kind is done by the page existing. A problem opened by a trigger
+starts at the first stage, so its signal is checked. A run and `canon check` cover only
+what lies after the start.
 
 A repo re-orders, adds, removes or renames stages under `pipelines:`, and adds named
-pipelines. A stage naming a default id inherits what it does not set. Discoveries and
-findings are written in `research`. An optional stage with `when:` is decided by the
-AI; with no `when:` it is skipped unless asked for: `canon run <id> --with <stage>`
-or `--skip <stage>`.
+pipelines. A stage naming a default id inherits what it does not set, except `after:`:
+where a stage sits is the repo's own. An optional stage with `when:` is decided by the
+AI; with no `when:` it is skipped unless asked for: `canon run <id> --with <stage>` or
+`--skip <stage>`.
 
 ### Experiments
 
-An experiment has a unique name and can start at any stage:
-`canon experiment start checkout-retry --from design`. Earlier stages are recorded as
-skipped. A POC is `--from code --to code`. Records made for it name it:
+An experiment has a unique name and can start at any stage, inside a fork too:
+`canon experiment start checkout-retry --from design`. It sets `started-at:`, so its run
+and checks begin there. `--to <stage>` sets `stops-at:`, a stage reachable from the
+start. A POC is `--from code --to code`. Records made for it name it:
 `experiment: checkout-retry`. When the results are in, set `outcome: retained`,
 `discarded` or `retried` and write `## Result`. A discarded page is never deleted, so
 nobody proposes the same thing again without seeing what happened.

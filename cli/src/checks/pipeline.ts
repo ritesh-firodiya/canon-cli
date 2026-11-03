@@ -1,5 +1,6 @@
 import { BUILT_IN_TRIGGER_SOURCES } from "../config/schema.ts";
-import { isApproved } from "../pipeline/pipeline.ts";
+import { stagesAfter, stagesBefore } from "../pipeline/graph.ts";
+import { isApproved, stageOfKind, startOf } from "../pipeline/pipeline.ts";
 import { allRecords } from "../records/records.ts";
 import type { Check, Finding } from "./types.ts";
 
@@ -25,11 +26,17 @@ export const pipeline: Check = {
       const name = String(record.data.pipeline ?? "default");
       const stages = config.pipelines[name];
       if (!stages) return record.data.pipeline ? [finding(`follows pipeline ${name}, which does not exist`, record.file)] : [];
-      const completed = new Set((record.data.completed ?? []) as string[]);
+      // The stage named for the record's kind is done by the page itself.
+      const ownStage = stageOfKind(stages, record)?.id;
+      const completed = new Set([...((record.data.completed ?? []) as string[]), ...(ownStage ? [ownStage] : [])]);
       const skipped = new Set(((record.data.skipped ?? []) as { stage: string }[]).map((entry) => entry.stage));
       const verified = new Set((record.data.verified ?? []) as string[]);
-      const current = stages.findIndex((stage) => stage.id === record.data.stage);
-      const passed = current < 0 ? [] : stages.slice(0, current).filter((stage) => stage.id !== "problem");
+      const current = stages.find((stage) => stage.id === record.data.stage);
+      // What lies on the way from where the work began to where it is now.
+      const start = startOf(stages, record) ?? "";
+      const fromStart = new Set([start, ...stagesAfter(stages, start)]);
+      const before = current ? stagesBefore(stages, current.id) : new Set<string>();
+      const passed = stages.filter((stage) => before.has(stage.id) && fromStart.has(stage.id));
       return [
         ...passed.filter((stage) => !completed.has(stage.id) && !skipped.has(stage.id)).map((stage) => finding(`reached "${record.data.stage}" with "${stage.id}" neither done nor skipped with a reason`, record.file)),
         ...passed.filter((stage) => stage.gate && !isApproved(stage, record.data) && !skipped.has(stage.id)).map((stage) => finding(`reached "${record.data.stage}" before gate "${stage.id}" was approved — a person runs \`canon approve ${stage.id} --record ${record.id}\``, record.file)),

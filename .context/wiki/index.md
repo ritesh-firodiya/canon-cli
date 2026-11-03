@@ -10,4 +10,5 @@ last-verified: 2026-10-27
 - [work-records](decisions/work-records.md) — one home and format for problems, inputs, integrations, ideas, features, experiments, verdicts and runs
 - [features-off-by-default](decisions/features-off-by-default.md) — only the band is on until a repo enables more; each feature is its own plugin
 - [rule-layers](decisions/rule-layers.md) — extends: organization, product, team, repo, machine; the closest wins unless locked
+- [default-pipeline](decisions/default-pipeline.md) — intake, a problem/idea/discovery fork, research, options, design, plan … outcome; forks with after:
 - [hosted-team-version-only-enforcement-has-a-clear](synthesis/hosted-team-version-only-enforcement-has-a-clear.md) — first-pass research: only enforcement has a clear gap; demand unproven

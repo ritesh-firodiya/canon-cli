@@ -17,7 +17,7 @@ import { makeTree } from "./helpers/fixture.ts";
 const YAML = `cap: 3
 pipelines:
   default:
-    - { id: idea, by: agent, prompt: find ideas }
+    - { id: explore, by: agent, prompt: find ideas }
     - { id: poc, by: agent, optional: true, when: it is risky }
     - { id: plan, by: agent, gate: true, cap: 1 }
     - { id: ship, by: person }
@@ -57,7 +57,7 @@ describe("runRecord", () => {
     const { agent, calls } = fakeAgent();
     const first = runRecord(repo, config, id, agent);
     expect(first).toMatchObject({ status: "waiting", stage: "plan" });
-    expect(get().data).toMatchObject({ status: "solving", stage: "plan", completed: ["idea", "plan"] });
+    expect(get().data).toMatchObject({ status: "solving", stage: "plan", completed: ["explore", "plan"] });
     expect(get().data.skipped).toEqual([{ stage: "poc", reason: "No, it is low risk." }]);
 
     expect(runRecord(repo, config, id, agent).status).toBe("waiting");
@@ -67,7 +67,7 @@ describe("runRecord", () => {
     expect(runRecord(repo, config, id, agent)).toMatchObject({ status: "waiting", stage: "ship" });
     approveStage(repo, config, id, "ship", "me", "");
     expect(runRecord(repo, config, id, agent).status).toBe("done");
-    expect(get().data.completed).toEqual(["idea", "plan", "ship", "result"]);
+    expect(get().data.completed).toEqual(["explore", "plan", "ship", "result"]);
   });
 
   test("an optional stage runs when its condition holds", () => {
@@ -99,7 +99,7 @@ describe("runRecord", () => {
   test("a stage past its cap stops the run and keeps the cost", () => {
     const { repo, config, id, get } = setup();
     const result = runRecord(repo, config, id, () => ({ ok: false, overCap: true, costUsd: 3, text: "" }));
-    expect(result).toMatchObject({ status: "stopped", stage: "idea" });
+    expect(result).toMatchObject({ status: "stopped", stage: "explore" });
     expect(result.message).toMatch(/\$3 cap/);
     expect(get().data.cost).toBe(3);
   });
@@ -168,7 +168,7 @@ describe("runRecord", () => {
     const { repo, config, id } = setup();
     runRecord(repo, config, id, fakeAgent().agent);
     const lines = readFileSync(runsLog(), "utf8").trim().split("\n").map((line) => JSON.parse(line));
-    expect(lines[0]).toMatchObject({ record: id, stage: "idea", costUsd: 0.5, ok: true });
+    expect(lines[0]).toMatchObject({ record: id, stage: "explore", costUsd: 0.5, ok: true });
     expect(Object.keys(lines[0])).not.toContain("text");
   });
 });
@@ -297,7 +297,7 @@ pipelines:
     const { agent } = fakeAgent();
     runRecord(repo, config, id, agent);
     approveStage(repo, config, id, "plan", "ana", "");
-    rejectStage(repo, config, id, "idea", "ben", "Wrong idea");
+    rejectStage(repo, config, id, "explore", "ben", "Wrong idea");
     expect(get().data.completed).toEqual([]);
     expect(get().data.approvals).toEqual([]);
     expect(() => rejectStage(repo, config, id, "nope", "ben", "x")).toThrow(/no stage/);

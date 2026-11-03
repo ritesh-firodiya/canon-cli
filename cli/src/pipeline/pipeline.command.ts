@@ -7,7 +7,7 @@ import type { Env } from "../lib/env.ts";
 export function registerPipeline(program: Command, _env: Env): void {
   program
     .command("pipeline")
-    .description("a pipeline's stages in order — and where each stands")
+    .description("a pipeline's stages in order, the forks between them, and where each stands")
     .argument("[repo]", "product repo", ".")
     .option("--name <name>", "which pipeline", "default")
     .option("--json", "print JSON, for scripts")
@@ -20,9 +20,11 @@ export function registerPipeline(program: Command, _env: Env): void {
         return;
       }
       console.log(`pipelines: ${Object.keys(config.pipelines).join(", ")}`);
-      for (const s of stages) {
+      stages.forEach((s, i) => {
         const gate = s.gate ? (s.approved ? "  gate approved" : "  gate open") : "";
-        console.log(`${s.startedAt ? "●" : "○"} ${s.id.padEnd(14)}${s.startedAt ? ` started (${s.startedAt})` : " not started"}${gate}`);
-      }
+        // A stage that only follows the one above it needs no note; a fork says where it may come from.
+        const fork = i > 0 && (s.after.length !== 1 || s.after[0] !== stages[i - 1].id) ? `  after ${s.after.join(", ")}` : "";
+        console.log(`${s.startedAt ? "●" : "○"} ${s.id.padEnd(14)}${s.startedAt ? ` started (${s.startedAt})` : " not started"}${gate}${fork}`);
+      });
     });
 }

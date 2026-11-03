@@ -209,6 +209,8 @@ const copyFile = z.union([
 const stage = z
   .object({
     id: kebab,
+    /** The stages this one may follow, which makes forks. Absent: the stage before it in the list. */
+    after: z.array(kebab).min(1).optional(),
     /** Paths that show the stage has started, for `canon pipeline` and `canon flow`; any one is enough. */
     done: z.array(z.string().min(1)).optional(),
     /** A person must approve this stage on the record (`canon approve <id> --record <id>`) before any later stage runs. */

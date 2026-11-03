@@ -2,7 +2,8 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { homedir } from "node:os";
 import { basename, dirname, join, relative } from "node:path";
 import type { Config, StageSpec } from "../config/schema.ts";
-import { isApproved, pipelineOf } from "../pipeline/pipeline.ts";
+import { stagesAfter, stagesBefore } from "../pipeline/graph.ts";
+import { isApproved, pipelineOf, stageOfKind } from "../pipeline/pipeline.ts";
 import { allRecords, findRecord, setFields, type WorkRecord } from "../records/records.ts";
 
 /** One file per repo, outside it: what this machine is working on is not a record. */
@@ -30,9 +31,7 @@ const stagesFor = (config: Config, record: WorkRecord): StageSpec[] => pipelineO
 export function stageOfRecord(config: Config, record: WorkRecord): string | null {
   const stages = stagesFor(config, record);
   const saved = stages.find((stage) => stage.id === (record.data.at ?? record.data.stage));
-  // The name comes first: a repo may point a stage's done at another kind's folder.
-  const named = stages.find((stage) => stage.id === record.kind.folder.replace(/s$/, ""));
-  return (saved ?? named ?? stages.find((stage) => stage.done.includes(join(".context", record.kind.folder))))?.id ?? null;
+  return (saved ?? stageOfKind(stages, record))?.id ?? null;
 }
 
 const needsApproval = (stage: StageSpec, record: WorkRecord): boolean => stage.gate && !isApproved(stage, record.data);
@@ -41,9 +40,10 @@ const needsApproval = (stage: StageSpec, record: WorkRecord): boolean => stage.g
 function moveTo(repo: string, config: Config, record: WorkRecord, target: StageSpec): void {
   const stages = stagesFor(config, record);
   const current = stageOfRecord(config, record);
-  const from = stages.findIndex((stage) => stage.id === current);
-  const to = stages.indexOf(target);
-  const blocker = stages.slice(Math.max(from, 0), Math.max(to, 0)).find((stage) => needsApproval(stage, record) && (stage.id === current || !stage.optional));
+  const before = stagesBefore(stages, target.id);
+  // Only what lies between where the record is and the target can block it; going back passes nothing.
+  const between = current ? new Set([current, ...stagesAfter(stages, current)]) : new Set(stages.map((stage) => stage.id));
+  const blocker = stages.find((stage) => before.has(stage.id) && between.has(stage.id) && needsApproval(stage, record) && (stage.id === current || !stage.optional));
   if (blocker) return setFields(repo, record.file, { at: blocker.id, drafting: null });
   setFields(repo, record.file, { at: target.id, drafting: needsApproval(target, record) ? target.id : null });
 }
@@ -68,8 +68,9 @@ export function followEdit(repo: string, config: Config, path: string): void {
     return;
   }
   const stages = stagesFor(config, record);
-  const target = stages.find((stage) => stage.done.some((done) => file === done || file.startsWith(`${done}/`)));
+  const current = stageOfRecord(config, record);
+  const ahead = current ? stagesAfter(stages, current) : new Set(stages.map((stage) => stage.id));
   // shortcut: edits only move forward, so a stray one is undone with canon work --stage; send work back with canon reject.
-  if (!target || stages.indexOf(target) <= stages.findIndex((stage) => stage.id === stageOfRecord(config, record))) return;
-  moveTo(repo, config, record, target);
+  const target = stages.find((stage) => ahead.has(stage.id) && stage.done.some((done) => file === done || file.startsWith(`${done}/`)));
+  if (target) moveTo(repo, config, record, target);
 }

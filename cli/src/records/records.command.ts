@@ -68,7 +68,7 @@ export function registerRecords(program: Command): void {
     .command("experiment")
     .description("start a named experiment from any stage")
     .command("start")
-    .description("start a named experiment: earlier stages are recorded as skipped")
+    .description("start a named experiment: its run and checks begin at --from")
     .argument("<name>", "a unique name, like checkout-retry")
     .argument("[repo]", "product repo", ".")
     .requiredOption("--from <stage>", "the stage it starts at")

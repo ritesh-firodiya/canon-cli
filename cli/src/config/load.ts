@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { parse } from "yaml";
+import { afterProblem } from "../pipeline/graph.ts";
 import { DEFAULT_PIPELINE } from "./default-pipeline.ts";
 import { CONFIG_FILE, isStandardName, LOCAL_CONFIG_FILE, MODULES_BY_KIND, layerSchema, type Config, type CopyFileSpec, type Kind, type Layer, type Module, DEFAULT_PRIORITIES, DEFAULT_RECORDS, type RecordEntry, type StageEntry, type StageSpec, type RecordKind } from "./schema.ts";
 
@@ -133,15 +134,17 @@ function mergeMeanings(base: RecordKind["meanings"], extra: RecordKind["meanings
   return Object.fromEntries([...new Set([...Object.keys(base), ...Object.keys(extra)])].map((field) => [field, { ...base[field], ...extra[field] }]));
 }
 
-/** An entry naming a default stage inherits what it does not set, so one flow keeps one wording. */
+/** An entry naming a default stage inherits what it does not set, so one flow keeps one wording. Where it sits (`after`) is the repo's own. */
 function resolvePipelines(pipelines: Record<string, StageEntry[]>): Record<string, StageSpec[]> {
-  const resolved = Object.entries(pipelines).map(([name, stages]) => [
-    name,
-    stages.map((stage): StageSpec => {
-      const inherited = DEFAULT_PIPELINE.find((entry) => entry.id === stage.id);
-      return { ...inherited, ...stage, done: stage.done ?? inherited?.done ?? [], gate: stage.gate ?? inherited?.gate ?? false };
-    }),
-  ]);
+  const resolved = Object.entries(pipelines).map(([name, stages]) => {
+    const specs = stages.map((stage): StageSpec => {
+      const { after: _after, ...inherited } = DEFAULT_PIPELINE.find((entry) => entry.id === stage.id) ?? ({} as Partial<StageSpec>);
+      return { ...inherited, ...stage, done: stage.done ?? inherited.done ?? [], gate: stage.gate ?? inherited.gate ?? false };
+    });
+    const problem = afterProblem(specs);
+    if (problem) throw new Error(`pipelines.${name}: ${problem}`);
+    return [name, specs] as const;
+  });
   return { default: DEFAULT_PIPELINE, ...Object.fromEntries(resolved) };
 }
 

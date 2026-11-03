@@ -2,9 +2,12 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import type { Config, StageSpec } from "../config/schema.ts";
 import { allRecords, approvalsOf, findRecord, setFields, type Approval, type WorkRecord } from "../records/records.ts";
+import { afterOf, stagesAfter } from "./graph.ts";
 
 export interface StageState {
   id: string;
+  /** The stages it may follow. */
+  after: string[];
   gate: boolean;
   /** The first `done` path that exists, or null when the stage has not started. */
   startedAt: string | null;
@@ -15,8 +18,10 @@ export interface StageState {
 /** The stages of one pipeline, in order, with where each stands across the repo's records. */
 export function stagesOf(repo: string, config: Config, name = "default"): StageState[] {
   const approved = new Set(allRecords(repo, config).flatMap((record) => approvalsOf(record.data).map((approval) => approval.stage)));
-  return pipelineOf(config, name).map((stage) => ({
+  const stages = pipelineOf(config, name);
+  return stages.map((stage) => ({
     id: stage.id,
+    after: afterOf(stages, stage),
     gate: stage.gate,
     startedAt: stage.done.find((path) => existsSync(join(repo, path))) ?? null,
     approved: stage.gate ? approved.has(stage.id) : null,
@@ -27,6 +32,18 @@ export function pipelineOf(config: Config, name: string): StageSpec[] {
   const stages = config.pipelines[name];
   if (!stages) throw new Error(`no pipeline "${name}" — pipelines here: ${Object.keys(config.pipelines).join(", ")}`);
   return stages;
+}
+
+/** The stage whose work is the record's own page: the one named for its kind, else the first whose done holds its folder. */
+export function stageOfKind(stages: StageSpec[], record: WorkRecord): StageSpec | undefined {
+  // The name comes first: a repo may point a stage's done at another kind's folder.
+  return stages.find((stage) => stage.id === record.kind.folder.replace(/s$/, "")) ?? stages.find((stage) => stage.done.includes(join(".context", record.kind.folder)));
+}
+
+/** Where a record's work begins: where it was started, else its own kind's stage, else the first stage. */
+export function startOf(stages: StageSpec[], record: WorkRecord): string | undefined {
+  const started = stages.find((stage) => stage.id === record.data["started-at"]);
+  return (started ?? stageOfKind(stages, record) ?? stages[0])?.id;
 }
 
 /** Enough different allowed people have approved this stage on this record. */
@@ -54,13 +71,12 @@ export function approveStage(repo: string, config: Config, recordId: string, sta
   return approval;
 }
 
-/** Sends a stage back, gated or not: it and every stage after it lose their approvals and run again, and the next run is told why. */
+/** Sends a stage back, gated or not: it and every stage it leads to lose their approvals and run again, and the next run is told why. */
 export function rejectStage(repo: string, config: Config, recordId: string, stageId: string, by: string, note: string, now = new Date()): void {
   const record = findRecord(repo, config, recordId);
   const stages = pipelineOf(config, String(record.data.pipeline ?? "default"));
-  const from = stages.findIndex((stage) => stage.id === stageId);
-  if (from < 0) throw new Error(`no stage "${stageId}" here: ${stages.map((stage) => stage.id).join(", ")}`);
-  const redone = new Set(stages.slice(from).map((stage) => stage.id));
+  if (!stages.some((stage) => stage.id === stageId)) throw new Error(`no stage "${stageId}" here: ${stages.map((stage) => stage.id).join(", ")}`);
+  const redone = new Set([stageId, ...stagesAfter(stages, stageId)]);
   setFields(repo, record.file, {
     approvals: approvalsOf(record.data).filter((approval) => !redone.has(approval.stage)),
     completed: ((record.data.completed ?? []) as string[]).filter((id) => !redone.has(id)),

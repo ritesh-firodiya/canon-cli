@@ -15,12 +15,15 @@ import { belongs, type Session } from "./sessions.ts";
 // this one: estate-wide chores commit to every repo at once.
 //
 // What each stage needs:
+//   (first stage) the conversation exists; intake in canon's default
 //   problem       a commit touched .context/problems/
-//   idea          the conversation exists
-//   research      it searched or fetched the web, or a commit touched .context/raw/ or wiki/synthesis/
+//   idea          a commit touched .context/ideas/
+//   discovery     a commit touched .context/wiki/synthesis/
+//   research      it searched or fetched the web, or a commit touched .context/raw/
+//   options       never: a commit cannot tell an option from an idea
+//   design        a commit touched .context/designs/
 //   plan          a commit touched .context/plans/, tasks.md or wiki/decisions/
 //   feature       a commit touched .context/features/ or .context/bugs/
-//   design        a commit touched .context/designs/
 //   code          a commit touched anything outside .context/ and .claude/
 //   review        a commit is in a merged pull request
 //   release       a version tag holds a commit (an untagged version: the commit that set it)
@@ -31,13 +34,15 @@ import { belongs, type Session } from "./sessions.ts";
 // A conversation counts at every stage up to the furthest it reached.
 
 const MATCH_SECONDS = 120;
-export const KNOWN = ["problem", "research", "idea", "plan", "feature", "design", "code", "review", "release", "store-review", "deployed", "live"];
+export const KNOWN = ["intake", "problem", "idea", "discovery", "research", "options", "design", "plan", "feature", "code", "review", "release", "store-review", "deployed", "live"];
 const TOUCH: Record<string, string[]> = {
   problem: [".context/problems/"],
-  research: [".context/raw/", ".context/wiki/synthesis/"],
+  idea: [".context/ideas/"],
+  discovery: [".context/wiki/synthesis/"],
+  research: [".context/raw/"],
+  design: [".context/designs/"],
   plan: [".context/plans/", ".context/tasks.md", ".context/wiki/decisions/"],
   feature: [".context/features/", ".context/bugs/"],
-  design: [".context/designs/"],
 };
 
 export interface FlowResult {
@@ -51,8 +56,8 @@ export interface FlowResult {
 type Reached = Map<string, Date | null>;
 
 /** {stage: when it was first reached} for one conversation. */
-function reached(session: Session, commits: [string, Date][], repo: string, facts: Facts, custom: Record<string, string[]>): Reached {
-  const at: Reached = new Map([["idea", session.start]]);
+function reached(session: Session, commits: [string, Date][], repo: string, facts: Facts, custom: Record<string, string[]>, firstStage: string): Reached {
+  const at: Reached = new Map([[firstStage, session.start]]);
   const first = (stage: string, when: Date | null | undefined) => at.has(stage) || at.set(stage, when ?? null);
   if (session.web) at.set("research", session.web);
   for (const [sha, when] of [...commits].sort((a, b) => a[1].getTime() - b[1].getTime())) {
@@ -108,7 +113,7 @@ export function flow(workspace: string, product: string, sessions: Session[], fo
     // Never worked in this product's folder, under any of its names, nor committed to it.
     if (![...s.where].some((w) => names.has(w)) && !mine.length) continue;
     if (!first || s.start < first) first = s.start;
-    const at = reached(s, mine, repo, facts, custom);
+    const at = reached(s, mine, repo, facts, custom, stages[0]);
     furthest.push(Math.max(...stages.flatMap((st, i) => (at.has(st) ? [i] : []))));
     for (const [a, b] of pairs) {
       const from = at.get(a);
