@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.3.0 — 2026-11-03
+
+### Added
+
+- **Any agent for `canon run`.** `agent:` in `context.yaml` is `claude` (the default) or a command with `args` (`{prompt}`, `{model}`), `modelArgs` and `smallModel`. A custom agent reports no dollars, so the spend cap is not enforced for it.
+- **The band's Haiku comes from the live models list.** With `ANTHROPIC_API_KEY` set, the classifier uses the newest `claude-haiku-*`. Without it, it uses the `haiku` alias.
+
+### Changed
+
+- The band no longer starts with "canon". Good is green, warnings are yellow, danger is red: checks, tests, usage, cache, the chosen model and effort, and spend against the cap.
+
+### Fixed
+
+- Moving a stage by hand or by edit no longer fails `canon check`. Where you are working now is its own `at` field.
+- A record starts at the stage named for its kind, so a selected plan shows its stage.
+- Design sets read their pages every time, so deleted pages no longer show and new ones do.
+
 ## 2.2.0 — 2026-11-03
 
 ### Added
