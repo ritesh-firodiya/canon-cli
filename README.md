@@ -197,7 +197,8 @@ Built in, for every repo: a mobile or web repo keeps `.context/designs/` (design
 first), and a repo that draws its screens always gets the design checks.
 
 Lists of names (`packs`, `standards`, `copies.use`) add up across the two files;
-`commands`, `doctor.tools`, `wiki.types` and `context.folders` merge by name.
+`commands`, `doctor.tools`, `wiki.types`, `context.folders` and `context.rootFolders` merge by name.
+`context.rootFolders` (`{ folder, reason }`) declares a tracked root folder canon leaves alone; today only `docs` is checked.
 
 ## Layout
 

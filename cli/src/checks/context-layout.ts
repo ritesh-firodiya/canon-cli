@@ -71,7 +71,9 @@ export const contextLayout: Check = {
     for (const stray of ROOT_STRAYS) {
       if (existsSync(join(repo, stray))) findings.push(finding("error", stray, "nothing renders it at the root — it belongs in .context/ (tasks.md, ops/)"));
     }
-    if (existsSync(join(repo, "docs"))) findings.push(finding("error", "docs/", "a root docs/ folder — that material belongs in .context/"));
+    if (existsSync(join(repo, "docs")) && !config.context.rootFolders.some((entry) => entry.folder === "docs")) {
+      findings.push(finding("error", "docs/", "a root docs/ folder — that material belongs in .context/, or name it under context.rootFolders in context.yaml"));
+    }
     if (existsSync(join(repo, "store.config.json")) && existsSync(join(context, "listing", "ios"))) {
       findings.push(finding("error", "store.config.json", "two Apple listings — .context/listing/ios/ is the one source"));
     }

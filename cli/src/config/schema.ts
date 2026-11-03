@@ -310,7 +310,7 @@ export const layerSchema = z
     doctor: z.object({ tools: z.array(tool) }).partial(),
     weigh: z.object({ weights: z.record(principleId, z.number().nonnegative()) }).partial(),
     wiki: z.object({ types: z.array(wikiType) }).partial(),
-    context: z.object({ folders: z.array(contextFolder) }).partial(),
+    context: z.object({ folders: z.array(contextFolder), rootFolders: z.array(contextFolder) }).partial(),
     /** Named pipelines. A more specific layer replaces a pipeline of the same name and keeps the others. */
     pipelines: z.record(kebab, z.array(stage)),
     /** What each priority means, most urgent first. Replaces the whole list. */
@@ -375,7 +375,7 @@ export interface Config {
   /** Wiki page types added to the built-in six. */
   wiki: { types: WikiTypeSpec[] };
   /** `.context/` folders added to the built-in ten. */
-  context: { folders: ContextFolderSpec[] };
+  context: { folders: ContextFolderSpec[]; rootFolders: ContextFolderSpec[] };
   /** Ordered stages by name. `default` is canon's flow unless a layer sets its own. */
   pipelines: Record<string, StageSpec[]>;
   cap?: number;

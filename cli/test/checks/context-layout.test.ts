@@ -88,6 +88,11 @@ describe("context-layout additions", () => {
     );
   });
 
+  test("a root docs/ named under context.rootFolders is allowed", () => {
+    const yaml = "context:\n  rootFolders:\n    - { folder: docs, reason: dated decision records }\n";
+    expect(contextLayout.run(at({ ...VALID_CONTEXT, "docs/a.md": "", ".context/context.yaml": yaml }))).toEqual([]);
+  });
+
   test("AGENTS.md need not point at .context/tasks.md when .context/ is gitignored", () => {
     const ctx = at({ ...VALID_CONTEXT, "AGENTS.md": "# Agents\n", ".gitignore": ".context/\n" });
     execFileSync("git", ["init", "-q"], { cwd: ctx.repo });

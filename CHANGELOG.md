@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.4.0 — 2026-11-03
+
+### Added
+
+- **`context.rootFolders` in `context.yaml`.** A repo can keep a tracked root `docs/` by naming it with a `{ folder, reason }`, the same shape as `context.folders`. It merges across layers by folder. The `docs/` error now points at it. Only `docs` is checked today.
+
 ## 2.3.0 — 2026-11-03
 
 ### Added

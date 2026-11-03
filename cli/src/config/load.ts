@@ -183,7 +183,10 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     doctor: { tools: mergeBy(pick("doctor").map((doctor) => doctor?.tools ?? []), (tool) => tool.tool) },
     weigh: { weights: Object.assign({}, ...pick("weigh").map((weigh) => weigh?.weights)) },
     wiki: { types: mergeBy(pick("wiki").map((wiki) => wiki?.types ?? []), (entry) => entry.type) },
-    context: { folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder) },
+    context: {
+      folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder),
+      rootFolders: mergeBy(pick("context").map((context) => context?.rootFolders ?? []), (entry) => entry.folder),
+    },
     pipelines: resolvePipelines(Object.assign({}, ...pick("pipelines"))),
     baseline: { pipelines: resolvePipelines(Object.assign({}, ...inheritedLayers.map((layer) => layer.data.pipelines))), cap: lastDefined(inheritedLayers.map((layer) => layer.data.cap)) },
     locks: layers.flatMap((layer) => (layer.data.locked ?? []).map((key) => ({ key, value: valueAt(layer.data, key), layer: layer.path }))),
