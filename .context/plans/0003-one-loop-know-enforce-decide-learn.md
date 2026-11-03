@@ -26,6 +26,7 @@ The code folders follow the same groups, with one shared `lib`; repeated code (t
 - Slow: `flow` 14.3 s and `usage` 11.3 s, each reading every transcript on its own.
 - Every session: session-start text 1,331 chars (process 985, knowledge 346); seven skill descriptions 2,249 chars; the qmd server's instructions, which list every collection, about 3,800 chars. In all about 7,400 chars, near 1,900 tokens.
 - Each typed prompt: the reply-size rule, about 150 chars.
+- Use, 2026-10-05 to 2026-11-04, 791 transcripts: `check` 680 calls in 48 sessions; `ui` 71; `standards` 59; `pipeline` 38; `new` 35; `flow` 26; `init` 25; `sync` 20; `verdict` 16; `copies` 15; `queue` 15; `status` 13; `usage` 10; the rest under 10 each. Never called: `search`, `weigh`, `add`. Skills: `weigh` 23 runs, `decision` 15; `ask`, `ingest`, `standards`, `wiki-lint` and `wildcard` never. So weigh ran in about 3% of sessions: it needs enforcing.
 - On use: the weigh skill is 9,570 chars (about 2,400 tokens), and session start tells the agent to run it on every non-trivial request.
 
 ## Steps
