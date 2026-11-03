@@ -55,7 +55,11 @@ export const tokens = (value: unknown): number => (typeof value === "number" && 
 export const promptTokens = (usage: Usage): number => tokens(usage.input_tokens) + tokens(usage.cache_creation_input_tokens) + tokens(usage.cache_read_input_tokens);
 
 /** A model's list price, or null when this table does not know it. A dated id finds its model. */
-export function priceOf(model: string, prompt: number): Price | null {
+// What a bare family name runs today, as Claude Code resolves it without an API key. Move with the newest rows above.
+const ALIASES: Record<string, string> = { haiku: "claude-haiku-5-5", sonnet: "claude-sonnet-5-5", opus: "claude-opus-5-5" };
+
+export function priceOf(alias: string, prompt: number): Price | null {
+  const model = ALIASES[alias] ?? alias;
   const found = PRICES.find(([prefix]) => model.startsWith(prefix))?.[1] ?? null;
   return found && model.startsWith("claude-haiku-5-5") && prompt > HAIKU_LARGE_PROMPT ? HAIKU_LARGE : found;
 }

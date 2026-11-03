@@ -181,3 +181,9 @@ describe("canon usage", () => {
     expect([...installedSkills(join(home, "missing"))]).toEqual([]);
   });
 });
+
+test("a bare family name is priced as the model it runs today", () => {
+  expect(priceOf("haiku", 10)).toEqual(priceOf("claude-haiku-5-5", 10));
+  expect(priceOf("opus", 10)).toEqual(priceOf("claude-opus-5-5", 10));
+  expect(priceOf("unknown", 10)).toBeNull();
+});
