@@ -271,6 +271,14 @@ const recordEntry = z
   })
   .strict();
 
+/** The agent `canon run` starts: Claude Code, or any command that takes a prompt. `{prompt}` and `{model}` are filled in; modelArgs are added only when a model is named. */
+const agentSpec = z.union([
+  z.literal("claude"),
+  z
+    .object({ command: z.string().min(1), args: z.array(z.string()).min(1), modelArgs: z.array(z.string()).optional(), smallModel: z.string().min(1).optional() })
+    .strict(),
+]);
+
 /** What opens a Problem by itself. `source` is a connector's id or a built-in source. */
 const trigger = z
   .object({
@@ -311,6 +319,8 @@ export const layerSchema = z
     owner: z.string().min(1),
     /** The default spend cap per stage, in US dollars. */
     cap: z.number().positive(),
+    /** Which agent runs stages. Absent: Claude Code. */
+    agent: agentSpec,
     /** The layers this one builds on, furthest first: an organization's rules, a product's, a team's. Paths are relative to this file. */
     extends: z.array(z.string().min(1)),
     /** Values lower layers may not change: `cap`, `pipelines.default.review`, `records.bugs`, `connectors.sentry`. */
@@ -336,6 +346,7 @@ export const layerSchema = z
   .strict();
 
 export type Layer = z.infer<typeof layerSchema>;
+export type AgentSpec = z.infer<typeof agentSpec>;
 export type CommandSpec = z.infer<typeof command>;
 export type ToolSpec = z.infer<typeof tool>;
 export type WikiTypeSpec = z.infer<typeof wikiType>;
@@ -368,6 +379,7 @@ export interface Config {
   /** Ordered stages by name. `default` is canon's flow unless a layer sets its own. */
   pipelines: Record<string, StageSpec[]>;
   cap?: number;
+  agent?: AgentSpec;
   priorities: Record<string, string>;
   owner?: string;
   /** What this repo's own layers build on, to show what they weakened. */

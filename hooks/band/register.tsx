@@ -24,6 +24,7 @@ import {
   usdLabel,
   windowViews,
 } from './facts'
+import { latestModel } from '../../cli/src/usage/models'
 import { CLASSIFIER_SYSTEM, EFFORTS, TIERS, classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
 import type { Applied, BandFacts, CacheFacts, Chosen, Effort, Panel, Route, Tests, Tier, UsageWindow } from './types'
 
@@ -32,16 +33,18 @@ import type { Applied, BandFacts, CacheFacts, Chosen, Effort, Panel, Route, Test
 
 const TICK_MS = 30_000
 const EXTEND_MESSAGE = 'Reply with only: ok'
-const CLASSIFIER_MODEL = 'claude-haiku-5-5'
 const CLASSIFIER_TIMEOUT_MS = 3000
 const CLASSIFIER_MAX_TOKENS = 5
 const WORK_ROWS = 8
+
+const WARN_SPEND = 0.7
 
 const AMBER = '#f0b429'
 const AMBER_INK = '#241a00'
 const RED_BG = '#4a1f1c'
 const RED = '#ff7b72'
 const BLUE = '#8cc4ff'
+const GREEN = '#56d364'
 
 const facts = atom({ plugin: 'canon', key: 'facts' } as const, null as BandFacts | null)
 const workPath = atom({ plugin: 'canon', key: 'workPath' } as const, null as string | null)
@@ -99,14 +102,17 @@ async function logRoute($: EngineInterface, entry: Route): Promise<void> {
 
 /** Asks Haiku how hard a prompt is. A failed or unclear answer leaves the session's own settings. */
 async function decide($: EngineInterface, text: string): Promise<void> {
+  const model = await latestModel('haiku', (await $.env.get('ANTHROPIC_API_KEY')) ?? undefined)
   const answer = await $.model
-    .complete({ model: CLASSIFIER_MODEL, system: CLASSIFIER_SYSTEM, prompt: classifierPrompt(text), maxTokens: CLASSIFIER_MAX_TOKENS, timeoutMs: CLASSIFIER_TIMEOUT_MS })
+    .complete({ model, system: CLASSIFIER_SYSTEM, prompt: classifierPrompt(text), maxTokens: CLASSIFIER_MAX_TOKENS, timeoutMs: CLASSIFIER_TIMEOUT_MS })
     .catch(() => undefined)
   const size = answer?.isAnswered ? parseSize(answer.text) : null
-  const entry: Route = { size, isFailed: size === null, decideUsd: answer ? callUsd(CLASSIFIER_MODEL, answer.usage.input_tokens, answer.usage.output_tokens) : 0 }
+  const entry: Route = { size, isFailed: size === null, decideUsd: answer ? callUsd(model, answer.usage.input_tokens, answer.usage.output_tokens) : 0 }
   await update($, route, () => entry)
   await logRoute($, entry).catch(() => undefined)
 }
+
+const spendColor = (spent: number, cap: number): string => (spent >= cap ? RED : spent >= cap * WARN_SPEND ? AMBER : GREEN)
 
 // Off unless the repo names it in `features:`. A session with no product has nothing to name it in.
 async function isRoutingOn($: EngineInterface): Promise<boolean> {
@@ -261,7 +267,7 @@ export const register: Register = on => {
     const routeWord = running ? routeLabel(mode, tierOf(running.model) ?? running.model, running.effort) : null
     const pickButton = routeWord ? (
       <Button key="route" plain onPress={toggle('route')}>
-        <Text color={mode === 'you' ? AMBER : undefined} dimColor={mode !== 'you'}>{routeWord}</Text>
+        <Text color={mode === 'you' ? GREEN : undefined} dimColor={mode !== 'you'}>{routeWord}</Text>
       </Button>
     ) : null
 
@@ -269,11 +275,11 @@ export const register: Register = on => {
       <Box key={`choose-${name}`} flexDirection="row" gap={2}>
         <Text dimColor>{title}</Text>
         <Button key={`${name}-auto`} plain onPress={() => update($, chosen, c => ({ ...c, [name]: null }))}>
-          <Text color={current === null ? AMBER : undefined}>auto</Text>
+          <Text color={current === null ? GREEN : undefined}>auto</Text>
         </Button>
         {options.map(option => (
           <Button key={`${name}-${option}`} plain onPress={() => update($, chosen, c => ({ ...c, [name]: option }))}>
-            <Text color={current === option ? AMBER : undefined}>{option}</Text>
+            <Text color={current === option ? GREEN : undefined}>{option}</Text>
           </Button>
         ))}
       </Box>
@@ -301,7 +307,7 @@ export const register: Register = on => {
           f.running ? <Text key="running" color={BLUE} bold>running {duration(now - Date.parse(f.running.startedAt))}</Text> : null,
           <Button key="problem" plain dimColor={!f.selected} label={f.problem?.id ?? 'pick work'} onPress={toggle('work')} />,
           pickButton,
-          f.running ? <Text key="spend">{money(f.running.spendUsd)} of {money(f.running.capUsd)}</Text> : null,
+          f.running ? <Text key="spend" color={spendColor(f.running.spendUsd, f.running.capUsd)}>{money(f.running.spendUsd)} of {money(f.running.capUsd)}</Text> : null,
           !f.running && !f.waiting && task > 0 ? <Text key="task" dimColor>task {money(task)}</Text> : null,
         ]
       : [pickButton]
@@ -309,17 +315,17 @@ export const register: Register = on => {
     const health = hasProcess && f?.product
       ? [
           f.warnings.length ? <Button key="warnings" plain onPress={toggle('warnings')}><Text color={AMBER}>{f.warnings.length} warning{f.warnings.length === 1 ? '' : 's'}</Text></Button> : null,
-          !f.errors.length && !f.warnings.length ? <Text key="checks" dimColor>checks ok</Text> : null,
-          testState === 'ok' ? <Text key="tests" dimColor>{testsLabel(testState)}</Text> : null,
+          !f.errors.length && !f.warnings.length ? <Text key="checks" color={GREEN}>checks ok</Text> : null,
+          testState === 'ok' ? <Text key="tests" color={GREEN}>{testsLabel(testState)}</Text> : null,
           testState === 'stale' ? <Text key="tests" color={AMBER}>{testsLabel(testState)}</Text> : null,
           testState === 'failed' ? <Text key="tests" color={RED} bold>{testsLabel(testState)}</Text> : null,
         ]
       : []
 
     const limits = [
-      ...usage.map(w => (w.isLow ? <Text key={w.label} color={RED} bold>{w.label}</Text> : <Text key={w.label}>{w.label}</Text>)),
+      ...usage.map(w => (w.isLow ? <Text key={w.label} color={RED} bold>{w.label}</Text> : <Text key={w.label} color={GREEN}>{w.label}</Text>)),
       view?.mode === 'cold' ? <Text key="cache" color={AMBER}>{coldLabel(view.nextUsd)}</Text> : null,
-      view?.mode === 'warm' ? <Text key="cache" dimColor>cache {view.minutesLeft}m</Text> : null,
+      view?.mode === 'warm' ? <Text key="cache" color={GREEN}>cache {view.minutesLeft}m</Text> : null,
       extending ? <Text key="extending" dimColor>extending...</Text> : null,
       !extending && view?.mode === 'warm' && canExtend(view, e.props.isWorking) ? <Button key="extend" plain dimColor label={extendLabel(view.extendUsd)} onPress={extend} /> : null,
     ]
@@ -333,8 +339,8 @@ export const register: Register = on => {
     )
 
     const rows = isNarrow(e.props.bodyColumns)
-      ? [row('work', [<Text key="brand" bold>canon</Text>, ...work], []), row('limits', health, limits)]
-      : [row('work', [<Text key="brand" bold>canon</Text>, ...work], [...health, ...limits])]
+      ? [row('work', work, []), row('limits', health, limits)]
+      : [row('work', work, [...health, ...limits])]
 
     const stages = open === 'stage' && f ? (
       <Box key="stages" flexDirection="row" flexWrap="wrap">

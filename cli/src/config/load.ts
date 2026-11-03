@@ -192,6 +192,7 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     records: resolveRecords(mergeBy(pick("records").map((list) => list ?? []), (entry) => entry.folder)),
     name: lastDefined(pick("name")),
     cap: lastDefined(pick("cap")),
+    agent: lastDefined(pick("agent")),
     priorities: lastDefined(pick("priorities")) ?? DEFAULT_PRIORITIES,
     owner: lastDefined(pick("owner")),
     product: lastDefined(pick("product")),
@@ -205,6 +206,7 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
   };
   if (config.name === undefined) delete config.name;
   if (config.cap === undefined) delete config.cap;
+  if (config.agent === undefined) delete config.agent;
   if (config.owner === undefined) delete config.owner;
   if (config.product === undefined) delete config.product;
   if (config.team === undefined) delete config.team;
