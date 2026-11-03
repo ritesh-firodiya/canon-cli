@@ -14,6 +14,9 @@ export function registerUpdate(program: Command, env: Env): void {
     .argument("[repo]", "product repo", ".")
     .action(async (repo: string) => {
       for (const line of await updateCanon({ canonRoot: env.canonRoot, run: runCommand, fetchText })) console.log(line);
+      // The new release finds the models, so a new source or price list applies at once.
+      const models = spawnSync("canon", ["models"], { stdio: "inherit" });
+      if (models.error) console.error(`could not run canon models: ${models.error.message}`);
       const path = resolve(repo);
       if (!existsSync(join(path, CONFIG_FILE))) return;
       // The new release runs the sync, not this process, which is still the old code.

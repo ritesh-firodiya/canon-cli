@@ -1,6 +1,7 @@
 import { basename, resolve } from "node:path";
 import * as prompts from "@clack/prompts";
 import { Option, type Command } from "commander";
+import { formatModels, writeModels } from "../models/models.ts";
 import { KINDS, kindCovers, MODULES, type Kind } from "../config/schema.ts";
 import { RULES_FILES } from "../checks/architecture.ts";
 import { applyInit, parseChoices, planInit, type InitAnswers, type InitPlan } from "./init.ts";
@@ -80,6 +81,7 @@ export function registerInit(program: Command, env: Env): void {
       console.log(`wrote .context/context.yaml (${plan.config.kind}: ${plan.config.modules.join(", ")})`);
       for (const file of plan.create) console.log(`created ${file}`);
       if (plan.create.some((file) => file.endsWith(RULES_FILES[0]))) console.log("architecture: add the checker with `pnpm add -D dependency-cruiser`, then edit the .dependency-cruiser.cjs files to this repo's layers");
+      console.log(formatModels(await writeModels()));
       console.log(plan.config.packs ? "next: canon sync (fetches the packs), then canon check" : "next: canon check");
     });
 }
