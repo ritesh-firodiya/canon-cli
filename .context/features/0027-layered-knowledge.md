@@ -26,6 +26,10 @@ Knowledge, not only rules, comes in layers: a repo's own `.context/`, then the c
 - Given a new fact, then canon proposes the narrowest layer that is true for it, and proposes moving it up only when a second repo needs it; the move is a pull request the layer's owners approve.
 - Given a context repo cloned anywhere, then canon finds it from the git remote's owner and a `canon-context` repo topic, or a path in user config.
 - Given a layer's folders (`company/`, `departments/`, `domains/`), then they are declared with `context.folders`, as today.
+- Given a user config outside every repo (for example `~/.config/canon/config.yaml`), then it names the person's own layer by path, the folders that hold repos, and per-repo settings; no folder layout is assumed.
+- Given a repo with no `.context/` that the person may not add one to (a work repo), then canon treats it as a guest repo: checks run with the person's layer and canon's defaults, nothing is written into the repo, and a missing `.context/` is not an error.
+- Given per-repo settings for a guest repo, then they live in the user config, keyed by the repo's git remote, never in the repo.
+- Given a machine where the person's layer is a read-only clone, then canon reads it and never commits or pushes to it; anything canon would save there stays in the user config instead.
 
 ## Out of scope
 - Moving or cloning repos on disk.
@@ -35,10 +39,11 @@ Knowledge, not only rules, comes in layers: a repo's own `.context/`, then the c
 ## Decided
 - Layers are named with the existing `extends:` key in `.context/context.yaml`; there is no separate `knowledge:` list (2026-11-04).
 - A layer that is not on this machine, or that the person cannot read, is skipped without an error, and `canon status` lists which layers were found. Today a missing `extends:` target throws (`config/load.ts`); that changes (2026-11-04).
+- The person's layer is one repo at a path named in user config, read-only where needed (2026-11-04).
 
 ## Open questions
+- Where the user config lives on each OS, and whether an environment variable can point to it.
 - How "the same fact" is detected: canonical values in entity tables only, or any line.
-- Whether the person's layer is one repo or a folder in user config.
 - Whether a search index is built per person, and where it is kept.
 
 ## Store copy
