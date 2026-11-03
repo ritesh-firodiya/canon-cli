@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.1 — 2026-11-03
+
+### Fixed
+
+- An experiment started at an optional stage (`--from design`, `--from discovery`) runs that stage instead of asking whether it should, the same as `--with`.
+
 ## 3.0.0 — 2026-11-03
 
 ### Changed
