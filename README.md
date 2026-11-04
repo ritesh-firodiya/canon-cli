@@ -80,7 +80,7 @@ repo's plugins, so use `--user` if you work that way.
 
 Every repo's wiki and feature board is indexed with
 [QMD](https://github.com/tobi/qmd), and Claude searches before answering. Ask with
-`/canon-knowledge:ask`; `/canon-knowledge:ingest` with no argument captures what a session taught.
+`/canon-knowledge:ask`; `/canon-knowledge:ingest` with no argument captures what a session taught. Each prompt you type also carries up to three pages its words point to, by title and path, so Claude sees what exists before it answers.
 
 ```bash
 npm install -g @tobilu/qmd --allow-scripts=node-llama-cpp,tree-sitter-go,tree-sitter-python,tree-sitter-rust,tree-sitter-typescript,tree-sitter-javascript

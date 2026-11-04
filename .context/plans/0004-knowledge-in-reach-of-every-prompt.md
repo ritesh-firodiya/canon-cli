@@ -1,6 +1,6 @@
 ---
 id: PLAN-0004
-status: draft
+status: building
 priority: p2
 last-verified: 2026-11-04
 problem: PROB-0001
