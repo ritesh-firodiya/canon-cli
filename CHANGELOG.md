@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.0.1 — 2026-11-05
+
+### Changed
+
+- **Research does due diligence outside the repo:** on the web and in public sources, with the questions the case needs, such as who else has the problem, how they solved it, whether it is solved and how well it worked. Vendor claims are marked as claims, and empty searches are reported.
+
 ## 5.0.0 — 2026-11-05
 
 ### Changed
