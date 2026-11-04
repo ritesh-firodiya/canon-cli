@@ -72,7 +72,7 @@ repo's plugins, so use `--user` if you work that way.
   reads it. The gate queries it read-only to back or reject a claim.
 - **Decisions in one place.** `/canon-process:decision` writes one file per topic,
   overwritten when the choice changes. `tasks.md` holds open work only, and history is git's.
-- **Weigh is enforced.** With `routing` on, a prompt sized large changes nothing until weigh has run.
+- **Weigh is enforced.** A prompt sized large changes nothing until weigh has run.
 - **Learn from history.** `/canon-process:learn` reads `canon learn` and proposes rule changes where people keep overriding a rule. It changes nothing until you decide.
 - **More ideas.** `/canon-process:wildcard` makes 2 of every 10 ideas break your patterns.
 

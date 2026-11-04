@@ -600,3 +600,23 @@ test('a typed prompt carries the pages its words point to, and only where knowle
   expect(seen[1]?.join('\n')).not.toContain('canon found knowledge')
 })
 
+test('with process on and routing off, a large prompt is still held for weigh, and nothing is routed', async ($, on) => {
+  const calls: string[] = []
+  engine(on, { ...FACTS, features: ['process'] })
+  on('fs.read', () => ({ value: '' }))
+  on('fs.write', () => ({ value: undefined }))
+  on('prompt.submit', (_: unknown, e: any) => ({ text: e.text }))
+  ;(on as any)('model.complete', () => ({ value: { isAnswered: true, text: 'large', usage: { input_tokens: 10, output_tokens: 1 } } }))
+  on('tool.call', (_: unknown, e: any) => {
+    calls.push(e.tool)
+    return { result: {} }
+  })
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  await $.prompt.submit({ text: 'rebuild the whole app', origin: { kind: 'composer' } })
+  const refused = await $.tool.call({ tool: 'Write', file_path: '/w/shop/a.ts', content: 'x' })
+  expect(JSON.stringify(refused)).toContain('weigh skill')
+  const ui = await $.ui.mount(render('terminal'))
+  expect(await ui.find({ key: 'route' })).toBeUndefined()
+  await ui.unmount()
+})
+

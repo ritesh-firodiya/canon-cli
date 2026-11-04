@@ -28,6 +28,7 @@ Opus is 99% of cost. Most of the saving must come from building on a smaller mod
 - Given a `canon run` agent or a headless session, then nothing is routed, so a stage's model and cap hold.
 - Given `/model`, then it holds like a choice on the band.
 - Given a prompt sized large, then the band refuses its first Edit, Write or changing Bash command until the weigh skill has run in that turn, and says why; reading is never held.
+- Given `process` on and routing off, then the prompt is still sized, for weigh alone, and no model or effort changes.
 - Given a week of use, then cost and rework are compared with the baseline, and routing is removed if rework rose.
 
 ## Tested

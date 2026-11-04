@@ -16,7 +16,8 @@
 ### Added
 
 - **The knowledge gate.** Before a page is written under `.context/`, `canon gate` judges it by every rule the repo has, and the band refuses what it newly breaks. A new `one-home` check reports a fact written in two pages.
-- **Weigh is enforced.** With routing on, a prompt sized large changes nothing until the weigh skill has run.
+- **Weigh is enforced.** Where `process` or routing is on, a prompt sized large changes nothing until the weigh skill has run.
+- **Knowledge beside each prompt.** Where `knowledge` is on, each typed prompt carries up to three pages its words point to, by title and path.
 - **`canon learn`** is one history report, and the `learn` skill turns it into proposed rule changes.
 - **`canon models`** finds the models this machine can run and their prices, including a company's own; `init` and `update` run it.
 - `flow` reads transcripts through a shared per-file cache: 42 ms warm instead of 14 s.

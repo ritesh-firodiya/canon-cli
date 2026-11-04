@@ -294,10 +294,14 @@ export const register: Register = on => {
     const notes = [replyRule(await read($, replySize)), ...(found.length ? [knowledgeNote(found)] : [])]
     const sized = isTyped ? { ...e, context: [...(e.context ?? []), ...notes] } : e
     if (isTyped) await update($, weigh, () => ({ isNeeded: false, isDone: false }))
-    if (!isTyped || !(await isRoutingOn($))) return next(sized)
+    if (!isTyped) return next(sized)
+    const isRouted = await isRoutingOn($)
+    // Without routing, `process` still sizes the prompt, for weigh alone: no model or effort changes.
+    const isWeighed = !isRouted && (await read($, isRouting)) && Boolean((await read($, facts))?.features?.includes('process'))
+    if (!isRouted && !isWeighed) return next(sized)
     const mine = await read($, chosen)
-    // Nothing to decide when the person chose both.
-    if (!mine.model || !mine.effort) await decide($, e.text)
+    // Nothing to decide when the person chose both, unless the size is wanted for weigh.
+    if (isWeighed || !mine.model || !mine.effort) await decide($, e.text)
     const isLarge = (await read($, route))?.size === 'large'
     await update($, weigh, () => ({ isNeeded: isLarge, isDone: false }))
     return next(sized)
