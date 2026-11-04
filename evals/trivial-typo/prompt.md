@@ -1,6 +1,6 @@
 ---
 max_turns: 25
-allowed_tools: [Read, Glob, Grep, Skill, Agent, mcp__plugin_canon-knowledge_qmd__query, mcp__plugin_canon-knowledge_qmd__get, mcp__plugin_canon-knowledge_qmd__multi_get]
+allowed_tools: [Read, Glob, Grep, "Bash(canon check:*)", Skill, Agent, mcp__plugin_canon-knowledge_qmd__query, mcp__plugin_canon-knowledge_qmd__get, mcp__plugin_canon-knowledge_qmd__multi_get]
 ---
 
 You are working in the Streaks repo (the current directory). Request:
