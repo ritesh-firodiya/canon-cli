@@ -1,5 +1,6 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { basename, join } from "node:path";
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { basename, dirname, join } from "node:path";
 import type { Config } from "../../config/schema.ts";
 import { appendToSection, createRecord, findRecord, kindByFolder } from "./records.ts";
 
@@ -42,8 +43,19 @@ export function parseVerdicts(text: string): Verdict[] {
   return verdicts;
 }
 
-/** Puts a verdict on the record it judged. A request with no record yet becomes an Idea, so a dropped one is not proposed again unseen. */
+/** Verdicts on work that simply went ahead with no record: counted by `canon learn`, kept out of the repo's pages. */
+export const verdictLog = (): string => join(process.env.CANON_HOME ?? join(homedir(), ".canon"), "verdicts.jsonl");
+
+/**
+ * Puts a verdict on the record it judged. A request with no record that was stopped, dropped or overridden becomes an
+ * Idea, so it is not proposed again unseen; one that simply went ahead is only logged, since the work itself records it.
+ */
 export function recordVerdict(repo: string, config: Config, verdict: Verdict, recordId?: string): { id: string; file: string } {
+  if (!recordId && verdict.outcome === "proceeded") {
+    mkdirSync(dirname(verdictLog()), { recursive: true });
+    appendFileSync(verdictLog(), `${JSON.stringify({ ...verdict, product: basename(repo) })}\n`);
+    return { id: "logged", file: verdictLog() };
+  }
   const target = recordId
     ? findRecord(repo, config, recordId)
     : createRecord(repo, kindByFolder(config, "ideas"), verdict.request, { status: ["stopped", "dropped"].includes(verdict.outcome) ? "dropped" : "accepted", "last-verified": verdict.at.slice(0, 10) }, `# ${verdict.request.replace(/\s+/g, " ")}\n\n## Summary\n${verdict.request.replace(/\s+/g, " ")}\n`);
@@ -55,8 +67,24 @@ export interface VerdictEntry extends Verdict {
   product: string;
 }
 
-/** Every verdict on every record in these repos, whatever record kinds each one has. */
+function loggedVerdicts(products: Set<string>): VerdictEntry[] {
+  if (!existsSync(verdictLog())) return [];
+  return readFileSync(verdictLog(), "utf8").split("\n").flatMap((line) => {
+    try {
+      const entry = JSON.parse(line) as VerdictEntry;
+      return products.has(entry.product) ? [entry] : [];
+    } catch {
+      return [];
+    }
+  });
+}
+
+/** Every verdict on every record in these repos, whatever record kinds each one has, and the logged ones. */
 export function readVerdicts(repos: string[]): VerdictEntry[] {
+  return [...loggedVerdicts(new Set(repos.map((repo) => basename(repo)))), ...onPages(repos)];
+}
+
+function onPages(repos: string[]): VerdictEntry[] {
   return repos.flatMap((repo) => {
     const context = join(repo, ".context");
     if (!existsSync(context)) return [];

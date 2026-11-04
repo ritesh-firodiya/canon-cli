@@ -161,7 +161,8 @@ canon verdict --record PLAN-0001 --verdict push-back --outcome overridden \
   --reason "<the user's reason, verbatim>" --term "<term 1>" --term "<term 2>"
 ```
 
-With no `--record`, the request becomes a new Idea, dropped or accepted by its
-outcome, so a rejected request is not proposed again unseen. Never edit an earlier
+With no `--record`, a stopped, dropped or overridden request becomes a new Idea,
+so a rejected request is not proposed again unseen; one that simply proceeded is
+only logged, since the work records it. Never edit an earlier
 line of a `## Verdict` section. `canon learn` reads them across products: how
 often the gate stops work, and which rules keep being overridden.

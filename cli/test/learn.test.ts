@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { proposals, readDecisions, readVerdicts, recordDecision, summarise } from "../src/learn/learn/learn.ts";
@@ -102,5 +102,21 @@ describe("recordVerdict", () => {
     const saved = recordVerdict(repo, loadConfig(repo).config, { ...verdict, outcome: "stopped" });
     expect(saved.id).toBe("IDEA-0001");
     expect(findRecord(repo, loadConfig(repo).config, "IDEA-0001").data.status).toBe("dropped");
+  });
+
+  test("with no record, work that simply went ahead is logged, not made a page, and still counted", () => {
+    const home = makeTree({});
+    const before = process.env.CANON_HOME;
+    process.env.CANON_HOME = home;
+    try {
+      const repo = makeTree({ ".context/README.md": "" });
+      const saved = recordVerdict(repo, loadConfig(repo).config, { ...verdict, outcome: "proceeded" });
+      expect(saved.id).toBe("logged");
+      expect(existsSync(join(repo, ".context/ideas"))).toBe(false);
+      expect(readVerdicts([repo]).map((v) => v.outcome)).toEqual(["proceeded"]);
+    } finally {
+      if (before === undefined) delete process.env.CANON_HOME;
+      else process.env.CANON_HOME = before;
+    }
   });
 });
