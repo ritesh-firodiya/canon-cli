@@ -407,7 +407,7 @@ export function formatReport(report: UsageReport): string {
     ...section("products", named(report.products)),
     ...section("tools (cost of the replies that called them)", report.tools.slice(0, TOP_ROWS).map((tool) => `  ${tool.name}  ${tool.calls} calls  ${money(tool.costUsd)}`)),
     ...section("skills (from the call to the next message)", report.skills.slice(0, TOP_ROWS).map((skill) => `  ${skill.name}  ${skill.calls} calls  last ${skill.lastUsed ?? "unknown"}  ${money(skill.costUsd)}`)),
-    `installed but never used: ${report.neverUsed.length} (canon usage --unused)`,
+    `installed but never used: ${report.neverUsed.length} (canon learn --cost --unused)`,
     ...section("canon runs", report.runs.map((run) => `  ${run.stage}  ${run.runs} runs  ${money(run.costUsd)}`)),
     ...section("prompt routing", report.routes.small + report.routes.medium + report.routes.large + report.routes.failed ? [`  small ${report.routes.small} · medium ${report.routes.medium} · large ${report.routes.large} · could not decide ${report.routes.failed} · deciding cost ${money(report.routes.decideUsd)}`] : []),
     ...(report.unpricedModels.length ? [``, `no price for: ${report.unpricedModels.join(", ")}`] : []),

@@ -87,14 +87,14 @@ npm install -g @tobilu/qmd --allow-scripts=node-llama-cpp,tree-sitter-go,tree-si
 Haiku sorts each typed prompt as small, medium or large, through your own login.
 Effort follows every prompt, because that keeps the cache. The model is picked at
 the start of a session and then only moves up, because a change reloads the chat.
-Your choice on the band, or `/model`, always wins. `canon usage` shows the counts
+Your choice on the band, or `/model`, always wins. `canon learn --cost` shows the counts
 and what deciding cost. Headless sessions and `canon run` agents are never routed.
 
 ## Commands you run
 
 A command runs only when you type it. These need no feature turned on:
 
-- **`canon usage`** shows what your sessions used and would cost at list prices, by skill, tool, model and product.
+- **`canon learn --cost`** shows what your sessions used and would cost at list prices, by skill, tool, model and product.
 - **`canon check`** fails when a repo breaks its rules: layout, wiki frontmatter, stale pages, size caps, blocked tasks,
   feature pages, dead paths, prices with no canonical home, the import architecture, pipeline gates and your own checkers. `canon hooks install` runs it on every push.
 - **`canon run`** moves a record through its pipeline with an agent, stopping at each gate and spend cap.
@@ -117,7 +117,7 @@ canon update           # update the CLI and the Claude plugin, then refresh: pac
 canon update --refresh # only the refresh, installing nothing
 canon models           # the models this machine can run and their prices
 canon doctor           # node, git, qmd — plus any tools your config lists
-canon learn            # proposals from overridden verdicts
+canon learn            # verdicts, and the rule changes overrides propose (--json for the learn skill)
 canon new <kind> <t>   # start a page from its template: problem, idea, plan, finding, ...
 canon records          # what each kind, status and priority means here
 canon queue            # open work, most urgent first, and what it waits for
@@ -133,8 +133,8 @@ canon approve <stage> --record <id>   # a person approves a stage on a record, i
 canon pipeline         # the stages this repo resolves to, and where each stands
 canon ui               # this repo's design set on localhost, with canon's shell
 canon wiki             # every product wiki on localhost
-canon flow <product>   # how far each local Claude conversation got against the pipeline (--write: metrics/flow.json)
-canon usage            # what local Claude sessions used and cost at list prices (--skill <name>, --unused, --json, --save)
+canon learn --flow <product>   # how far each local Claude conversation got against the pipeline (--write: metrics/flow.json)
+canon learn --cost     # what local Claude sessions used and cost at list prices (--skill <name>, --unused, --json, --save)
 canon band             # the facts the band above the Claude Code prompt shows, as JSON
 canon enable <feature> # turn on process, knowledge or routing for this repo (canon disable turns it off)
 ```
@@ -155,7 +155,7 @@ modules: [docs, knowledge, code, listing, refs]
 packs: [expo]
 name: Acme                          # how the product is written; `named` copies swap it in
 features: [routing]                 # what this repo turns on; only the band is on by default
-formerly: [acme-old]                # older folder names, so `canon flow` counts their conversations
+formerly: [acme-old]                # older folder names, so `canon learn --flow` counts their conversations
 extends: [../rules/team.yaml]       # organization, product and team rules; the closest wins
 product: acme                       # repos naming one product act as one
 team: growth

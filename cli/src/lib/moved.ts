@@ -9,6 +9,8 @@ const MOVED: [string, string][] = [
   ["experiment", "canon new experiment <name> --from <stage>"],
   ["search", "the canon-knowledge ask skill, or qmd query"],
   ["weigh", "the canon-process weigh skill"],
+  ["flow", "canon learn --flow <product...>"],
+  ["usage", "canon learn --cost"],
 ];
 
 export function registerMoved(program: Command): void {
