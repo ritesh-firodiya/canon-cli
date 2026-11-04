@@ -1,5 +1,6 @@
 ---
 name: wildcard
+disable-model-invocation: true
 description: Generate ideas that are not only copies of what already worked — of every 10, 8 follow the repo's references and 2 deliberately break them. Use when asked for ideas, names, titles, approaches or options, or when the user types /wildcard. Usage `/wildcard <what you need ideas for>`.
 ---
 

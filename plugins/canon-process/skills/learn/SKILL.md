@@ -1,5 +1,6 @@
 ---
 name: learn
+disable-model-invocation: true
 description: Turn what history shows into proposed rule changes — overridden verdicts, where work stalls, what costs most. Use when the person asks what canon has learned, why a rule keeps being overridden, or to review the rules; `/learn`.
 ---
 
