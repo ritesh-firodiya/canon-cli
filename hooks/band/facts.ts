@@ -195,3 +195,18 @@ export function afterEditText(text: string, oldText: string, newText: string, is
   if (!text.includes(oldText)) return null
   return isAll ? text.split(oldText).join(newText) : text.replace(oldText, () => newText)
 }
+
+// Commands that only look: a large prompt may read freely before it is weighed.
+const LOOKS = /^\s*(ls|cat|head|tail|grep|rg|find|wc|pwd|echo|which|stat|du|tree|git (status|log|diff|show|branch|blame)|canon (check|learn|queue|pipeline|records|band|models|gate|work)|gh (run|pr|issue) (list|view))\b/
+const SEGMENTS = /&&|\|\||;|\|/
+
+/** A call that changes something, which a large prompt makes only after weigh has run. */
+export function isChangingCall(tool: string, command?: string): boolean {
+  if (tool === 'Edit' || tool === 'Write' || tool === 'NotebookEdit') return true
+  if (tool !== 'Bash' || command === undefined) return false
+  return command.split(SEGMENTS).some(part => part.trim() !== '' && !LOOKS.test(part))
+}
+
+export const isWeighSkill = (skill: string): boolean => /(^|:)weigh$/.test(skill)
+
+export const WEIGH_FIRST = 'This prompt looked large, so canon asks for the weigh skill before any change. Run the weigh skill on the request, give its verdict, then go on.'

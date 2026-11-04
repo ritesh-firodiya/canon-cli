@@ -17,9 +17,11 @@ import {
   fileLink,
   infoLine,
   isNarrow,
+  isChangingCall,
   isGatedPage,
   isInside,
   isTestCommand,
+  isWeighSkill,
   money,
   movedTo,
   nextSize,
@@ -29,6 +31,7 @@ import {
   stageWord,
   testsLabel,
   usdLabel,
+  WEIGH_FIRST,
   windowViews,
 } from './facts'
 import { latestModel } from '../../cli/src/setup/models/latest'
@@ -71,6 +74,8 @@ const isExtending = atom({ plugin: 'canon', key: 'isExtending' } as const, false
 const contextUsed = atom({ plugin: 'canon', key: 'contextUsed' } as const, null as number | null)
 const isAwake = atom({ plugin: 'canon', key: 'isAwake' } as const, false)
 const replySize = atom({ plugin: 'canon', key: 'replySize' } as const, 'M' as ReplySize)
+// Per typed prompt: a large one must run weigh before its first change.
+const weigh = atom({ plugin: 'canon', key: 'weigh' } as const, { isNeeded: false, isDone: false })
 
 const LEVEL_COLOR: Record<Level, string> = { ok: GREEN, warn: AMBER, bad: RED }
 const TEST_LEVEL: Record<Tests, Level> = { none: 'ok', ok: 'ok', stale: 'warn', failed: 'bad' }
@@ -237,10 +242,13 @@ export const register: Register = on => {
     const isTyped = isRoutable(e.text, e.origin.kind === 'plugin')
     // Beside the prompt, not in the system prompt, so a new size keeps the cache.
     const sized = isTyped ? { ...e, context: [...(e.context ?? []), replyRule(await read($, replySize))] } : e
+    if (isTyped) await update($, weigh, () => ({ isNeeded: false, isDone: false }))
     if (!isTyped || !(await isRoutingOn($))) return next(sized)
     const mine = await read($, chosen)
     // Nothing to decide when the person chose both.
     if (!mine.model || !mine.effort) await decide($, e.text)
+    const isLarge = (await read($, route))?.size === 'large'
+    await update($, weigh, () => ({ isNeeded: isLarge, isDone: false }))
     return next(sized)
   }).catch(($, e, next) => next(e))
 
@@ -272,6 +280,9 @@ export const register: Register = on => {
   })
 
   on('tool.call', async ($, e, next) => {
+    if (e.agentId === undefined && e.tool === 'Skill' && isWeighSkill(e.skill)) await update($, weigh, w => ({ ...w, isDone: true }))
+    const due = await read($, weigh)
+    if (e.agentId === undefined && due.isNeeded && !due.isDone && isChangingCall(e.tool, e.tool === 'Bash' ? e.command : undefined)) return { deny: WEIGH_FIRST }
     const refusal = await gateRefusal($, e)
     if (refusal) return { deny: refusal }
     const result = await next(e)

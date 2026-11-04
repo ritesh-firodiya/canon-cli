@@ -56,6 +56,7 @@ declare module 'claude-code' {
       contextUsed: number | null
       isAwake: boolean
       replySize: ReplySize
+      weigh: { isNeeded: boolean; isDone: boolean }
     }
   }
 }

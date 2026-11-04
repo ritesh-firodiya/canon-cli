@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { afterEditText, fileLink, isGatedPage, isInside, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, contextView, cut, extendLabel, infoLine, isNarrow, isTestCommand, nextSize, panelLines, replyRule, windowViews } from './facts'
+import { afterEditText, fileLink, isChangingCall, isGatedPage, isInside, isWeighSkill, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, contextView, cut, extendLabel, infoLine, isNarrow, isTestCommand, nextSize, panelLines, replyRule, windowViews } from './facts'
 import { classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
 import type { BandFacts } from './types'
 
@@ -502,5 +502,49 @@ test('a page the gate refuses is not written, and the reason reaches the agent',
   expect(wrote).toBe(true)
   await $.tool.call({ tool: 'Write', file_path: '/w/shop/src/a.ts', content: 'copy' })
   expect(gated.map(g => g.argv[2])).toEqual(['/w/shop/.context/wiki/b.md', '/w/shop/.context/wiki/c.md'])
+})
+
+test('a change is a write or a command that does more than look', () => {
+  expect(isChangingCall('Edit')).toBe(true)
+  expect(isChangingCall('Read')).toBe(false)
+  expect(isChangingCall('Bash', 'git status && ls -la | grep x')).toBe(false)
+  expect(isChangingCall('Bash', 'canon check . && git commit -m x')).toBe(true)
+  expect(isChangingCall('Bash', 'rm -rf build')).toBe(true)
+  expect([isWeighSkill('canon-process:weigh'), isWeighSkill('weigh'), isWeighSkill('weighing')]).toEqual([true, true, false])
+})
+
+function sized(on: any, size: string) {
+  const calls: string[] = []
+  engine(on, { ...FACTS, features: ['routing'] })
+  on('fs.read', () => ({ value: '' }))
+  on('fs.write', () => ({ value: undefined }))
+  on('prompt.submit', (_: unknown, e: any) => ({ text: e.text }))
+  on('model.complete', () => ({ value: { isAnswered: true, text: size, usage: { input_tokens: 10, output_tokens: 1 } } }))
+  on('tool.call', (_: unknown, e: any) => {
+    calls.push(e.tool)
+    return { result: {} }
+  })
+  return calls
+}
+
+test('a large prompt reads freely, but changes nothing until weigh has run', async ($, on) => {
+  const calls = sized(on, 'large')
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  await $.prompt.submit({ text: 'Give me a complete app', origin: { kind: 'composer' } })
+  await $.tool.call({ tool: 'Read', file_path: '/w/shop/a.ts' })
+  const refused = await $.tool.call({ tool: 'Write', file_path: '/w/shop/a.ts', content: 'x' })
+  expect(JSON.stringify(refused)).toContain('weigh skill')
+  expect(calls).toEqual(['Read'])
+  await $.tool.call({ tool: 'Skill', skill: 'canon-process:weigh' })
+  await $.tool.call({ tool: 'Write', file_path: '/w/shop/a.ts', content: 'x' })
+  expect(calls).toEqual(['Read', 'Skill', 'Write'])
+})
+
+test('a small prompt is never held for weigh', async ($, on) => {
+  const calls = sized(on, 'small')
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  await $.prompt.submit({ text: 'fix the typo', origin: { kind: 'composer' } })
+  await $.tool.call({ tool: 'Write', file_path: '/w/shop/a.ts', content: 'x' })
+  expect(calls).toEqual(['Write'])
 })
 
