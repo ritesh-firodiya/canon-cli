@@ -1,6 +1,6 @@
 ---
 id: PLAN-0005
-status: draft
+status: done
 priority: p2
 last-verified: 2026-11-04
 problem: PROB-0001
@@ -33,3 +33,11 @@ EGM (google/elephant-goldfish-model) puts almost nothing in a session until it i
 - Grow the read-only list: it will always miss a command; Claude Code already knows.
 - Make weigh user-only too: then nothing runs it unasked, and the band's hold needs it.
 - Support Codex and Cursor like EGM: Claude Code only, by the owner's choice.
+
+## Outcome
+Built 2026-11-04, all five steps.
+- Step 1: weigh's hold reads Claude Code's read-only mark; the list is deleted.
+- Step 2: a verdict on work that went ahead is logged; the others still become Ideas.
+- Step 3: skill text loaded per session fell from about 2,500 to 1,451 characters.
+- Step 4: the gate on the largest product: 1.9 s cold, 1.0 s warm.
+- Step 5: weigh's text in the session fell from 9,630 to 5,518 characters; its reading runs in the `weigher` agent. Quick evals: 7 of 9 in one run, at $2.41 against $1.38–1.73 before; the miss was `added-wiki-type`, which does not weigh and passed both reruns. All weigh cases scored as before, with `contradicts-adr` still failing. A whole weigh costs more tokens in all, since the agent reads afresh; the session it serves carries less.

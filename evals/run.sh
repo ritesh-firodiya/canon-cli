@@ -20,4 +20,4 @@ else
   mode=(--ablation none --runs 1 --concurrency 8 --max-cost-usd 3)
 fi
 cd "$work"
-PATH="$work/bin:$PATH" claude plugin eval ./plugin --eval-dir evals --trust-plugin --scaffold "${mode[@]}" --json "$repo/evals/results/latest.json"
+PATH="$work/bin:$PATH" claude plugin eval ./plugin --eval-dir evals --trust-plugin --scaffold "${mode[@]}" ${CASE:+--case "$CASE"} --json "$repo/evals/results/latest.json"
