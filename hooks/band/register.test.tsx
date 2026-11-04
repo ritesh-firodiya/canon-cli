@@ -498,6 +498,9 @@ test('a change is a write or a command that does more than look', () => {
   expect(isChangingCall('Bash', 'git status && ls -la | grep x')).toBe(false)
   expect(isChangingCall('Bash', 'canon check . && git commit -m x')).toBe(true)
   expect(isChangingCall('Bash', 'rm -rf build')).toBe(true)
+  expect(isChangingCall('Bash', 'cd ~/git && time (canon learn --cost --days 7)')).toBe(false)
+  expect(isChangingCall('Bash', 'claude plugin eval --help 2>&1 | grep runs')).toBe(false)
+  expect(isChangingCall('Bash', 'claude plugin install x')).toBe(true)
   expect([isWeighSkill('canon-process:weigh'), isWeighSkill('weigh'), isWeighSkill('weighing')]).toEqual([true, true, false])
 })
 

@@ -14,7 +14,8 @@ YAML
 cat > .context/raw/2026-10-20-midnight-reset.md <<'MD'
 # Incident notes — 2026-10-20
 
-Users in UTC+5:30 saw their streaks reset at 05:30 local time. `src/data/history.ts`
-buckets check-ins by UTC date, so a check-in before 05:30 counted for the previous
-day. 212 support emails. Fixed in 1.4.2 by bucketing on the device's local date.
+Users in UTC+5:30 saw their streaks reset at 05:30 local time. The streak count
+grouped check-ins by UTC date, so a check-in before 05:30 counted for the previous
+day. 212 support emails. The fix groups them by the device's local date; it is on
+the fix/local-day branch, not on main yet, and ships in 1.1.1.
 MD

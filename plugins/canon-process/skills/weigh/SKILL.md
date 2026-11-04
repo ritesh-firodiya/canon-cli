@@ -33,8 +33,8 @@ product's `.context/context.yaml` may tighten this under `weigh.trivial`.
 
 3. **Domain.** Search before you judge. Run `mcp__plugin_canon-knowledge_qmd__query` with
    the goal in plain words, then the key nouns, scoped with `collections` to
-   this product's `<repo>-wiki` and `<repo>-features` (the names `canon init`
-   gives them; add `pack-<name>` when the question is about a vendor's API). Other products' hits are noise here; step 5 is where
+   this product's collection, named like its folder (`canon init` names it;
+   add `pack-<name>` when the question is about a vendor's API). Other products' hits are noise here; step 5 is where
    siblings are searched. Read the top hits with `mcp__plugin_canon-knowledge_qmd__get`. Look for: an ADR that already
    decided this, a canonical value it would change, a concept it would break,
    and a rule stated on a surface or concept page ("shows merged main only").

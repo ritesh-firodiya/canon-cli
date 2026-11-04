@@ -197,7 +197,7 @@ export function afterEditText(text: string, oldText: string, newText: string, is
 }
 
 // Commands that only look: a large prompt may read freely before it is weighed.
-const LOOKS = /^\s*(ls|cat|head|tail|grep|rg|find|wc|pwd|echo|which|stat|du|tree|git (status|log|diff|show|branch|blame)|canon (check|learn|queue|pipeline|records|band|models|gate|work)|gh (run|pr|issue) (list|view))\b/
+const LOOKS = /^\s*\(?\s*(cd|time|ls|cat|head|tail|grep|rg|find|wc|pwd|echo|which|stat|du|tree|date|ps|pgrep|git (status|log|diff|show|branch|blame)|canon (check|learn|queue|pipeline|records|band|models|gate|--version|--help)|gh (run|pr|issue|repo) (list|view)|gh api|npm view|qmd (search|query|status|get|ls|collection (list|show))|claude plugin (list|eval --help)|claude --version)\b/
 const SEGMENTS = /&&|\|\||;|\|/
 
 /** A call that changes something, which a large prompt makes only after weigh has run. */

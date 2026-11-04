@@ -9,7 +9,7 @@ Question: `$ARGUMENTS`
 
 ## Steps
 
-1. **Search first.** If the `qmd` MCP tool is available, run a `query` for the question against this product's wiki collection (`<product>-wiki`). Its hits are the first candidates.
+1. **Search first.** If the `qmd` MCP tool is available, run a `query` for the question against this product's collection (named like its folder). Its hits are the first candidates.
 
 2. **Read `.context/wiki/index.md`** and **identify candidate pages** by matching the question against page titles, IDs, and the index entries. Prefer:
    - `entity` pages for "what is the value / price / name of X"
