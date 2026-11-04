@@ -1,6 +1,6 @@
 ---
 id: PLAN-0002
-status: draft
+status: building
 priority: p2
 last-verified: 2026-11-04
 ---

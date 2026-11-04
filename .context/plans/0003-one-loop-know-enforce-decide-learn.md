@@ -1,6 +1,6 @@
 ---
 id: PLAN-0003
-status: draft
+status: done
 priority: p2
 last-verified: 2026-11-04
 ---
@@ -48,3 +48,6 @@ The code folders follow the same groups, with one shared `lib`; repeated code (t
 - Cut `run`, `trigger`, `learn` and `flow` as unused: they are the automation and the learning that are canon's purpose.
 - A person picks what is injected: canon must do it on its own.
 - Leave the structure and only delete: the duplication would stay.
+
+## Outcome
+Shipped in 4.0.0, with the noted exceptions above: wildcard, standards and wiki-lint stay; weigh's text is unchanged.

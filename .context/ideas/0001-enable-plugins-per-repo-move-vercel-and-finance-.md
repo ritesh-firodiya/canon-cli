@@ -1,6 +1,6 @@
 ---
 id: IDEA-0001
-status: accepted
+status: shipped
 last-verified: 2026-10-30
 ---
 # Enable plugins per repo; move Vercel and finance off global

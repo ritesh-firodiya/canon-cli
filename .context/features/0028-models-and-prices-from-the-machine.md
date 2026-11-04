@@ -1,10 +1,10 @@
 ---
 id: FEAT-0028
 type: feature
-status: planned
+status: shipped
 priority: p2
 last-verified: 2026-11-03
-release: null
+release: 4.0.0
 surfaces: []
 plan: PLAN-0002
 ---

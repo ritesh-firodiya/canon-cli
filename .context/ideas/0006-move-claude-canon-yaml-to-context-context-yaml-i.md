@@ -1,6 +1,6 @@
 ---
 id: IDEA-0006
-status: accepted
+status: shipped
 last-verified: 2026-10-31
 ---
 # Move .claude/canon.yaml to .context/context.yaml in canon-cli and all product repos

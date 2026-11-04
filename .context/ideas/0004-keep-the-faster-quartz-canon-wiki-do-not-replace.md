@@ -1,6 +1,6 @@
 ---
 id: IDEA-0004
-status: accepted
+status: shipped
 last-verified: 2026-10-30
 ---
 # Keep the faster Quartz canon wiki; do not replace it with the private app

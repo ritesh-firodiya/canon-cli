@@ -1,6 +1,6 @@
 ---
 id: IDEA-0005
-status: accepted
+status: shipped
 last-verified: 2026-10-30
 ---
 # Diagrams become JSON in .context/architecture, drawn under Architecture in the design shell's top bar
