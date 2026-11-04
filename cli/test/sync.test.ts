@@ -74,8 +74,9 @@ describe("syncRepo", () => {
     await syncRepo(repo, { canonRoot: canonWith("0.4.0"), cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });
     const name = repo.split("/").pop();
     expect(h.calls).toEqual([
-      ["qmd", "collection", "add", join(repo, ".context", "wiki"), "--name", `${name}-wiki`],
-      ["qmd", "collection", "add", join(repo, ".context", "features"), "--name", `${name}-features`],
+      ["qmd", "collection", "remove", `${name}-wiki`],
+      ["qmd", "collection", "remove", `${name}-features`],
+      ["qmd", "collection", "add", join(repo, ".context"), "--name", `${name}`, "--mask", "{wiki,features}/**/*.md"],
       ["qmd", "update"],
       ["qmd", "embed"],
     ]);
