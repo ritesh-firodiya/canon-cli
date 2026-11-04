@@ -133,7 +133,6 @@ canon learn            # verdicts, and the rule changes overrides propose (--jso
 canon new <kind> <t>   # start a page from its template: problem, idea, plan, finding, ...
 canon records          # what each kind, status and priority means here
 canon queue            # open work, most urgent first, and what it waits for
-canon work <record>    # select what you are working on; the band follows it (--stage <id>, --clear)
 canon reject <stage> --record <id> --note <why>   # a person sends any stage back; it and later stages run again
 canon set <record> field=value   # change a field, checked against the rules
 canon done <record>    # mark it complete
@@ -231,7 +230,7 @@ api.ts            what other tools import (`@freetesh/canon/api`)
 setup/            init, update, doctor, features (enable/disable), models
 know/             packs, the refresh of packs and the search index
 enforce/          checks (one file per check; index.ts lists them), the gate, standards, status
-work/             records, pipeline and gates, run and trigger, the selected work
+work/             records, pipeline and gates, run and trigger
 learn/            learn, flow, usage: what history says
 serve/            ui, wiki, the band's facts
 config/           .context/context.yaml: schema and loading

@@ -83,3 +83,10 @@ export function rejectStage(repo: string, config: Config, recordId: string, stag
     rejections: [...((record.data.rejections ?? []) as object[]), { stage: stageId, by, at: now.toISOString(), note }],
   });
 }
+
+/** Where a person left a record (`at`), or the stage a run reached, or else where its kind of record starts. */
+export function stageOfRecord(config: Config, record: WorkRecord): string | null {
+  const stages = pipelineOf(config, String(record.data.pipeline ?? "default"));
+  const saved = stages.find((stage) => stage.id === (record.data.at ?? record.data.stage));
+  return (saved ?? stageOfKind(stages, record))?.id ?? null;
+}

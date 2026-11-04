@@ -11,6 +11,7 @@ const MOVED: [string, string][] = [
   ["weigh", "the canon-process weigh skill"],
   ["flow", "canon learn --flow <product...>"],
   ["usage", "canon learn --cost"],
+  ["work", "gone: the band follows the record a run is on, or the one waiting for you"],
 ];
 
 export function registerMoved(program: Command): void {

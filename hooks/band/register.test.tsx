@@ -352,15 +352,8 @@ test('a file link opens the page, even with odd characters in its name', () => {
   expect(fileLink('/w/shop', '.context/plans/0003 a#b.md')).toBe('file:///w/shop/.context/plans/0003%20a%23b.md')
 })
 
-test('an edit tells canon where process is on', async ($, on) => {
+test('an edit never asks canon to move a stage: nothing on the band selects work', async ($, on) => {
   const calls = picking(on)
-  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
-  await $.tool.call({ tool: 'Edit', file_path: '/w/shop/src/a.ts', old_string: 'a', new_string: 'b' })
-  expect(calls).toContainEqual(['canon', 'work', '--edit', '/w/shop/src/a.ts'])
-})
-
-test('an edit tells canon nothing where process is off', async ($, on) => {
-  const calls = picking(on, { ...PICKING, features: [] })
   await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
   await $.tool.call({ tool: 'Edit', file_path: '/w/shop/src/a.ts', old_string: 'a', new_string: 'b' })
   expect(calls.some(argv => argv[1] === 'work')).toBe(false)

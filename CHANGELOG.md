@@ -10,6 +10,7 @@
 - **One qmd collection per product** instead of one per folder: qmd's list, which every session reads, is about 20 instead of 133. Run `canon update --refresh` in each repo.
 - **Shorter session start:** 388 characters instead of 1,331. Weigh reads the principles itself.
 - `canon update` says when the CLI and the plugin are already the latest, and refreshes the models either way.
+- **`canon work` is gone,** with the selected-task file every terminal shared. The band's task is the record a run is on, else the one waiting for you, else the first under way. Edits no longer move a stage.
 - Awake (☀) keeps the screen on too, so the Mac never locks; reading panels close by themselves.
 
 ### Added

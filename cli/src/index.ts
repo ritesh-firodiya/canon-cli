@@ -19,7 +19,6 @@ import { registerWiki } from "./serve/wiki/wiki.command.ts";
 import { findWorkspace } from "./enforce/checks/check.ts";
 import { registerModels } from "./setup/models/models.command.ts";
 import { registerBand } from "./serve/band/band.command.ts";
-import { registerWork } from "./work/work/work.command.ts";
 import { registerFeatures } from "./setup/features/features.command.ts";
 import { canonVersion } from "./enforce/status/status.ts";
 import { registerMoved } from "./lib/moved.ts";
@@ -49,7 +48,6 @@ registerRecords(program);
 registerRun(program);
 registerModels(program);
 registerBand(program, env);
-registerWork(program);
 registerFeatures(program);
 registerMoved(program);
 

@@ -21,8 +21,6 @@ export type BandFacts = {
   running: { record: string; stage: string | null; startedAt: string; spendUsd: number; capUsd: number } | null
   // Optional: a newer band can meet an older canon.
   root?: string | null
-  selected?: string | null
-  work?: { id: string; title: string; stage: string | null; waiting: string | null; file: string }[]
   problem: { id: string; title: string; source: string | null; priority: string | null; file: string } | null
   errors: Finding[]
   warnings: Finding[]

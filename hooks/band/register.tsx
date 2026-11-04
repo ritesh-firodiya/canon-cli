@@ -309,10 +309,6 @@ export const register: Register = on => {
       if (e.tool === 'Bash') await followWork($, movedTo(e.command, await $.session.cwd()))
       if (e.tool === 'Edit' || e.tool === 'Write') await followWork($, e.file_path)
     }
-    // shortcut: only Edit and Write move the stage, so a file a Bash command writes says nothing; run canon work --stage then.
-    if ((e.tool === 'Edit' || e.tool === 'Write') && !result.isError && (await read($, facts))?.features?.includes('process')) {
-      await $.process.run(['canon', 'work', '--edit', e.file_path]).catch(() => undefined)
-    }
     if (e.tool === 'Bash' && isTestCommand(e.command)) await update($, tests, () => afterTestRun(Boolean(result.isError)))
     if ((e.tool === 'Edit' || e.tool === 'Write') && !result.isError) await update($, tests, value => afterEdit(value, e.file_path))
     return result

@@ -10,7 +10,7 @@ import { queueOf } from "../../work/records/queue.ts";
 import { allRecords, type WorkRecord } from "../../work/records/records.ts";
 import { DEFAULT_CAP_USD } from "../../work/run/run.ts";
 import { readRunning } from "../../work/run/running.ts";
-import { readWork, stageOfRecord } from "../../work/work/work.ts";
+import { stageOfRecord } from "../../work/pipeline/pipeline.ts";
 
 export type StageMark = "ok" | "here" | "waiting" | "running" | "todo";
 
@@ -22,19 +22,9 @@ export interface BandProblem {
   file: string;
 }
 
-export interface BandWork {
-  id: string;
-  title: string;
-  stage: string | null;
-  waiting: string | null;
-  file: string;
-}
-
 export interface BandFacts {
   product: string | null;
   root: string | null;
-  selected: string | null;
-  work: BandWork[];
   stage: string | null;
   stages: { id: string; state: StageMark }[];
   waiting: { record: string; stage: string } | null;
@@ -45,7 +35,7 @@ export interface BandFacts {
   features: Feature[];
 }
 
-const NOTHING: Omit<BandFacts, "product"> = { root: null, selected: null, work: [], stage: null, stages: [], waiting: null, running: null, problem: null, errors: [], warnings: [], features: [] };
+const NOTHING: Omit<BandFacts, "product"> = { root: null, stage: null, stages: [], waiting: null, running: null, problem: null, errors: [], warnings: [], features: [] };
 
 const titleOf = (body: string, id: string): string => /^# (.+)$/m.exec(body)?.[1]?.trim() ?? id;
 
@@ -92,20 +82,14 @@ export function buildBand(start: string, options: { canonRoot: string }): BandFa
   }
   const queue = queueOf(repo, config);
   const records = allRecords(repo, config);
-  const selectedId = readWork(repo);
-  const selected = queue.find((row) => row.id === selectedId);
-  const current = selected ?? queue.find((row) => row.waiting) ?? queue.find((row) => row.stage);
+  // No pointer to keep fresh: the work in focus is what a run is on, else what waits for a person, else the first under way.
+  const current = queue.find((row) => row.waiting) ?? queue.find((row) => row.stage);
   const running = runningFacts(repo, config);
   const focus = records.find((record) => record.id === (running?.record ?? current?.id));
   const here: StageMark = running ? "running" : current?.waiting ? "waiting" : "here";
   return {
     product,
     root: repo,
-    selected: selected?.id ?? null,
-    work: queue.map(({ id, waiting, file }) => {
-      const record = records.find((entry) => entry.id === id) as WorkRecord;
-      return { id, title: titleOf(record.body, id), stage: stageOfRecord(config, record), waiting, file };
-    }),
     ...markStages(config, focus, here),
     waiting: current?.waiting ? { record: current.id, stage: current.waiting } : null,
     running,
