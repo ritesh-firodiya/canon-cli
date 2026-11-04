@@ -390,3 +390,12 @@ describe("weakening stays visible", () => {
     }
   });
 });
+
+describe("canon new dates", () => {
+  test("a dated page is named by the local day, not the UTC day", () => {
+    const repo = makeTree({});
+    const { config } = loadConfig(repo);
+    const now = new Date(2026, 10, 5, 0, 30); // 00:30 local: UTC is still the 4th east of Greenwich
+    expect(newPage(repo, config, "fact", "Late", {}, now).file).toBe(".context/raw/2026-11-05-late.md");
+  });
+});

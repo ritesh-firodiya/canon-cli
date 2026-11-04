@@ -36,7 +36,7 @@ function recordTemplate(repo: string, kind: RecordKind, title: string, today: st
 
 /** Starts a page from its template. `what` is a record kind, singular or plural, or discovery, finding or decision. */
 export function newPage(repo: string, config: Config, what: string, title: string, fields: Record<string, unknown> = {}, now = new Date()): { id: string; file: string } {
-  const today = now.toISOString().slice(0, 10);
+  const today = now.toLocaleDateString("sv-SE"); // local YYYY-MM-DD; the UTC date is a day off near midnight
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "page";
   const wikiFolder = WIKI_DOCS[what];
   if (wikiFolder) {
