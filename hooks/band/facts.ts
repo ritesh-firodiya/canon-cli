@@ -196,16 +196,11 @@ export function afterEditText(text: string, oldText: string, newText: string, is
   return isAll ? text.split(oldText).join(newText) : text.replace(oldText, () => newText)
 }
 
-// Commands that only look: a large prompt may read freely before it is weighed.
-const LOOKS = /^\s*\(?\s*(cd|time|ls|cat|head|tail|grep|rg|find|wc|pwd|echo|which|stat|du|tree|date|ps|pgrep|git (status|log|diff|show|branch|blame)|canon (check|learn|queue|pipeline|records|band|models|gate|--version|--help)|gh (run|pr|issue|repo) (list|view)|gh api|npm view|qmd (search|query|status|get|ls|collection (list|show))|claude plugin (list|eval --help)|claude --version)\b/
-const SEGMENTS = /&&|\|\||;|\|/
+// Tools that change nothing in the repo yet carry no read-only mark: weigh itself must run, and a question must be asked.
+const NEVER_HELD = new Set(['Skill', 'ToolSearch', 'TodoWrite', 'AskUserQuestion', 'Agent'])
 
-/** A call that changes something, which a large prompt makes only after weigh has run. */
-export function isChangingCall(tool: string, command?: string): boolean {
-  if (tool === 'Edit' || tool === 'Write' || tool === 'NotebookEdit') return true
-  if (tool !== 'Bash' || command === undefined) return false
-  return command.split(SEGMENTS).some(part => part.trim() !== '' && !LOOKS.test(part))
-}
+/** A call a large prompt makes only after weigh: anything Claude Code does not mark read-only. */
+export const isHeldForWeigh = (tool: string, isReadOnly: boolean): boolean => !isReadOnly && !NEVER_HELD.has(tool)
 
 export const isWeighSkill = (skill: string): boolean => /(^|:)weigh$/.test(skill)
 

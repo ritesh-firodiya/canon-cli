@@ -17,7 +17,7 @@ import {
   fileLink,
   infoLine,
   isNarrow,
-  isChangingCall,
+  isHeldForWeigh,
   hitPath,
   isGatedPage,
   isInside,
@@ -334,11 +334,16 @@ export const register: Register = on => {
     yield* next({ ...e, model, ...(effort === undefined ? {} : { effort }) })
   })
 
+  // Weigh's hold, where Claude Code says whether a call only reads: no list of commands to keep up.
+  on('tool.check', async ($, e, next) => {
+    const due = await read($, weigh)
+    if (e.agentId === undefined && due.isNeeded && !due.isDone && isHeldForWeigh(e.tool, e.isReadOnly === true)) return { decision: 'deny', reason: WEIGH_FIRST }
+    return next(e)
+  }).catch(($, e, next) => next(e))
+
   on('tool.call', async ($, e, next) => {
     if (e.agentId === undefined && e.tool === 'Read' && (await read($, attached)).includes(e.file_path)) await appendLog($, 'knowledge', { opened: e.file_path }).catch(() => undefined)
     if (e.agentId === undefined && e.tool === 'Skill' && isWeighSkill(e.skill)) await update($, weigh, w => ({ ...w, isDone: true }))
-    const due = await read($, weigh)
-    if (e.agentId === undefined && due.isNeeded && !due.isDone && isChangingCall(e.tool, e.tool === 'Bash' ? e.command : undefined)) return { deny: WEIGH_FIRST }
     const refusal = await gateRefusal($, e)
     if (refusal) return { deny: refusal }
     const result = await next(e)
