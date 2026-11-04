@@ -8,7 +8,7 @@ const agent = (id: string, done: string[], prompt: string, more: Partial<StageSp
 const FORK = ["intake", "problem", "idea", "discovery"];
 const fork = (id: string, when: string) => ({ after: FORK.filter((other) => other !== id), optional: true, when });
 
-/** Canon's flow when a repo sets none of its own. `canon init` writes it to context.yaml, to change at will. */
+/** Canon's flow when a repo sets none of its own. `canon init` writes none, so a repo follows it as it changes. */
 export const DEFAULT_PIPELINE: StageSpec[] = [
   agent("intake", [], "Read the signals behind this work: the record, its source: and sources:, and what they link to. A signal is a user, an email, an error, a bug report or a metric. Check each one is true against what you can reach, and say which you could not check. Link the record to any open problem, idea or discovery it repeats, instead of writing a new one."),
   agent("problem", [".context/problems"], "Write what is wrong as a problem in .context/problems: who it hurts, how much, and what should be true instead. Link the ideas and discoveries it came from.", fork("problem", "something is wrong that no open problem already says")),
