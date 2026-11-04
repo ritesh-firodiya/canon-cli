@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { describe, expect, test } from "vitest";
-import { refs } from "../../src/checks/refs.ts";
+import { refs } from "../../src/enforce/checks/refs.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 

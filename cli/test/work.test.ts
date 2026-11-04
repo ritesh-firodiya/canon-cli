@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, test } from "vitest";
-import { buildBand } from "../src/band/band.ts";
+import { buildBand } from "../src/serve/band/band.ts";
 import { loadConfig } from "../src/config/load.ts";
-import { followEdit, readWork, selectWork, setStage } from "../src/work/work.ts";
+import { followEdit, readWork, selectWork, setStage } from "../src/work/work/work.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const YAML = `pipelines:

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { findProducts, findWorkspace, runChecks } from "../src/checks/check.ts";
-import type { Check } from "../src/checks/types.ts";
+import { findProducts, findWorkspace, runChecks } from "../src/enforce/checks/check.ts";
+import type { Check } from "../src/enforce/checks/types.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const always: Check = {

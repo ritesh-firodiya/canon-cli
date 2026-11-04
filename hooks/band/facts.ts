@@ -1,6 +1,6 @@
 // Pure helpers for the band: no `$`, so the tests call them directly.
 
-import { priceOf } from '../../cli/src/usage/prices'
+import { priceOf } from '../../cli/src/setup/models/prices'
 import type { BandFacts, CacheFacts, Info, Level, Panel, ReplySize, Tests, UsageWindow } from './types'
 
 export const TTL_MS = 60 * 60 * 1000

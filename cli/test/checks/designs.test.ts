@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { designs, designsFirst, designSurfaces } from "../../src/checks/designs.ts";
+import { designs, designsFirst, designSurfaces } from "../../src/enforce/checks/designs.ts";
 import { loadConfig } from "../../src/config/load.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";

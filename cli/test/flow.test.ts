@@ -3,9 +3,9 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { day, RELEASE_TAG, versionOf } from "../src/flow/facts.ts";
-import { flow } from "../src/flow/flow.ts";
-import { allSessions, belongs, COMMIT_CALL, productPath, readSession } from "../src/flow/sessions.ts";
+import { day, RELEASE_TAG, versionOf } from "../src/learn/flow/facts.ts";
+import { flow } from "../src/learn/flow/flow.ts";
+import { allSessions, belongs, COMMIT_CALL, productPath, readSession } from "../src/learn/flow/sessions.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const W = `${homedir()}/work/products`;

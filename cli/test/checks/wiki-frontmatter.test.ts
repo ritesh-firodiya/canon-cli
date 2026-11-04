@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { wikiFrontmatter } from "../../src/checks/wiki-frontmatter.ts";
+import { wikiFrontmatter } from "../../src/enforce/checks/wiki-frontmatter.ts";
 import { makeTree, wikiPage } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 

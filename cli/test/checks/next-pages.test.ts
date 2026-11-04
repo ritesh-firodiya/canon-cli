@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { appRoute, isNextPage } from "../../src/checks/design-set/app.ts";
-import type { Surface } from "../../src/checks/design-set/set.ts";
+import { appRoute, isNextPage } from "../../src/enforce/checks/design-set/app.ts";
+import type { Surface } from "../../src/enforce/checks/design-set/set.ts";
 
 const web = { web: true } as Surface;
 

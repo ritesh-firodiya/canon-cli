@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { parse } from "yaml";
-import { afterProblem } from "../pipeline/graph.ts";
+import { afterProblem } from "../work/pipeline/graph.ts";
 import { DEFAULT_PIPELINE } from "./default-pipeline.ts";
 import { CONFIG_FILE, isStandardName, LOCAL_CONFIG_FILE, MODULES_BY_KIND, layerSchema, type Config, type CopyFileSpec, type Kind, type Layer, type Module, DEFAULT_PRIORITIES, DEFAULT_RECORDS, type RecordEntry, type StageEntry, type StageSpec, type RecordKind } from "./schema.ts";
 

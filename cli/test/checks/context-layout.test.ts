@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { describe, expect, test } from "vitest";
-import { contextLayout } from "../../src/checks/context-layout.ts";
+import { contextLayout } from "../../src/enforce/checks/context-layout.ts";
 import { makeTree, VALID_CONTEXT } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 

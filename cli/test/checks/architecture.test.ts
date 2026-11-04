@@ -1,8 +1,8 @@
 import { copyFileSync, mkdirSync, symlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, test } from "vitest";
-import { architecture, architectureGraph, summarize } from "../../src/checks/architecture.ts";
-import { architectureStarters } from "../../src/init/init.ts";
+import { architecture, architectureGraph, summarize } from "../../src/enforce/checks/architecture.ts";
+import { architectureStarters } from "../../src/setup/init/init.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 

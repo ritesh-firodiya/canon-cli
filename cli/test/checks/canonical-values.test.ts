@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { canonicalValues } from "../../src/checks/canonical-values.ts";
+import { canonicalValues } from "../../src/enforce/checks/canonical-values.ts";
 import { makeTree, wikiPage } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 

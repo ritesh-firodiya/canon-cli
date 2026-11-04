@@ -3,15 +3,15 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, test } from "vitest";
 import { loadConfig } from "../src/config/load.ts";
-import { approveStage, rejectStage } from "../src/pipeline/pipeline.ts";
-import { formatQueue, queueOf } from "../src/records/queue.ts";
-import { addProblem, recordEvent } from "../src/records/problems.ts";
-import { allRecords, findRecord, setFields } from "../src/records/records.ts";
-import { newPage } from "../src/records/new.ts";
-import { records } from "../src/checks/records.ts";
+import { approveStage, rejectStage } from "../src/work/pipeline/pipeline.ts";
+import { formatQueue, queueOf } from "../src/work/records/queue.ts";
+import { addProblem, recordEvent } from "../src/work/records/problems.ts";
+import { allRecords, findRecord, setFields } from "../src/work/records/records.ts";
+import { newPage } from "../src/work/records/new.ts";
+import { records } from "../src/enforce/checks/records.ts";
 import { contextFor } from "./helpers/context.ts";
-import { runRecord, runsLog, type Agent, type AgentCall } from "../src/run/run.ts";
-import { runTrigger } from "../src/run/trigger.ts";
+import { runRecord, runsLog, type Agent, type AgentCall } from "../src/work/run/run.ts";
+import { runTrigger } from "../src/work/run/trigger.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const YAML = `cap: 3

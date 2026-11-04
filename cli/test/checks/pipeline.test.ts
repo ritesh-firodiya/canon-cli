@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { pipeline } from "../../src/checks/pipeline.ts";
+import { pipeline } from "../../src/enforce/checks/pipeline.ts";
 import { loadConfig } from "../../src/config/load.ts";
-import { approveStage, stagesOf } from "../../src/pipeline/pipeline.ts";
-import { findRecord } from "../../src/records/records.ts";
+import { approveStage, stagesOf } from "../../src/work/pipeline/pipeline.ts";
+import { findRecord } from "../../src/work/records/records.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 

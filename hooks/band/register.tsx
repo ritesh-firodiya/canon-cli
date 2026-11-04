@@ -29,7 +29,7 @@ import {
   usdLabel,
   windowViews,
 } from './facts'
-import { latestModel } from '../../cli/src/usage/models'
+import { latestModel } from '../../cli/src/setup/models/latest'
 import { CLASSIFIER_SYSTEM, EFFORTS, TIERS, classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
 import type { Applied, BandFacts, CacheFacts, Chosen, Effort, Info, Level, Panel, ReplySize, Route, Tests, Tier, UsageWindow } from './types'
 

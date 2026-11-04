@@ -1,10 +1,10 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, test } from "vitest";
-import { buildBand } from "../src/band/band.ts";
+import { buildBand } from "../src/serve/band/band.ts";
 import { loadConfig } from "../src/config/load.ts";
-import { clearRunning, markRunning, readRunning, runningFile } from "../src/run/running.ts";
-import { runRecord, type Agent } from "../src/run/run.ts";
+import { clearRunning, markRunning, readRunning, runningFile } from "../src/work/run/running.ts";
+import { runRecord, type Agent } from "../src/work/run/run.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const YAML = `cap: 5

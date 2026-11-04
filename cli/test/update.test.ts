@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { isOlder, updateCanon } from "../src/update/update.ts";
+import { isOlder, updateCanon } from "../src/setup/update/update.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const installed = (version: string, extra: Record<string, string> = {}) =>

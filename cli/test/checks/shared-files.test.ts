@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { sharedFiles, syncCopies } from "../../src/checks/shared-files.ts";
+import { sharedFiles, syncCopies } from "../../src/enforce/checks/shared-files.ts";
 import { loadConfig } from "../../src/config/load.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";

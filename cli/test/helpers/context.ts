@@ -1,6 +1,6 @@
 import { basename } from "node:path";
 import { loadConfig } from "../../src/config/load.ts";
-import type { CheckContext } from "../../src/checks/types.ts";
+import type { CheckContext } from "../../src/enforce/checks/types.ts";
 
 export function contextFor(repo: string, overrides: Partial<CheckContext> = {}): CheckContext {
   return {

@@ -2,8 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { loadConfig } from "../src/config/load.ts";
-import { buildBand } from "../src/band/band.ts";
-import { pluginCommand, readUserFeatures, setFeature, setUserFeature } from "../src/features/features.ts";
+import { buildBand } from "../src/serve/band/band.ts";
+import { pluginCommand, readUserFeatures, setFeature, setUserFeature } from "../src/setup/features/features.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const file = (repo: string) => join(repo, ".context", "context.yaml");

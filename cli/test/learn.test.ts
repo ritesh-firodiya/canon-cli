@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { proposals, readDecisions, readVerdicts, recordDecision, summarise } from "../src/learn/learn.ts";
-import { formatVerdict, parseVerdicts, recordVerdict, type Outcome } from "../src/records/verdicts.ts";
+import { proposals, readDecisions, readVerdicts, recordDecision, summarise } from "../src/learn/learn/learn.ts";
+import { formatVerdict, parseVerdicts, recordVerdict, type Outcome } from "../src/work/records/verdicts.ts";
 import { loadConfig } from "../src/config/load.ts";
-import { findRecord } from "../src/records/records.ts";
+import { findRecord } from "../src/work/records/records.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const page = (...verdicts: [string[], string][]) =>

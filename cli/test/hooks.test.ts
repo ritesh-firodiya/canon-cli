@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { HOOK, installHook } from "../src/checks/hooks.command.ts";
+import { HOOK, installHook } from "../src/enforce/checks/hooks.command.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 function repo(files: Record<string, string>): string {

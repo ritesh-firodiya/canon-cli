@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { staleCopies } from "../../src/checks/stale-copies.ts";
+import { staleCopies } from "../../src/enforce/checks/stale-copies.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 

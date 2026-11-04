@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { agentFor } from "../src/run/agents.ts";
-import { claudeAgent } from "../src/run/run.ts";
+import { agentFor } from "../src/work/run/agents.ts";
+import { claudeAgent } from "../src/work/run/run.ts";
 
 const call = { prompt: "hi there", tools: [], capUsd: 1, cwd: process.cwd() };
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { latestModel } from "../src/usage/models.ts";
+import { latestModel } from "../src/setup/models/latest.ts";
 
 const reply = (data: unknown, ok = true) => (async () => ({ ok, json: async () => data }) as Response) as typeof fetch;
 const rows = { data: [{ id: "claude-haiku-4-5", created_at: "2025-10-01T00:00:00Z" }, { id: "claude-haiku-5-5", created_at: "2026-10-01T00:00:00Z" }, { id: "claude-opus-5-5", created_at: "2026-11-01T00:00:00Z" }] };

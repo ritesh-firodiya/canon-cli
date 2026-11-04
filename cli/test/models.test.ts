@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { gatherModels } from "../src/models/models.ts";
-import { priceOf } from "../src/usage/prices.ts";
+import { gatherModels } from "../src/setup/models/models.ts";
+import { priceOf } from "../src/setup/models/prices.ts";
 
 const NONE = { settings: [], env: {}, apiIds: [], config: {} };
 

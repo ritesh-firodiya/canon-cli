@@ -1,9 +1,9 @@
 import { resolve } from "node:path";
 import { describe, expect, test } from "vitest";
-import { checkSurface } from "../../src/checks/design-set/index.ts";
-import { designs } from "../../src/checks/designs.ts";
+import { checkSurface } from "../../src/enforce/checks/design-set/index.ts";
+import { designs } from "../../src/enforce/checks/designs.ts";
 import { contextFor } from "../helpers/context.ts";
-import { classes, flat } from "../../src/checks/design-set/text.ts";
+import { classes, flat } from "../../src/enforce/checks/design-set/text.ts";
 import { makeTree } from "../helpers/fixture.ts";
 
 const SHELL = resolve(import.meta.dirname, "../../../shell");

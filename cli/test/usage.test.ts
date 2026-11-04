@@ -2,8 +2,8 @@ import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { costOf, priceOf } from "../src/usage/prices.ts";
-import { addLine, buildReport, formatReport, installedSkills, newTally, readTranscripts, type FileContext, type Tally } from "../src/usage/usage.ts";
+import { costOf, priceOf } from "../src/setup/models/prices.ts";
+import { addLine, buildReport, formatReport, installedSkills, newTally, readTranscripts, type FileContext, type Tally } from "../src/learn/usage/usage.ts";
 
 const SINCE = new Date("2026-10-01T00:00:00Z");
 const main: FileContext = { subagent: false, products: new Set(["myapp", "other"]), workspace: "/w", session: "s1" };

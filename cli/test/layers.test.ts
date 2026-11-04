@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
-import { locks } from "../src/checks/locks.ts";
+import { locks } from "../src/enforce/checks/locks.ts";
 import { loadConfig } from "../src/config/load.ts";
 import { makeTree } from "./helpers/fixture.ts";
 import { contextFor } from "./helpers/context.ts";

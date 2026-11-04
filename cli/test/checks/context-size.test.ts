@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { contextSize } from "../../src/checks/context-size.ts";
+import { contextSize } from "../../src/enforce/checks/context-size.ts";
 import { makeTree, wikiPage } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
 

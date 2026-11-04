@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { parse } from "yaml";
 import { DEFAULT_PIPELINE } from "../src/config/default-pipeline.ts";
-import { applyInit, architectureStarters, detectExpoSdk, indexKnowledge, parseChoices, planInit } from "../src/init/init.ts";
+import { applyInit, architectureStarters, detectExpoSdk, indexKnowledge, parseChoices, planInit } from "../src/setup/init/init.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 const recorder = () => {

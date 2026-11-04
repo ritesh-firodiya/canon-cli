@@ -101,17 +101,17 @@
       "id": "claude",
       "area": "claude",
       "label": "Claude Code",
-      "does": "canon weigh runs claude -p; the plugin runs inside it",
+      "does": "canon run starts each stage's agent with claude -p; the plugins run inside it",
       "cost": {
         "today": "Not read",
-        "grows": "Each weigh and each session; paid on your own Claude plan",
+        "grows": "Each run and each session; paid on your own Claude plan",
         "basis": "unknown"
       },
       "ifDown": {
-        "user": "canon weigh stops with could not run claude.",
+        "user": "canon run cannot start an agent.",
         "data": "Safe",
         "basis": "code",
-        "source": "cli/src/weigh/weigh.command.ts"
+        "source": "cli/src/work/run/agents.ts"
       }
     },
     {
@@ -128,7 +128,7 @@
         "user": "canon update fails with the HTTP status after 30 s at most. Nothing is changed.",
         "data": "Safe",
         "basis": "code",
-        "source": "cli/src/lib/system.ts; cli/src/update/update.ts"
+        "source": "cli/src/lib/system.ts; cli/src/setup/update/update.ts"
       }
     },
     {
@@ -158,13 +158,13 @@
         "today": "$0",
         "grows": "Nothing",
         "basis": "code",
-        "source": "cli/src/wiki/wiki.command.ts, QUARTZ_COMMIT"
+        "source": "cli/src/serve/wiki/wiki.command.ts, QUARTZ_COMMIT"
       },
       "ifDown": {
         "user": "canon wiki fails on first run. Every other command works.",
         "data": "Safe",
         "basis": "code",
-        "source": "cli/src/wiki/wiki.command.ts, must()"
+        "source": "cli/src/serve/wiki/wiki.command.ts, must()"
       }
     }
   ],

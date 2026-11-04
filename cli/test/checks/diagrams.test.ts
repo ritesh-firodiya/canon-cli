@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { architectureJson, diagrams } from "../../src/checks/diagrams.ts";
+import { architectureJson, diagrams } from "../../src/enforce/checks/diagrams.ts";
 import { makeTree } from "../helpers/fixture.ts";
-import type { CheckContext } from "../../src/checks/types.ts";
+import type { CheckContext } from "../../src/enforce/checks/types.ts";
 
 const FILE = ".context/architecture/architecture.json";
 const TODAY = new Date("2026-10-30");
