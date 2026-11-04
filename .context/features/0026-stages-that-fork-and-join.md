@@ -18,7 +18,7 @@ Today stages run one after another from a list (`run.ts`). Real work forks, such
 ## Acceptance scenarios
 - Given a pipeline that sets no connections, then it runs as an ordered list, as it does today.
 - Given a stage naming what it comes after, then it runs once those stages finish.
-- Given a loop, or a stage nothing leads to, then `canon check` fails and names it.
+- Given a stage nothing leads to, or one after itself, then loading the config fails and names it. Loops among forked stages are allowed; work loops back through a new record, not an edge.
 - Given two stages running at once, then each keeps its own cost, cap and gate, and one stopping does not lose the other's work.
 - Given `canon pipeline`, then it shows forks and joins.
 - Given records, flow and the band, then they still work on a pipeline that forks.

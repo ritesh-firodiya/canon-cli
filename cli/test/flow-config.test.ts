@@ -8,7 +8,7 @@ import { recordEvent } from "../src/work/records/problems.ts";
 import { startExperiment } from "../src/work/records/experiment.ts";
 import { newPage } from "../src/work/records/new.ts";
 import { queueOf } from "../src/work/records/queue.ts";
-import { findRecord, setFields } from "../src/work/records/records.ts";
+import { allRecords, findRecord, setFields } from "../src/work/records/records.ts";
 import { markDone, setRecordFields } from "../src/work/records/set.ts";
 import { runRecord, type Agent, type AgentCall } from "../src/work/run/run.ts";
 import { enforcement, weakened } from "../src/enforce/status/status.ts";
@@ -36,21 +36,21 @@ describe("the default flow", () => {
     const { id } = newPage(repo, config, "problem", "P");
     const { agent, calls } = recording();
     expect(runRecord(repo, config, id, agent)).toMatchObject({ status: "waiting", stage: "plan" });
-    expect(calls.filter((call) => !call.small).map(stageOf)).toEqual(["research", "options", "plan"]);
+    expect(calls.filter((call) => !call.small).map(stageOf)).toEqual(["prioritize", "collect", "research", "plan"]);
     expect(calls.filter((call) => call.small)).toHaveLength(3);
     const page = findRecord(repo, config, id);
-    expect(page.data.completed).toEqual(["problem", "research", "options", "plan"]);
+    expect(page.data.completed).toEqual(["problem", "prioritize", "collect", "research", "plan"]);
     expect((page.data.skipped as { stage: string }[]).map((entry) => entry.stage)).toEqual(["idea", "discovery", "design"]);
     expect(pipeline.run(contextFor(repo))).toEqual([]);
   });
 
   test("a repo adds, removes and re-orders stages", () => {
-    const repo = makeTree({ ".context/context.yaml": "pipelines:\n  default:\n    - { id: marketing, by: agent, prompt: Draft the post. }\n    - { id: options }\n" });
+    const repo = makeTree({ ".context/context.yaml": "pipelines:\n  default:\n    - { id: marketing, by: agent, prompt: Draft the post. }\n    - { id: research }\n" });
     const { config } = loadConfig(repo);
     const { id } = newPage(repo, config, "problem", "P");
     const { agent, calls } = recording();
     expect(runRecord(repo, config, id, agent).status).toBe("done");
-    expect(calls.map(stageOf)).toEqual(["marketing", "options"]);
+    expect(calls.map(stageOf)).toEqual(["marketing", "research"]);
   });
 });
 
@@ -60,7 +60,7 @@ describe("forks", () => {
   test("problem, idea and discovery may follow each other in any order, and research follows any of them", () => {
     const { config } = loadConfig(makeTree({}));
     const stages = config.pipelines.default;
-    expect(stageIds(stagesBefore(stages, "research"))).toEqual(["discovery", "idea", "intake", "problem"]);
+    expect(stageIds(stagesBefore(stages, "research"))).toEqual(["collect", "discovery", "idea", "intake", "prioritize", "problem"]);
     expect(stageIds(stagesBefore(stages, "problem"))).toEqual(["discovery", "idea", "intake"]);
     expect(stagesAfter(stages, "idea").has("problem")).toBe(true);
     expect(stagesAfter(stages, "research").has("idea")).toBe(false);
@@ -72,8 +72,8 @@ describe("forks", () => {
     const { id } = newPage(repo, config, "idea", "I");
     const { agent, calls } = recording();
     expect(runRecord(repo, config, id, agent, { with: ["problem"] })).toMatchObject({ status: "waiting", stage: "plan" });
-    expect(calls.filter((call) => !call.small).map(stageOf)).toEqual(["problem", "research", "options", "plan"]);
-    expect(findRecord(repo, config, id).data.completed).toEqual(["idea", "problem", "research", "options", "plan"]);
+    expect(calls.filter((call) => !call.small).map(stageOf)).toEqual(["problem", "prioritize", "collect", "research", "plan"]);
+    expect(findRecord(repo, config, id).data.completed).toEqual(["idea", "problem", "prioritize", "collect", "research", "plan"]);
     expect(pipeline.run(contextFor(repo))).toEqual([]);
   });
 
@@ -84,7 +84,7 @@ describe("forks", () => {
     expect(findRecord(repo, config, id).data["started-at"]).toBe("intake");
     const { agent, calls } = recording();
     runRecord(repo, config, id, agent);
-    expect(calls.filter((call) => !call.small).map(stageOf)).toEqual(["intake", "research", "options", "plan"]);
+    expect(calls.filter((call) => !call.small).map(stageOf)).toEqual(["intake", "prioritize", "collect", "research", "plan"]);
     expect(calls[0].prompt).toMatch(/Check that what you were given/);
     expect(pipeline.run(contextFor(repo))).toEqual([]);
   });
@@ -94,16 +94,16 @@ describe("forks", () => {
     const { config } = loadConfig(repo);
     const { id } = newPage(repo, config, "problem", "P");
     runRecord(repo, config, id, recording().agent);
-    rejectStage(repo, config, id, "options", "ben", "Too few");
-    expect(findRecord(repo, config, id).data.completed).toEqual(["problem", "research"]);
+    rejectStage(repo, config, id, "research", "ben", "Too few");
+    expect(findRecord(repo, config, id).data.completed).toEqual(["problem", "prioritize", "collect"]);
   });
 
   test("the check names a stage on the way that was neither done nor skipped; the record's own stage is done by its page", () => {
     const repo = makeTree({});
     const { config } = loadConfig(repo);
     const { id, file } = newPage(repo, config, "problem", "P");
-    setFields(repo, file, { stage: "options" });
-    expect(pipeline.run(contextFor(repo)).map((finding) => finding.message)).toEqual(["idea", "discovery", "research"].map((stage) => `reached "options" with "${stage}" neither done nor skipped with a reason`));
+    setFields(repo, file, { stage: "research" });
+    expect(pipeline.run(contextFor(repo)).map((finding) => finding.message)).toEqual(["idea", "discovery", "prioritize", "collect"].map((stage) => `reached "research" with "${stage}" neither done nor skipped with a reason`));
     expect(id).toBe("PROB-0001");
   });
 
@@ -121,7 +121,7 @@ describe("forks", () => {
     const [problem, research] = loadConfig(repo).config.pipelines.default;
     expect(problem.after).toBeUndefined();
     expect(research.after).toBeUndefined();
-    expect(research.prompt).toMatch(/Find what is already known/);
+    expect(research.prompt).toMatch(/find what is already known/);
   });
 });
 
@@ -244,9 +244,20 @@ describe("experiments", () => {
     const { id } = startExperiment(repo, config, "pricing-signal", { from: "discovery", to: "research" });
     const { agent, calls } = recording();
     expect(runRecord(repo, config, id, agent).status).toBe("done");
-    expect(calls.filter((call) => !call.small).map(stageOf)).toEqual(["discovery", "research"]);
+    expect(calls.filter((call) => !call.small).map(stageOf)).toEqual(["discovery", "prioritize", "collect", "research"]);
     expect((findRecord(repo, config, id).data.skipped as { stage: string }[]).map((entry) => entry.stage)).toEqual(["problem", "idea"]);
     expect(pipeline.run(contextFor(repo))).toEqual([]);
+  });
+
+  test("a discarded or retried outcome opens one new problem that starts at intake", () => {
+    const repo = makeTree({ ".context/context.yaml": "pipelines:\n  default:\n    - { id: intake, by: agent }\n    - { id: outcome, by: agent }\n" });
+    const { config } = loadConfig(repo);
+    const { id, file } = newPage(repo, config, "problem", "Checkout fails");
+    setFields(repo, file, { outcome: "discarded" });
+    runRecord(repo, config, id, recording().agent);
+    runRecord(repo, config, id, recording().agent);
+    const followUps = allRecords(repo, config).filter((record) => record.data.source === id);
+    expect(followUps.map((record) => record.data["started-at"])).toEqual(["intake"]);
   });
 
   test("a POC starts at code and stops without a release, and its last stage may close it", () => {

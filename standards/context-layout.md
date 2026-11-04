@@ -204,8 +204,10 @@ records:
 
 ```
 intake ─┬─ problem ──┐
-        ├─ idea ─────┼─ research → options → design → plan → feature → code → review → release → outcome
-        └─ discovery ┘
+        ├─ idea ─────┼─ prioritize → collect → research → design → plan → feature → code → review → release → outcome
+        └─ discovery ┘                                                                                          │
+   ↑                                                                                                            │
+   └──────────────────────────── a discarded or retried outcome opens a new problem ───────────────────────────┘
 ```
 
 | Stage | What it means |
@@ -214,13 +216,14 @@ intake ─┬─ problem ──┐
 | `problem` | What is wrong, and what should be true instead. `problems/`. |
 | `idea` | A proposed change, before research. `ideas/`. |
 | `discovery` | Something learned: data, user behavior, a market fact. `wiki/synthesis/`. |
-| `research` | What is already known about it. `wiki/synthesis/` and dated data in `raw/`. |
-| `options` | Candidate ways to solve it, not yet chosen. `ideas/`. |
+| `prioritize` | `priority:` set from the facts behind it: how many it hurts, how often, what it costs. |
+| `collect` | Data from the tools, as dated facts in `raw/` (`canon new fact`). No data is written as no data. |
+| `research` | What is already known about it, from the facts. `wiki/synthesis/`. |
 | `design` | The screens that change. Optional, gated. Before the plan, so the plan is weighed with them. |
-| `plan` | One option chosen, and why the others lost. Gated. |
+| `plan` | Each way to solve it written as an idea, one chosen, and why the others lost. Gated. |
 | `feature` | The plan split into features, bugs and chores. |
 | `code`, `review`, `release` | Built, checked (gated), shipped. |
-| `outcome` | Whether it worked: `outcome: retained`, `discarded` or `retried`, and `## Result`. |
+| `outcome` | Whether it worked: `outcome: retained`, `discarded` or `retried`, and `## Result`. A discarded or retried outcome opens one new problem, `source:` the old record, starting at the first stage. |
 
 A signal is not a stage: it is where work comes from, kept as `source:` and `sources:`
 on the record. Every stage checks that what it was given is true before it uses it.

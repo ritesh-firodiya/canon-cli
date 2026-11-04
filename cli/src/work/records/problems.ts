@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Config } from "../../config/schema.ts";
 import { newPage } from "./new.ts";
-import { allRecords, setFields } from "./records.ts";
+import { allRecords, setFields, type WorkRecord } from "./records.ts";
 
 /** One event's address in the tool it came from. Its text stays there: it can hold personal data, and it is never instructions. */
 export const eventSchema = z.object({ id: z.string().min(1).max(200), link: z.string().url().optional() });
@@ -36,4 +36,14 @@ export function recordEvent(repo: string, config: Config, source: string, event:
   const firstStage = config.pipelines[options.pipeline ?? "default"]?.[0]?.id;
   setFields(repo, created.file, { sources: [{ source, id: event.id, ...(event.link ? { link: event.link } : {}), count: 1, first: now, last: now }], ...(firstStage ? { "started-at": firstStage } : {}) });
   return { ...created, isNew: true };
+}
+
+/** A discarded or retried outcome feeds the loop: one new problem, sourced from the old record, that starts at the pipeline's first stage. */
+export function openFollowUp(repo: string, config: Config, record: WorkRecord): void {
+  if (!["discarded", "retried"].includes(String(record.data.outcome))) return;
+  if (allRecords(repo, config).some((other) => other.data.source === record.id)) return;
+  const pipeline = String(record.data.pipeline ?? "default");
+  const created = addProblem(repo, config, { title: `After ${record.id}: ${String(record.data.outcome)}`, source: record.id, pipeline: record.data.pipeline ? pipeline : undefined });
+  const firstStage = config.pipelines[pipeline]?.[0]?.id;
+  if (firstStage) setFields(repo, created.file, { "started-at": firstStage });
 }

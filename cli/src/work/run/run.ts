@@ -7,6 +7,7 @@ import type { Config, ConnectorSpec, StageSpec } from "../../config/schema.ts";
 import { stagesAfter, stagesBefore } from "../pipeline/graph.ts";
 import { isApproved, pipelineOf, stageOfKind, startOf } from "../pipeline/pipeline.ts";
 import { describeRecords } from "../records/describe.ts";
+import { openFollowUp } from "../records/problems.ts";
 import { clearRunning, markRunning } from "./running.ts";
 import { allRecords, appendToSection, approvalsOf, findRecord, setFields, type WorkRecord } from "../records/records.ts";
 
@@ -335,5 +336,6 @@ function moveRecord(repo: string, config: Config, recordId: string, agent: Agent
       return stop("waiting", stage.id, `${stage.id} waits for a person: canon approve ${stage.id} --record ${recordId}`);
     }
   }
+  openFollowUp(repo, config, reread());
   return stop("done", null, `${recordId} went through every stage`);
 }
