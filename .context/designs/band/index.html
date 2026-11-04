@@ -65,10 +65,10 @@ th { background: #ece8e0; }
   <div id="states"></div>
 
   <h3>What each click does</h3>
-  <p class="note">Terminals have no hover, so every short item explains itself on click: a one-line panel under the band. A second click closes it. Actions (☀, size, cache) act and say what they did. No click approves anything.</p>
+  <p class="note">Terminals have no hover, so every short item explains itself on click: a one-line panel under the band. A second click closes it, and a panel only for reading closes by itself after 5 seconds (1.5 seconds a line for a long list). The model and review panels have choices, so they stay until closed. Actions (☀, size, cache) act and say what they did. No click approves anything.</p>
   <table>
     <tr><th>Item</th><th>Click</th></tr>
-    <tr><td>Sun</td><td>A sun. White outlined ☼ is the default: the Mac sleeps as usual. Green filled ☀ keeps the Mac from sleeping while this session is open (<code>caffeinate</code>). It stops by itself when the session ends.</td></tr>
+    <tr><td>Sun</td><td>A sun. White outlined ☼ is the default: the Mac sleeps as usual. Green filled ☀ keeps the Mac and its screen from sleeping, so it never locks, while this session is open (<code>caffeinate -dis</code>). It stops by itself when the session ends.</td></tr>
     <tr><td>Phase</td><td>Panel: every phase and where the task is.</td></tr>
     <tr><td>WAITING ON YOU</td><td>Panel: what to review and the approve command.</td></tr>
     <tr><td>Task</td><td>Opens the task's page in your editor. Shown in words, never by ID; cut at 40 characters. The band cannot change the task.</td></tr>

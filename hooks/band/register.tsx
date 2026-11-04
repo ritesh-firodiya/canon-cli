@@ -82,7 +82,8 @@ const TEST_LEVEL: Record<Tests, Level> = { none: 'ok', ok: 'ok', stale: 'warn', 
 
 // The caffeinate child behind ☀; ☼ when there is none. Module state, so a reload, which kills it, starts asleep again.
 // -w ties caffeinate to the process that started it, so a crash or kill -9 of Claude Code cannot leave the Mac awake.
-const CAFFEINATE = 'exec caffeinate -i -w "$PPID"'
+// -d keeps the display on, so the screen never locks; -i and -s keep the system up, on battery and on power.
+const CAFFEINATE = 'exec caffeinate -dis -w "$PPID"'
 
 let awakeChild: ReturnType<EngineInterface['process']['spawn']> | null = null
 
@@ -187,6 +188,23 @@ async function gateRefusal($: EngineInterface, e: ToolCall): Promise<string | nu
   // No canon, or a canon without the gate: the write goes on, and `canon check` still judges it later.
   if (!run || run.exitCode !== 1 || !run.stdout.trim()) return null
   return `The knowledge gate refused this page. Fix it, or propose the change to the person instead of writing it:\n${run.stdout.trim()}`
+}
+
+// Panels only for reading close by themselves; one with choices to press stays until closed.
+const STAYS_OPEN = new Set<Panel>(['route', 'review'])
+const READ_MS = 5000
+const READ_MS_PER_LINE = 1500
+let shown = 0
+
+/** Opens a panel, or closes it with null. A reading panel closes after time to read it, unless another opened since. */
+async function showPanel($: EngineInterface, name: Panel | null): Promise<void> {
+  const mine = ++shown
+  await update($, panel, () => name)
+  if (!name || STAYS_OPEN.has(name)) return
+  const lines = name === 'errors' || name === 'warnings' ? ((await read($, facts))?.[name].length ?? 1) : 1
+  $.clock.after(Math.max(READ_MS, lines * READ_MS_PER_LINE), async () => {
+    if (shown === mine) await update($, panel, () => null)
+  })
 }
 
 export const register: Register = on => {
@@ -331,9 +349,9 @@ export const register: Register = on => {
     const running = await read($, applied)
     const cached = await read($, cache)
 
-    const toggle = (name: Panel) => () => update($, panel, value => (value === name ? null : name))
+    const toggle = (name: Panel) => async () => showPanel($, (await read($, panel)) === name ? null : name)
     // An action says what it did, so a second click acts again instead of closing.
-    const say = (name: Info) => update($, panel, () => name)
+    const say = (name: Info) => showPanel($, name)
     const extend = async () => {
       await update($, isExtending, () => true)
       await say('cache')
