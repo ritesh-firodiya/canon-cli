@@ -1,6 +1,7 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { sep } from "node:path";
+import { perTranscript, TRANSCRIPTS, transcriptFiles } from "../lib/transcripts.ts";
 
 const WEB_TOOLS = new Set(["WebSearch", "WebFetch"]);
 export const COMMIT_CALL = /\bgit\b[^|;&]*\bcommit\b/;
@@ -70,14 +71,20 @@ export function readSession(text: string, products: RegExp): Session | null {
   return { start: times.reduce((a, b) => (b < a ? b : a)), calls, web, where };
 }
 
-/** Every conversation on this machine: one started in ~ or ~/git can still have worked in a product. */
-export function allSessions(workspace: string, transcripts = join(homedir(), ".claude", "projects")): Session[] {
-  if (!existsSync(transcripts)) return [];
+type Stored = { start: string; calls: string[]; web: string | null; where: string[] } | null;
+
+const store = (session: Session | null): Stored =>
+  session && { start: session.start.toISOString(), calls: session.calls.map((d) => d.toISOString()), web: session.web?.toISOString() ?? null, where: [...session.where] };
+const revive = (stored: Stored): Session | null =>
+  stored && { start: new Date(stored.start), calls: stored.calls.map((d) => new Date(d)), web: stored.web ? new Date(stored.web) : null, where: new Set(stored.where) };
+
+/** Every conversation on this machine: one started in ~ or ~/git can still have worked in a product. A subagent's is part of its parent's. */
+export function allSessions(workspace: string, transcripts = TRANSCRIPTS, cacheDir?: string): Session[] {
   const products = productPath(workspace);
-  return readdirSync(transcripts, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .flatMap((d) => readdirSync(join(transcripts, d.name)).filter((f) => f.endsWith(".jsonl")).map((f) => join(transcripts, d.name, f)))
-    .flatMap((path) => readSession(readFileSync(path, "utf8"), products) ?? []);
+  const files = transcriptFiles(transcripts).filter((file) => !file.includes(`${sep}subagents${sep}`));
+  // The workspace decides what counts as a product, so it is part of the cache's name.
+  const kind = `flow-v1-${workspace.replace(/[^A-Za-z0-9]+/g, "-")}`;
+  return perTranscript(kind, files, (file) => store(readSession(readFileSync(file, "utf8"), products)), cacheDir).flatMap((stored) => revive(stored) ?? []);
 }
 
 /**

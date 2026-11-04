@@ -89,7 +89,7 @@ describe("canon flow", () => {
     });
     mkdirSync(join(workspace, "other", ".git"), { recursive: true });
 
-    const result = flow(workspace, "myapp", allSessions(workspace, projects), [], github);
+    const result = flow(workspace, "myapp", allSessions(workspace, projects, makeTree({})), [], github);
     expect(result.since).toBe("2026-10-01");
     expect(result.stages).toEqual([{ id: "idea", count: 2 }, { id: "plan", count: 1 }, { id: "code", count: 1 }, { id: "review", count: 1 }, { id: "live", count: 1 }]);
     expect(result.medianHours).toEqual({ "idea→plan": 0.5, "plan→code": 2, "code→review": null, "review→live": null });
@@ -121,7 +121,7 @@ describe("canon flow", () => {
       ].join("\n"),
     });
 
-    const result = flow(workspace, "site", allSessions(workspace, projects), [], () => []);
+    const result = flow(workspace, "site", allSessions(workspace, projects, makeTree({})), [], () => []);
 
     expect(result.stages).toContainEqual({ id: "live", count: 1 });
   });
@@ -147,7 +147,7 @@ describe("canon flow", () => {
         line({ timestamp: "2026-10-01T11:00:30Z", type: "assistant", message: { content: [{ type: "tool_use", name: "Bash", input: { command: "git commit -m x" } }] } }),
       ].join("\n"),
     });
-    const result = flow(workspace, "myapp", allSessions(workspace, projects), [], () => []);
+    const result = flow(workspace, "myapp", allSessions(workspace, projects, makeTree({})), [], () => []);
     expect(result.stages).toEqual([{ id: "idea", count: 1 }, { id: "campaign", count: 1 }]);
   });
 });

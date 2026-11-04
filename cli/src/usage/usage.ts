@@ -1,8 +1,9 @@
-import { createReadStream, existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { createReadStream, existsSync, readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, sep } from "node:path";
 import { createInterface } from "node:readline";
 import { productPath } from "../flow/sessions.ts";
+import { transcriptFiles } from "../lib/transcripts.ts";
 import { costOf, priceOf, promptTokens, tokens, type KindCost, type Usage } from "./prices.ts";
 
 const CACHE_HOUR_MS = 60 * 60 * 1000;
@@ -240,10 +241,8 @@ export function addLine(tally: Tally, line: string, context: FileContext): void 
 
 /** Reads every transcript touched in the period, line by line: one can be larger than a string may hold. */
 export async function readTranscripts(tally: Tally, root: string, shared: Pick<FileContext, "products" | "workspace">): Promise<void> {
-  if (!existsSync(root)) return;
-  const files = (readdirSync(root, { recursive: true }) as string[]).filter((file) => file.endsWith(".jsonl")).map((file) => join(root, file));
-  for (const file of files) {
-    if (statSync(file).mtime < tally.since) continue;
+  // shortcut: not cached per file, since a resumed session repeats earlier messages and `seen` drops them across files; cache the tally whole if usage gets slow.
+  for (const file of transcriptFiles(root, tally.since)) {
     const context: FileContext = { ...shared, subagent: file.includes(`${sep}subagents${sep}`), session: file };
     for await (const line of createInterface({ input: createReadStream(file), crlfDelay: Infinity })) addLine(tally, line, context);
     const state = tally.sessions.get(file);
