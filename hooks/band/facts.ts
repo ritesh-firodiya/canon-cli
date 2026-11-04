@@ -210,3 +210,36 @@ export function isChangingCall(tool: string, command?: string): boolean {
 export const isWeighSkill = (skill: string): boolean => /(^|:)weigh$/.test(skill)
 
 export const WEIGH_FIRST = 'This prompt looked large, so canon asks for the weigh skill before any change. Run the weigh skill on the request, give its verdict, then go on.'
+
+// Words that say nothing about which page answers: a prompt's own grammar, and asks like "please" or "show".
+const STOP = new Set('about after again also another because been before being between both could does doing done each from have having here into just like make more most much need only other over please same should show some such than that their them then there these they this those through very what when where which while will with would your'.split(' '))
+const MIN_WORD = 4
+const MAX_WORDS = 5
+
+/** The words of a prompt worth searching for, longest first: they are the rarest. */
+export function keywordsOf(text: string): string[] {
+  const words = text.toLowerCase().match(/[a-z][a-z0-9-]+/g) ?? []
+  return [...new Set(words.filter(w => w.length >= MIN_WORD && !STOP.has(w)))].sort((a, b) => b.length - a.length).slice(0, MAX_WORDS)
+}
+
+export interface Hit { file: string; title: string; score: number }
+
+/**
+ * The pages that match most of the words, then score best. With two or more words a page must match two,
+ * so one common word alone never attaches a page.
+ */
+export function rankHits(perWord: readonly (readonly Hit[])[], limit = 3): Hit[] {
+  const byFile = new Map<string, { hit: Hit; words: number; score: number }>()
+  for (const hits of perWord) for (const hit of hits) {
+    const seen = byFile.get(hit.file) ?? { hit, words: 0, score: 0 }
+    byFile.set(hit.file, { hit: seen.hit, words: seen.words + 1, score: seen.score + hit.score })
+  }
+  const need = perWord.length >= 2 ? 2 : 1
+  return [...byFile.values()].filter(e => e.words >= need).sort((a, b) => b.words - a.words || b.score - a.score).slice(0, limit).map(e => e.hit)
+}
+
+/** A qmd hit as a path the agent can Read: qmd://<collection>/<path> sits under <root>/.context/. */
+export const hitPath = (root: string, file: string): string => `${root}/.context/${file.replace(/^qmd:\/\/[^/]+\//, '')}`
+
+export const knowledgeNote = (lines: readonly string[]): string =>
+  `canon found knowledge that may answer this. Read what applies before you answer, and cite it:\n${lines.join('\n')}`

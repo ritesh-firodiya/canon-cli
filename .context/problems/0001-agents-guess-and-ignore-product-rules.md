@@ -5,6 +5,11 @@ source: backfill
 priority: p2
 last-verified: 2026-11-04
 at: plan
+approvals:
+  - stage: plan
+    by: Ritesh Firodiya
+    at: 2026-11-04T16:03:16.147Z
+    note: PLAN-0004
 ---
 # Agents guess and ignore product rules
 

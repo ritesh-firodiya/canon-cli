@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { afterEditText, fileLink, isChangingCall, isGatedPage, isInside, isWeighSkill, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, contextView, cut, extendLabel, infoLine, isNarrow, isTestCommand, nextSize, panelLines, replyRule, windowViews } from './facts'
+import { afterEditText, fileLink, hitPath, isChangingCall, keywordsOf, rankHits, isGatedPage, isInside, isWeighSkill, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, contextView, cut, extendLabel, infoLine, isNarrow, isTestCommand, nextSize, panelLines, replyRule, windowViews } from './facts'
 import { classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
 import type { BandFacts } from './types'
 
@@ -264,11 +264,6 @@ test('from a parent folder the band follows edits between products, and ignores 
 const PICKING: BandFacts = {
   ...FACTS,
   root: '/w/shop',
-  selected: 'PROB-0012',
-  work: [
-    { id: 'PROB-0012', title: 'Ads too frequent', stage: 'design', waiting: 'design', file: '.context/problems/0012.md' },
-    { id: 'PLAN-0003', title: 'Fewer ads', stage: 'plan', waiting: null, file: '.context/plans/0003 a#b.md' },
-  ],
 }
 
 function picking(on: any, band: BandFacts = PICKING) {
@@ -546,7 +541,7 @@ test('a panel for reading closes by itself, and one opened later is not closed e
   on('session.start', (_: unknown, e: any) => ({ cwd: e.cwd }))
   on('session.cwd', () => ({ value: '/w/shop' }))
   on('session.model', () => ({ value: OPUS }))
-  on('process.run', () => ({ value: { exitCode: 0, stdout: JSON.stringify({ ...FACTS, root: '/w/shop' }), stderr: '' } }))
+  ;(on as any)('process.run', () => ({ value: { exitCode: 0, stdout: JSON.stringify({ ...FACTS, root: '/w/shop' }), stderr: '' } }))
   const clock = mock.clock(on)
   mock.store(on)
   await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
@@ -561,3 +556,47 @@ test('a panel for reading closes by itself, and one opened later is not closed e
   expect(await ui.find({ type: 'Text', text: /Reply size/ })).toBeUndefined()
   await ui.unmount()
 })
+
+test('a prompt is searched by its telling words, and a page must match two of them', () => {
+  expect(keywordsOf('What did we decide about the yearly pricing for Plus?')).toEqual(['pricing', 'decide', 'yearly', 'plus'])
+  const a = { file: 'qmd://shop/wiki/a.md', title: 'A', score: 0.8 }
+  const b = { file: 'qmd://shop/wiki/b.md', title: 'B', score: 0.9 }
+  expect(rankHits([[a, b], [a]])).toEqual([a])
+  expect(rankHits([[b]])).toEqual([b])
+  expect(hitPath('/w/shop', a.file)).toBe('/w/shop/.context/wiki/a.md')
+})
+
+test('a typed prompt carries the pages its words point to, and only where knowledge is on', async ($, on) => {
+  const seen: (readonly string[] | undefined)[] = []
+  const searched: string[] = []
+  on('env.get', () => ({ value: undefined }))
+  on('session.start', (_: unknown, e: any) => ({ cwd: e.cwd }))
+  on('session.cwd', () => ({ value: '/w/shop' }))
+  on('session.model', () => ({ value: OPUS }))
+  on('fs.read', () => ({ value: '' }))
+  on('fs.write', () => ({ value: undefined }))
+  mock.clock(on)
+  mock.store(on)
+  let features = ['knowledge']
+  const page = { file: 'qmd://shop/wiki/entities/plus.md', title: 'Plus subscription', score: 0.8 }
+  ;(on as any)('process.run', (_: unknown, e: any) => {
+    if (e.argv[0] === 'qmd') {
+      searched.push(e.argv[2])
+      return { value: { exitCode: 0, stdout: JSON.stringify([page]), stderr: '' } }
+    }
+    return { value: { exitCode: 0, stdout: JSON.stringify({ ...FACTS, root: '/w/shop', features }), stderr: '' } }
+  })
+  on('prompt.submit', (_: unknown, e: any) => {
+    seen.push(e.context)
+    return { text: e.text }
+  })
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  await $.prompt.submit({ text: 'what is the yearly price of plus', origin: { kind: 'composer' } })
+  expect(searched).toEqual(['yearly', 'price', 'plus'])
+  expect(seen[0]?.at(-1)).toContain('Plus subscription — /w/shop/.context/wiki/entities/plus.md')
+  features = []
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  await $.prompt.submit({ text: 'what is the yearly price of plus', origin: { kind: 'composer' } })
+  expect(seen[1]?.join('\n')).not.toContain('canon found knowledge')
+})
+

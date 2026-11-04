@@ -55,6 +55,7 @@ declare module 'claude-code' {
       isAwake: boolean
       replySize: ReplySize
       weigh: { isNeeded: boolean; isDone: boolean }
+      attached: string[]
     }
   }
 }

@@ -18,14 +18,18 @@ import {
   infoLine,
   isNarrow,
   isChangingCall,
+  hitPath,
   isGatedPage,
   isInside,
   isTestCommand,
   isWeighSkill,
+  keywordsOf,
+  knowledgeNote,
   money,
   movedTo,
   nextSize,
   panelLines,
+  rankHits,
   replyRule,
   reloadUsd,
   stageWord,
@@ -33,6 +37,7 @@ import {
   usdLabel,
   WEIGH_FIRST,
   windowViews,
+  type Hit,
 } from './facts'
 import { latestModel } from '../../cli/src/setup/models/latest'
 import { CLASSIFIER_SYSTEM, EFFORTS, TIERS, classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
@@ -75,6 +80,8 @@ const contextUsed = atom({ plugin: 'canon', key: 'contextUsed' } as const, null 
 const isAwake = atom({ plugin: 'canon', key: 'isAwake' } as const, false)
 const replySize = atom({ plugin: 'canon', key: 'replySize' } as const, 'M' as ReplySize)
 // Per typed prompt: a large one must run weigh before its first change.
+// The pages attached to the last typed prompt, so opening one can be counted.
+const attached = atom({ plugin: 'canon', key: 'attached' } as const, [] as string[])
 const weigh = atom({ plugin: 'canon', key: 'weigh' } as const, { isNeeded: false, isDone: false })
 
 const LEVEL_COLOR: Record<Level, string> = { ok: GREEN, warn: AMBER, bad: RED }
@@ -137,11 +144,33 @@ async function followWork($: EngineInterface, path: string | null): Promise<void
 }
 
 // shortcut: rewrites the whole log per prompt, since $.fs has no append; use `canon` to log if the file ever grows large.
-async function logRoute($: EngineInterface, entry: Route): Promise<void> {
+async function appendLog($: EngineInterface, name: string, entry: Record<string, unknown>): Promise<void> {
   const home = (await $.env.get('CANON_HOME')) ?? `${await $.env.get('HOME')}/.canon`
-  const file = `${home}/routes.jsonl`
+  const file = `${home}/${name}.jsonl`
   const before = await $.fs.read(file).catch(() => '')
-  await $.fs.write(file, `${before}${JSON.stringify({ at: new Date(await $.clock.now()).toISOString(), size: entry.size, isFailed: entry.isFailed, decideUsd: entry.decideUsd })}\n`)
+  await $.fs.write(file, `${before}${JSON.stringify({ at: new Date(await $.clock.now()).toISOString(), ...entry })}\n`)
+}
+
+const logRoute = ($: EngineInterface, entry: Route) => appendLog($, 'routes', { size: entry.size, isFailed: entry.isFailed, decideUsd: entry.decideUsd })
+
+const SEARCH_TIMEOUT_MS = 3000
+const HITS_PER_WORD = '5'
+
+/** The pages in this product's knowledge that the prompt's words point to; none when qmd is missing or finds nothing. */
+async function knowledgeFor($: EngineInterface, text: string): Promise<string[]> {
+  const f = await read($, facts)
+  if (!f?.product || !f.root || !f.features?.includes('knowledge')) return []
+  const words = keywordsOf(text)
+  const runs = await Promise.all(words.map(word => $.process.run(['qmd', 'search', word, '-c', f.product as string, '-n', HITS_PER_WORD, '--format', 'json'], { timeoutMs: SEARCH_TIMEOUT_MS }).catch(() => undefined)))
+  const parse = (out: string | undefined): Hit[] => {
+    try {
+      return out ? (JSON.parse(out) as Hit[]) : []
+    } catch {
+      return []
+    }
+  }
+  const root = f.root
+  return rankHits(runs.map(run => (run?.exitCode === 0 ? parse(run.stdout) : []))).map(hit => `- ${hit.title} — ${hitPath(root, hit.file)}`)
 }
 
 /** Asks Haiku how hard a prompt is. A failed or unclear answer leaves the session's own settings. */
@@ -259,7 +288,11 @@ export const register: Register = on => {
   on('prompt.submit', async ($, e, next) => {
     const isTyped = isRoutable(e.text, e.origin.kind === 'plugin')
     // Beside the prompt, not in the system prompt, so a new size keeps the cache.
-    const sized = isTyped ? { ...e, context: [...(e.context ?? []), replyRule(await read($, replySize))] } : e
+    const found = isTyped ? await knowledgeFor($, e.text) : []
+    await update($, attached, () => found.map(line => line.split(' — ').pop() as string))
+    if (found.length) await appendLog($, 'knowledge', { product: (await read($, facts))?.product, attached: found.length }).catch(() => undefined)
+    const notes = [replyRule(await read($, replySize)), ...(found.length ? [knowledgeNote(found)] : [])]
+    const sized = isTyped ? { ...e, context: [...(e.context ?? []), ...notes] } : e
     if (isTyped) await update($, weigh, () => ({ isNeeded: false, isDone: false }))
     if (!isTyped || !(await isRoutingOn($))) return next(sized)
     const mine = await read($, chosen)
@@ -298,6 +331,7 @@ export const register: Register = on => {
   })
 
   on('tool.call', async ($, e, next) => {
+    if (e.agentId === undefined && e.tool === 'Read' && (await read($, attached)).includes(e.file_path)) await appendLog($, 'knowledge', { opened: e.file_path }).catch(() => undefined)
     if (e.agentId === undefined && e.tool === 'Skill' && isWeighSkill(e.skill)) await update($, weigh, w => ({ ...w, isDone: true }))
     const due = await read($, weigh)
     if (e.agentId === undefined && due.isNeeded && !due.isDone && isChangingCall(e.tool, e.tool === 'Bash' ? e.command : undefined)) return { deny: WEIGH_FIRST }
