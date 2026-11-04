@@ -29,6 +29,11 @@ The code folders follow the same groups, with one shared `lib`; repeated code (t
 - Use, 2026-10-05 to 2026-11-04, 791 transcripts: `check` 680 calls in 48 sessions; `ui` 71; `standards` 59; `pipeline` 38; `new` 35; `flow` 26; `init` 25; `sync` 20; `verdict` 16; `copies` 15; `queue` 15; `status` 13; `usage` 10; the rest under 10 each. Never called: `search`, `weigh`, `add`. Skills: `weigh` 23 runs, `decision` 15; `ask`, `ingest`, `standards`, `wiki-lint` and `wildcard` never. So weigh ran in about 3% of sessions: it needs enforcing.
 - On use: the weigh skill is 9,570 chars (about 2,400 tokens), and session start tells the agent to run it on every non-trivial request.
 
+## After step 8 (2026-11-04)
+- Session-start text: 388 chars, from 1,331. The principle titles left it: weigh reads them itself.
+- qmd: one collection per product instead of one per folder, so its list drops from 133 to about 20 once each repo runs `canon update --refresh`.
+- Kept, against the plan: `wildcard` (it makes options, weigh judges them: two jobs), `standards` (it is how rules reach the agent while coding, the core of canon), `wiki-lint` (its checks of meaning need a model; `check` already does the mechanical ones). The weigh skill's text is unchanged, since its logic stays as it is.
+
 ## Steps
 1. Measure first: command use from transcripts, so each cut rests on use; keep this plan's baseline as the yardstick.
 2. One transcript reader with a cache, shared by `learn`, `flow` and `usage`. Target: under 2 s warm.

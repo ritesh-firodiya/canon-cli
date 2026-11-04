@@ -94,8 +94,9 @@ describe("applyInit", () => {
     expect(readFileSync(join(repo, ".context/tasks.md"), "utf8")).toMatch(/^# Tasks\n\n## Now\n/);
     expect(existsSync(join(repo, ".context/raw/.gitkeep"))).toBe(true);
     expect(calls).toEqual([
-      ["qmd", "collection", "add", join(repo, ".context/wiki"), "--name", "demo-wiki"],
-      ["qmd", "collection", "add", join(repo, ".context/features"), "--name", "demo-features"],
+      ["qmd", "collection", "remove", "demo-wiki"],
+      ["qmd", "collection", "remove", "demo-features"],
+      ["qmd", "collection", "add", join(repo, ".context"), "--name", "demo", "--mask", "{wiki,features}/**/*.md"],
     ]);
   });
 
@@ -144,7 +145,8 @@ describe("applyInit", () => {
     const calls: string[][] = [];
     const repo = makeTree({ ".context/problems/0001-a.md": "", ".context/ideas/0001-a.md": "" });
     indexKnowledge(repo, "demo", (command, args) => calls.push([command, ...args]));
-    expect(calls.map((call) => call[call.length - 1])).toEqual(["demo-wiki", "demo-problems", "demo-ideas", "demo-features"]);
+    expect(calls.at(-1)).toEqual(["qmd", "collection", "add", join(repo, ".context"), "--name", "demo", "--mask", "{wiki,problems,ideas,features}/**/*.md"]);
+    expect(calls.slice(0, -1).map((call) => call[3])).toEqual(["demo-wiki", "demo-problems", "demo-ideas", "demo-features"]);
   });
 
   test("writes canon's default flow into context.yaml, to change at will", () => {

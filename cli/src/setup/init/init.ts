@@ -156,10 +156,15 @@ export function applyInit(repo: string, plan: InitPlan, options: { run: Runner; 
   if (plan.config.modules.includes("knowledge")) indexKnowledge(repo, options.name, options.run);
 }
 
-/** Adds the repo's wiki and each record folder it has to qmd. Safe to repeat: qmd refuses a name it already has. */
+/**
+ * Adds the repo's knowledge to qmd as one collection: its wiki and each record folder it has. One per product keeps
+ * qmd's list of collections, which every session reads, short. Safe to repeat: qmd refuses a name it already has.
+ */
 export function indexKnowledge(repo: string, name: string, run: Runner): void {
   const folders = loadConfig(repo).config.records.map((kind) => kind.folder).filter((folder) => folder === "features" || existsSync(join(repo, ".context", folder)));
-  for (const kind of ["wiki", ...folders]) {
-    run("qmd", ["collection", "add", join(repo, ".context", kind), "--name", `${name}-${kind}`]);
-  }
+  const kinds = ["wiki", ...folders];
+  // Before 4.0 each folder was its own collection; removing a name qmd does not have is a no-op.
+  for (const kind of kinds) run("qmd", ["collection", "remove", `${name}-${kind}`]);
+  // shortcut: a record folder added later joins only after `qmd collection remove <name>` and a refresh; compare the mask if that bites.
+  run("qmd", ["collection", "add", join(repo, ".context"), "--name", name, "--mask", `{${kinds.join(",")}}/**/*.md`]);
 }

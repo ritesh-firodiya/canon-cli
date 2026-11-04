@@ -7,9 +7,7 @@ child.on("error", () => {});
 child.unref();
 
 const context = [
-  "Knowledge lookup: for any question about a product's prices, rules, decisions,",
-  "features or past choices, call mcp__plugin_canon-knowledge_qmd__query FIRST, then read the",
-  "hits with mcp__plugin_canon-knowledge_qmd__get. Use grep only for code, or when qmd finds nothing.",
+  "For a product's prices, rules, decisions or past choices, search qmd first (mcp__plugin_canon-knowledge_qmd__query, then __get). grep is for code.",
 ].join("\n");
 
 process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: context } }));
