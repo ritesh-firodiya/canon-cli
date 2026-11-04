@@ -10,6 +10,7 @@ import { diagrams } from "./diagrams.ts";
 import { listing } from "./listing.ts";
 import { locks } from "./locks.ts";
 import { metricsDefinitions } from "./metrics-definitions.ts";
+import { oneHome } from "./one-home.ts";
 import { pipeline } from "./pipeline.ts";
 import { records } from "./records.ts";
 import { refs } from "./refs.ts";
@@ -27,6 +28,7 @@ export const ALL_CHECKS: Check[] = [
   records,
   listing,
   canonicalValues,
+  oneHome,
   standardsCopies,
   sharedFiles,
   refs,

@@ -3,6 +3,7 @@ import type { EngineInterface, Register, RenderChildren } from 'claude-code'
 
 import {
   afterEdit,
+  afterEditText,
   callUsd,
   afterTestRun,
   canExtend,
@@ -16,6 +17,7 @@ import {
   fileLink,
   infoLine,
   isNarrow,
+  isGatedPage,
   isInside,
   isTestCommand,
   money,
@@ -37,6 +39,7 @@ import type { Applied, BandFacts, CacheFacts, Chosen, Effort, Info, Level, Panel
 // Cache and usage logic follow ribbon (MIT, robonuggets/ribbon); test state follows ponytail's band (MIT, DietrichGebert/ponytail).
 
 const TICK_MS = 30_000
+const GATE_TIMEOUT_MS = 20_000
 const EXTEND_MESSAGE = 'Reply with only: ok'
 const CLASSIFIER_TIMEOUT_MS = 3000
 const CLASSIFIER_MAX_TOKENS = 5
@@ -167,6 +170,20 @@ async function refreshUsage($: EngineInterface, lastAt: number | null, model: st
   }))
 }
 
+type ToolCall = Parameters<EngineInterface['tool']['call']>[0]
+
+/** The knowledge gate: a page reaches .context only if every rule the repo has still holds with it. */
+async function gateRefusal($: EngineInterface, e: ToolCall): Promise<string | null> {
+  if ((e.tool !== 'Edit' && e.tool !== 'Write') || !isGatedPage(e.file_path)) return null
+  const before = e.tool === 'Edit' ? await $.fs.read(e.file_path).catch(() => null) : null
+  const content = e.tool === 'Write' ? e.content : before === null ? null : afterEditText(before, e.old_string, e.new_string, Boolean(e.replace_all))
+  if (content === null) return null
+  const run = await $.process.run(['canon', 'gate', e.file_path], { stdin: content, timeoutMs: GATE_TIMEOUT_MS }).catch(() => undefined)
+  // No canon, or a canon without the gate: the write goes on, and `canon check` still judges it later.
+  if (!run || run.exitCode !== 1 || !run.stdout.trim()) return null
+  return `The knowledge gate refused this page. Fix it, or propose the change to the person instead of writing it:\n${run.stdout.trim()}`
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await refreshFacts($)
@@ -255,6 +272,8 @@ export const register: Register = on => {
   })
 
   on('tool.call', async ($, e, next) => {
+    const refusal = await gateRefusal($, e)
+    if (refusal) return { deny: refusal }
     const result = await next(e)
     if (result.deny !== undefined) return result
     if (e.agentId === undefined) {

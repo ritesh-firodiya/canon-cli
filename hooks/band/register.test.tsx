@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { fileLink, isInside, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, contextView, cut, extendLabel, infoLine, isNarrow, isTestCommand, nextSize, panelLines, replyRule, windowViews } from './facts'
+import { afterEditText, fileLink, isGatedPage, isInside, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, contextView, cut, extendLabel, infoLine, isNarrow, isTestCommand, nextSize, panelLines, replyRule, windowViews } from './facts'
 import { classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
 import type { BandFacts } from './types'
 
@@ -462,3 +462,45 @@ test('a canon run agent is never routed, so its stage model and cap hold', async
   await $.prompt.submit({ text: 'what is this?', origin: { kind: 'composer' } })
   expect(asked.length).toBe(0)
 })
+
+test('the gate judges markdown under .context, outside designs and packs', () => {
+  expect(isGatedPage('/w/shop/.context/wiki/a.md')).toBe(true)
+  expect(isGatedPage('/w/shop/.context/designs/a.md')).toBe(false)
+  expect(isGatedPage('/w/shop/src/a.md')).toBe(false)
+  expect(isGatedPage('/w/shop/.context/wiki/a.html')).toBe(false)
+  expect(afterEditText('a b a', 'a', 'c', false)).toBe('c b a')
+  expect(afterEditText('a b a', 'a', '$&', true)).toBe('$& b $&')
+  expect(afterEditText('a', 'x', 'y', false)).toBeNull()
+})
+
+test('a page the gate refuses is not written, and the reason reaches the agent', async ($, on) => {
+  const gated: { argv: string[]; stdin?: string }[] = []
+  let wrote = false
+  on('env.get', () => ({ value: undefined }))
+  on('session.start', (_: unknown, e: any) => ({ cwd: e.cwd }))
+  on('session.cwd', () => ({ value: '/w/shop' }))
+  on('session.model', () => ({ value: OPUS }))
+  mock.clock(on)
+  mock.store(on)
+  // Typed loosely like the other mocks here: a test hook answers with a value alone.
+  const anyOn = on as any
+  anyOn('process.run', (_: unknown, e: any) => {
+    if (e.argv[1] !== 'gate') return { value: { exitCode: 0, stdout: JSON.stringify(FACTS), stderr: '' } }
+    gated.push({ argv: e.argv, stdin: e.init?.stdin })
+    const isBad = String(e.init?.stdin).includes('copy')
+    return { value: { exitCode: isBad ? 1 : 0, stdout: isBad ? 'warn  .context/wiki/b.md  repeats .context/wiki/a.md' : '', stderr: '' } }
+  })
+  on('tool.call', () => {
+    wrote = true
+    return { result: {} }
+  })
+  await $.session.start({ cwd: '/w/shop', surface: 'terminal', isInteractive: true })
+  const refused = await $.tool.call({ tool: 'Write', file_path: '/w/shop/.context/wiki/b.md', content: 'a copy' })
+  expect(wrote).toBe(false)
+  expect(JSON.stringify(refused)).toContain('repeats .context/wiki/a.md')
+  await $.tool.call({ tool: 'Write', file_path: '/w/shop/.context/wiki/c.md', content: 'new' })
+  expect(wrote).toBe(true)
+  await $.tool.call({ tool: 'Write', file_path: '/w/shop/src/a.ts', content: 'copy' })
+  expect(gated.map(g => g.argv[2])).toEqual(['/w/shop/.context/wiki/b.md', '/w/shop/.context/wiki/c.md'])
+})
+

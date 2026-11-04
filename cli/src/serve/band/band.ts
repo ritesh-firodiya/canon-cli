@@ -1,5 +1,7 @@
-import { existsSync } from "node:fs";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename } from "node:path";
+import { productRoot } from "../../lib/files.ts";
+
+export { productRoot };
 import { runChecks } from "../../enforce/checks/check.ts";
 import type { Config, Feature } from "../../config/schema.ts";
 import { loadConfig } from "../../config/load.ts";
@@ -44,15 +46,6 @@ export interface BandFacts {
 }
 
 const NOTHING: Omit<BandFacts, "product"> = { root: null, selected: null, work: [], stage: null, stages: [], waiting: null, running: null, problem: null, errors: [], warnings: [], features: [] };
-
-export function productRoot(start: string): string | null {
-  let folder = resolve(start);
-  while (!existsSync(join(folder, ".context"))) {
-    if (dirname(folder) === folder) return null;
-    folder = dirname(folder);
-  }
-  return folder;
-}
 
 const titleOf = (body: string, id: string): string => /^# (.+)$/m.exec(body)?.[1]?.trim() ?? id;
 

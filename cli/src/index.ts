@@ -4,6 +4,7 @@ import { Command } from "commander";
 import { registerAdd } from "./know/packs/add.command.ts";
 import { registerApprove } from "./work/pipeline/approve.command.ts";
 import { registerCheck } from "./enforce/checks/check.command.ts";
+import { registerGate } from "./enforce/checks/gate.command.ts";
 import { registerDoctor } from "./setup/doctor/doctor.command.ts";
 import { registerHooks } from "./enforce/checks/hooks.command.ts";
 import type { Env } from "./lib/env.ts";
@@ -37,6 +38,7 @@ const program = new Command("canon")
 registerInit(program, env);
 registerAdd(program, env);
 registerCheck(program, env);
+registerGate(program, env);
 registerUpdate(program, env);
 registerDoctor(program);
 registerHooks(program, env);

@@ -186,3 +186,12 @@ export function callUsd(model: string, inputTokens: number, outputTokens: number
 export const fileLink = (root: string, file: string): string => `file://${encodeURI(`${root}/${file}`).replace(/[?#]/g, encodeURIComponent)}`
 
 export const usdLabel = (usd: number): string => `about $${usd.toFixed(usd < CENT ? 4 : 2)}`
+
+/** A page the knowledge gate judges: markdown under a product's .context, outside the folders with their own checks. */
+export const isGatedPage = (path: string): boolean => /\/\.context\/(?!designs\/|packs\/).*\.md$/.test(path)
+
+/** What an Edit leaves in a file, or null when its text is not there and the tool will refuse it anyway. */
+export function afterEditText(text: string, oldText: string, newText: string, isAll: boolean): string | null {
+  if (!text.includes(oldText)) return null
+  return isAll ? text.split(oldText).join(newText) : text.replace(oldText, () => newText)
+}
