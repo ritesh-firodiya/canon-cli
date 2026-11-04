@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.1.0 — 2026-11-04
+
+### Changed
+
+- **Weigh runs in a fresh `weigher` agent** that never saw the chat: a fairer read, and its reading stays out of your session.
+- **Weigh's hold uses Claude Code's read-only mark,** so commands that only look are never held.
+- `wildcard`, `wiki-lint`, `learn` and `ingest` run only when you call them: less text in every session.
+- A verdict on work that simply went ahead is logged to `~/.canon/verdicts.jsonl` instead of becoming an Idea.
+- The knowledge gate keeps the repo's findings until the repo changes: about half the time per write.
+- `evals/run.sh` runs a one-to-three-minute quick eval; `evals/run.sh full` the weekly one.
+
 ## 4.0.0 — 2026-11-04
 
 ### Changed
