@@ -1,5 +1,16 @@
 # Changelog
 
+## 5.0.0 — 2026-11-05
+
+### Changed
+
+- **The default pipeline** is `intake → (problem | idea | discovery) → prioritize → collect → research → design → plan → feature → code → review → release → outcome`. `prioritize` sets `priority:` from the facts; `collect` saves data from the tools as dated facts in `raw/`; research works from them.
+- **`options` is removed.** The plan writes any missing ideas, weighs them and says why the others lost. Rename or drop `{ id: options }` in your `context.yaml`.
+- **Results feed new work:** a `discarded` or `retried` outcome opens one new problem, `source:` the old record, starting at the first stage.
+- **Your own templates:** `.context/templates/<name>.md` replaces canon's for `canon new`. The `template:` field under `records:` is removed; move the file there.
+- **Better templates:** problems add Evidence and Data to collect; ideas add Evidence, Options considered, Cost, Risks and How we'll know. `canon new fact` writes a dated fact in `raw/`.
+- **`canon init` writes no pipeline,** so a repo follows canon's default as it changes. A repo with a copied pipeline keeps it; delete the `pipelines:` block to follow the default.
+
 ## 4.1.0 — 2026-11-04
 
 ### Changed
