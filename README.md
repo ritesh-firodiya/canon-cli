@@ -11,12 +11,14 @@ prompt. It adds no skills, no startup text and no search server. In our test it
 added no startup tokens at all.
 
 ```
-canon                                        7D 41%  5H 96%  cache 53m  extend ~$0.17
+☼  $1.20                                      M  7D 41%  5H 96%  ctx 62%  ↻ 53m +$0.17
 ```
 
-- **Usage left** in your 7-day and 5-hour windows, with the reset time when it runs low.
-- **Prompt cache:** how long it stays warm, and what your next message costs once it goes cold.
-- **Extend:** one click restarts the cache hour, and the button shows its estimated cost first.
+- **Awake:** ☼ is off; a click turns it into a green ☀ that keeps this Mac and its screen awake while the session is open.
+- **Reply size:** S, M or L. A click moves to the next size, and it goes beside each prompt, so the cache holds.
+- **Usage left** in your 7-day and 5-hour windows, with the reset time when it runs low, and the room left in the context window.
+- **Prompt cache:** how long it stays warm, and what your next message costs once it goes cold. One click restarts the hour; the label shows the cost first.
+- **Click to see what it means:** each short item explains itself in one line, which closes by itself.
 
 Everything else is off until you turn it on for a repo. Free and MIT.
 
@@ -44,8 +46,8 @@ canon enable process
 
 | Feature | What you get | Startup tokens added |
 |---|---|---|
-| `process` | The decision gate, decisions, standards, ideas with wildcards, and your stage, gates, runs and checks on the band | about 600 |
-| `knowledge` | Search and answers from your repo's knowledge, with a local index | about 1,160 |
+| `process` | The decision gate, decisions, standards, learning from history, ideas with wildcards, and your stage, gates, runs and checks on the band | about 550 |
+| `knowledge` | Search and answers from your repo's knowledge, with a local index of one collection per product | about 600 |
 | `routing` | Effort and model picked for each prompt, shown on the band, and you can override it | none |
 
 A feature only affects the repo you enable it in. To turn one on across your
@@ -70,6 +72,8 @@ repo's plugins, so use `--user` if you work that way.
   reads it. The gate queries it read-only to back or reject a claim.
 - **Decisions in one place.** `/canon-process:decision` writes one file per topic,
   overwritten when the choice changes. `tasks.md` holds open work only, and history is git's.
+- **Weigh is enforced.** With `routing` on, a prompt sized large changes nothing until weigh has run.
+- **Learn from history.** `/canon-process:learn` reads `canon learn` and proposes rule changes where people keep overriding a rule. It changes nothing until you decide.
 - **More ideas.** `/canon-process:wildcard` makes 2 of every 10 ideas break your patterns.
 
 ### `knowledge`: found before Claude answers
@@ -81,6 +85,13 @@ Every repo's wiki and feature board is indexed with
 ```bash
 npm install -g @tobilu/qmd --allow-scripts=node-llama-cpp,tree-sitter-go,tree-sitter-python,tree-sitter-rust,tree-sitter-typescript,tree-sitter-javascript
 ```
+
+### The knowledge gate: always on in a product repo
+
+Before Claude writes a page under `.context/`, the band runs `canon gate`: every rule the repo
+has, on the repo as it is and as it would be with the page. A page that repeats a fact from
+another page, lacks its frontmatter or breaks a cap is refused, and Claude is told to fix it or
+bring it to you.
 
 ### `routing`: the right effort for each prompt
 
@@ -94,7 +105,7 @@ and what deciding cost. Headless sessions and `canon run` agents are never route
 
 A command runs only when you type it. These need no feature turned on:
 
-- **`canon learn --cost`** shows what your sessions used and would cost at list prices, by skill, tool, model and product.
+- **`canon learn`** shows what history says: verdicts and the rule changes they propose; `--cost` shows what your sessions used and would cost at list prices, by skill, tool, model and product.
 - **`canon check`** fails when a repo breaks its rules: layout, wiki frontmatter, stale pages, size caps, blocked tasks,
   feature pages, dead paths, prices with no canonical home, the import architecture, pipeline gates and your own checkers. `canon hooks install` runs it on every push.
 - **`canon run`** moves a record through its pipeline with an agent, stopping at each gate and spend cap.
@@ -108,6 +119,7 @@ is a separate paid product built on this CLI.
 ```bash
 canon init             # write .context/context.yaml and the missing .context files
 canon add              # list packs; `canon add expo` adds one and indexes its docs
+canon gate <file>      # a page on stdin, judged by every rule before it is written (the band runs it)
 canon check            # this repo against the standards (exit 1 on any error); --all for every repo beside it
 canon hooks install    # a pre-push hook that runs `canon check` (--all: every product)
 canon check --status   # version, kind, modules, config layers, check summary
@@ -143,7 +155,7 @@ canon enable <feature> # turn on process, knowledge or routing for this repo (ca
 
 Every repo carries its own rules in `.context/context.yaml`; nothing above the repo
 is read. An uncommitted `context.local.yaml` beside it overrides it on one machine.
-Commands that span products (`--all`, `ui`, `learn`, `flow`) use the folder that
+Commands that span products (`--all`, `ui`, `learn`) use the folder that
 holds the repo you are in, or `CANON_WORKSPACE`.
 
 ```yaml
@@ -203,7 +215,7 @@ Lists of names (`packs`, `standards`, `copies.use`) add up across the two files;
 ```
 .claude-plugin/   plugin manifest and marketplace
 hooks/            the band: the only thing on by default
-plugins/          what `canon enable` adds per repo: canon-process (weigh, decision, standards, wiki-lint, wildcard, challenger, constitution), canon-knowledge (search, ask, ingest)
+plugins/          what `canon enable` adds per repo: canon-process (weigh, decision, standards, learn, wiki-lint, wildcard, challenger, constitution), canon-knowledge (ask, ingest)
 standards/        default standards
 packs/            vendor doc packs
 templates/        files init writes (dependency-cruiser base and starters)
@@ -216,15 +228,17 @@ Inside `cli/src/`:
 ```
 index.ts          the program: registers every command
 api.ts            what other tools import (`@freetesh/canon/api`)
-<feature>/        one folder per feature: its logic, and a <command>.command.ts per command
-                  (options and output only) — check, init, packs, sync, update, status,
-                  doctor, pipeline, standards, learn, wiki, ui, flow, usage, search, weigh
-checks/           one file per check, named by its id; index.ts lists them
-                  (design-set/ is the design checks, one file per group)
+setup/            init, update, doctor, features (enable/disable), models
+know/             packs, the refresh of packs and the search index
+enforce/          checks (one file per check; index.ts lists them), the gate, standards, status
+work/             records, pipeline and gates, run and trigger, the selected work
+learn/            learn, flow, usage: what history says
+serve/            ui, wiki, the band's facts
 config/           .context/context.yaml: schema and loading
-lib/              shared helpers: files, frontmatter, env, qmd, system calls
+lib/              shared helpers: files, frontmatter, env, qmd, transcripts, system calls, moved commands
 ```
 
+Each feature folder holds its logic and a `<command>.command.ts` per command (options and output only).
 Tests mirror it in `cli/test/`.
 
 ## Develop

@@ -3,8 +3,8 @@ id: PROB-0001
 status: solving
 source: backfill
 priority: p2
-last-verified: 2026-11-02
-at: idea
+last-verified: 2026-11-04
+at: plan
 ---
 # Agents guess and ignore product rules
 
@@ -22,3 +22,5 @@ An agent searches a repo's knowledge before it answers, weighs a request against
 - 3d7e3a9: first version, repo memory and task evaluation
 - 391d67d: rebuilt around the weigh gate and wiki skills
 - 27d402f: the gate checks each claim against facts
+- 4.0.0: the knowledge gate refuses a page that breaks a rule before it is written; with routing on, a large prompt changes nothing until weigh has run.
+- Still open: searching the knowledge before answering is asked at session start, not enforced, and weigh is enforced only on prompts routing sizes large.

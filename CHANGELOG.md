@@ -1,5 +1,30 @@
 # Changelog
 
+## 4.0.0 — 2026-11-04
+
+### Changed
+
+- **Commands folded by purpose.** `status`, `standards` and `copies` are now `canon check --status`, `--standards` and `--copies`; `sync` is `canon update --refresh`; `experiment start` is `canon new experiment <name> --from <stage>`; `flow` and `usage` are `canon learn --flow` and `canon learn --cost`. The old names print where they went for this release.
+- **Removed:** the `search` command (use the `ask` skill or qmd), the `weigh` command (use the skill), and the `canon-styles` plugin with its `styles` feature (the band's reply size replaces it).
+- **The CLI's code is grouped by purpose:** `setup`, `know`, `enforce`, `work`, `learn`, `serve`, with `config` and `lib` shared.
+- **One qmd collection per product** instead of one per folder: qmd's list, which every session reads, is about 20 instead of 133. Run `canon update --refresh` in each repo.
+- **Shorter session start:** 388 characters instead of 1,331. Weigh reads the principles itself.
+- `canon update` says when the CLI and the plugin are already the latest, and refreshes the models either way.
+- Awake (☀) keeps the screen on too, so the Mac never locks; reading panels close by themselves.
+
+### Added
+
+- **The knowledge gate.** Before a page is written under `.context/`, `canon gate` judges it by every rule the repo has, and the band refuses what it newly breaks. A new `one-home` check reports a fact written in two pages.
+- **Weigh is enforced.** With routing on, a prompt sized large changes nothing until the weigh skill has run.
+- **`canon learn`** is one history report, and the `learn` skill turns it into proposed rule changes.
+- **`canon models`** finds the models this machine can run and their prices, including a company's own; `init` and `update` run it.
+- `flow` reads transcripts through a shared per-file cache: 42 ms warm instead of 14 s.
+
+### Fixed
+
+- A bare family name (`haiku`, `opus[1m]`) is priced, so routing no longer logs $0 per decision.
+- The session-start hook calls `canon check --constitution`.
+
 ## 3.1.1 — 2026-11-03
 
 ### Fixed
