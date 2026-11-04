@@ -25,7 +25,8 @@ folder.
 ├── metrics/         the numbers.
 ├── support/         what you tell users.
 ├── legal/           what you promise.
-└── ops/             how you run it.
+├── ops/             how you run it.
+└── templates/       optional: the repo's own templates for canon new.
 ```
 
 ## Rules
@@ -289,8 +290,9 @@ skipped, local approvals are matched by git name, and `weigh` is advice.
 
 `canon new <kind> "<title>"` starts a page: `problem`, `idea`, `experiment`,
 `plan`, `feature`, `bug`, `discovery`, `finding`, `decision`, or a kind the repo
-added. A repo's own kind gets its template from its fields and sections, or from
-`template:` under `records:`, which can also replace a default's.
+added. canon reads `.context/templates/<folder>.md` first (`problems.md`,
+`finding.md`), then its own; a repo's own kind with neither gets one from its
+fields and sections.
 
 ## `tasks.md` — open work only
 

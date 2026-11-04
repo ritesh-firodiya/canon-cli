@@ -202,10 +202,10 @@ describe("canon new", () => {
     expect(() => newPage(repo, config, "finding", "Retry charges twice")).toThrow(/already exists/);
   });
 
-  test("a team's own kind gets a template from its config, or names its own", () => {
+  test("a team's own kind gets a template from its config, or from .context/templates", () => {
     const repo = makeTree({
-      ".context/context.yaml": "records:\n  - { folder: campaigns, prefix: CAMP, statuses: [draft, live], fields: { channel: [email, ads] }, sections: [Goal] }\n  - { folder: bugs, template: my-bug.md }\n",
-      "my-bug.md": "---\nstatus: open\nseverity: low\n---\n# {{title}}\n## Summary\nours\n## Expected\ne\n## Actual\na\n",
+      ".context/context.yaml": "records:\n  - { folder: campaigns, prefix: CAMP, statuses: [draft, live], fields: { channel: [email, ads] }, sections: [Goal] }\n",
+      ".context/templates/bugs.md": "---\nstatus: open\nseverity: low\n---\n# {{title}}\n## Summary\nours\n## Expected\ne\n## Actual\na\n",
     });
     const { config } = loadConfig(repo);
     newPage(repo, config, "campaign", "Launch");
@@ -214,6 +214,12 @@ describe("canon new", () => {
     expect(findRecord(repo, config, "CAMP-0001").data).toMatchObject({ status: "draft", channel: "email" });
     expect(findRecord(repo, config, "BUG-0001").body).toContain("ours");
     expect(() => newPage(repo, config, "nope", "X")).toThrow(/kinds here: .*campaigns/);
+  });
+
+  test("a repo's own template replaces canon's for a wiki document too", () => {
+    const repo = makeTree({ ".context/templates/finding.md": "---\nlast-verified: {{today}}\n---\n# {{title}}\nour finding\n" });
+    const { file } = newPage(repo, loadConfig(repo).config, "finding", "Retry");
+    expect(readFileSync(join(repo, file), "utf8")).toContain("our finding");
   });
 
   test("templates ship in every kind the docs name", () => {

@@ -23,9 +23,14 @@ function generatedTemplate(kind: RecordKind, title: string, today: string): { fi
   return { fields: { status: kind.statuses[0], ...listed, "last-verified": today }, body: [`# ${title}`, ...kind.sections.map((section) => `\n## ${section}`)].join("\n") };
 }
 
+/** The repo's own `.context/templates/<name>.md` first, then canon's. */
+function templateFile(repo: string, name: string): string {
+  const own = join(repo, ".context", "templates", `${name}.md`);
+  return existsSync(own) ? own : join(TEMPLATES, `${name}.md`);
+}
+
 function recordTemplate(repo: string, kind: RecordKind, title: string, today: string): { fields: Record<string, unknown>; body: string } {
-  const file = kind.template ? join(repo, kind.template) : join(TEMPLATES, `${kind.folder}.md`);
-  if (kind.template && !existsSync(file)) throw new Error(`the template for ${kind.folder}, ${kind.template}, does not exist`);
+  const file = templateFile(repo, kind.folder);
   return existsSync(file) ? splitTemplate(readFileSync(file, "utf8"), title, today) : generatedTemplate(kind, title, today);
 }
 
@@ -38,7 +43,7 @@ export function newPage(repo: string, config: Config, what: string, title: strin
     const file = join(".context", "wiki", wikiFolder, `${slug}.md`);
     if (existsSync(join(repo, file))) throw new Error(`${file} already exists: one page per topic, so edit it`);
     mkdirSync(dirname(join(repo, file)), { recursive: true });
-    const text = readFileSync(join(TEMPLATES, `${what}.md`), "utf8").replaceAll("{{title}}", title.replace(/\s+/g, " ")).replaceAll("{{today}}", today);
+    const text = readFileSync(templateFile(repo, what), "utf8").replaceAll("{{title}}", title.replace(/\s+/g, " ")).replaceAll("{{today}}", today);
     writeFileSync(join(repo, file), text);
     return { id: slug, file };
   }

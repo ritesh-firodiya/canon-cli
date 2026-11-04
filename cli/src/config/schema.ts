@@ -47,8 +47,6 @@ export interface RecordKind {
   sections: string[];
   /** Named by a unique name instead of a number; the file is `<name>.md`. */
   named?: boolean;
-  /** The repo's own template for `canon new`, relative to the repo root. */
-  template?: string;
 }
 
 /** What each priority means, most urgent first. A repo replaces the whole list under `priorities`. */
@@ -145,7 +143,7 @@ export const DEFAULT_RECORDS: RecordKind[] = [
 ];
 
 /** The other `.context/` folders every repo may have. A repo adds more under `context.folders`. */
-export const CONTEXT_FOLDERS = ["raw", "wiki", "designs", "listing", "marketing", "metrics", "support", "legal", "ops", "architecture"];
+export const CONTEXT_FOLDERS = ["raw", "wiki", "designs", "listing", "marketing", "metrics", "support", "legal", "ops", "architecture", "templates"];
 
 /** A `standards:` entry naming a library standard rather than a folder path. */
 export function isStandardName(entry: string): boolean {
@@ -268,7 +266,6 @@ const recordEntry = z
     required: z.array(z.string().min(1)).optional(),
     named: z.boolean().optional(),
     sections: z.array(z.string().min(1)).optional(),
-    template: z.string().min(1).optional(),
     remove: z.boolean().optional(),
   })
   .strict();
