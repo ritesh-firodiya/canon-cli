@@ -82,8 +82,8 @@ export function buildBand(start: string, options: { canonRoot: string }): BandFa
   }
   const queue = queueOf(repo, config);
   const records = allRecords(repo, config);
-  // No pointer to keep fresh: the work in focus is what a run is on, else what waits for a person, else the first under way.
-  const current = queue.find((row) => row.waiting) ?? queue.find((row) => row.stage);
+  // Only what is known: the record a run is on, else the one waiting for a person. Anything else would be a guess.
+  const current = queue.find((row) => row.waiting);
   const running = runningFacts(repo, config);
   const focus = records.find((record) => record.id === (running?.record ?? current?.id));
   const here: StageMark = running ? "running" : current?.waiting ? "waiting" : "here";
