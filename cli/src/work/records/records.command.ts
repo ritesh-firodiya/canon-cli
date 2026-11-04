@@ -27,7 +27,7 @@ const collect = (value: string, list: string[]) => [...list, value];
 export function registerRecords(program: Command): void {
   program
     .command("new")
-    .description("start a page from its template: problem, idea, experiment, plan, feature, bug, discovery, finding, decision, or a kind of your own")
+    .description("start a page from its template: problem, idea, experiment, plan, feature, bug, discovery, finding, decision, fact, or a kind of your own")
     .argument("<kind>", "what to write")
     .argument("<title>", "its title")
     .argument("[repo]", "product repo", ".")

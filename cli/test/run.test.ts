@@ -216,6 +216,13 @@ describe("canon new", () => {
     expect(() => newPage(repo, config, "nope", "X")).toThrow(/kinds here: .*campaigns/);
   });
 
+  test("a fact is a dated page in raw/", () => {
+    const repo = makeTree({});
+    const { file } = newPage(repo, loadConfig(repo).config, "fact", "Store installs", {}, new Date("2026-11-05"));
+    expect(file).toBe(join(".context", "raw", "2026-11-05-store-installs.md"));
+    expect(readFileSync(join(repo, file), "utf8")).toMatch(/## Value[\s\S]*## Source[\s\S]*## How it was collected/);
+  });
+
   test("a repo's own template replaces canon's for a wiki document too", () => {
     const repo = makeTree({ ".context/templates/finding.md": "---\nlast-verified: {{today}}\n---\n# {{title}}\nour finding\n" });
     const { file } = newPage(repo, loadConfig(repo).config, "finding", "Retry");

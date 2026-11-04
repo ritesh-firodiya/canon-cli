@@ -8,8 +8,8 @@ import { createRecord } from "./records.ts";
 const TEMPLATES = resolve(import.meta.dirname, "..", "..", "..", "..", "templates", "records");
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 
-/** Documents that are not numbered records: named by topic, in the wiki. */
-const WIKI_DOCS: Record<string, string> = { discovery: "synthesis", finding: "synthesis", decision: "decisions" };
+/** Documents that are not numbered records: named by topic, in the wiki, or by date in raw/. */
+const WIKI_DOCS: Record<string, string> = { discovery: "wiki/synthesis", finding: "wiki/synthesis", decision: "wiki/decisions", fact: "raw" };
 
 function splitTemplate(text: string, title: string, today: string): { fields: Record<string, unknown>; body: string } {
   const filled = text.replaceAll("{{title}}", title.replace(/\s+/g, " ")).replaceAll("{{today}}", today);
@@ -40,7 +40,7 @@ export function newPage(repo: string, config: Config, what: string, title: strin
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "page";
   const wikiFolder = WIKI_DOCS[what];
   if (wikiFolder) {
-    const file = join(".context", "wiki", wikiFolder, `${slug}.md`);
+    const file = join(".context", wikiFolder, `${wikiFolder === "raw" ? `${today}-` : ""}${slug}.md`);
     if (existsSync(join(repo, file))) throw new Error(`${file} already exists: one page per topic, so edit it`);
     mkdirSync(dirname(join(repo, file)), { recursive: true });
     const text = readFileSync(templateFile(repo, what), "utf8").replaceAll("{{title}}", title.replace(/\s+/g, " ")).replaceAll("{{today}}", today);

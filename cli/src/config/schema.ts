@@ -67,7 +67,7 @@ export const DEFAULT_RECORDS: RecordKind[] = [
     fields: { source: "text" },
     removed: [],
     required: [],
-    sections: ["Summary", "Impact", "Expected"],
+    sections: ["Summary", "Evidence", "Impact", "Expected", "Data to collect"],
     meanings: {
       status: { open: "Raised, and nobody has started on it.", solving: "Work is under way.", solved: "The Expected section is now true, with proof.", dismissed: "Decided not to solve it. The page says why." },
     },
@@ -80,7 +80,7 @@ export const DEFAULT_RECORDS: RecordKind[] = [
     fields: {},
     removed: [],
     required: [],
-    sections: ["Summary"],
+    sections: ["Summary", "Evidence", "Options considered", "Cost", "Risks", "How we'll know"],
     meanings: {
       status: { draft: "Proposed, and not yet judged.", accepted: "Chosen to go ahead.", shipped: "Built and live.", dropped: "Rejected. Its verdict says why, so do not propose it again without new facts." },
     },

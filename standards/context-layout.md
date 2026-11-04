@@ -289,7 +289,7 @@ skipped, local approvals are matched by git name, and `weigh` is advice.
 ## Templates
 
 `canon new <kind> "<title>"` starts a page: `problem`, `idea`, `experiment`,
-`plan`, `feature`, `bug`, `discovery`, `finding`, `decision`, or a kind the repo
+`plan`, `feature`, `bug`, `discovery`, `finding`, `decision`, `fact` (a dated page in `raw/`), or a kind the repo
 added. canon reads `.context/templates/<folder>.md` first (`problems.md`,
 `finding.md`), then its own; a repo's own kind with neither gets one from its
 fields and sections.
