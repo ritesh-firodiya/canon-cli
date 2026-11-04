@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.0.2 — 2026-11-05
+
+### Fixed
+
+- **`canon new` writes the local date,** not the UTC date, so a page made near midnight is no longer a day off.
+
+## 5.0.2 — 2026-11-05
+
+### Fixed
+
+- **`canon new` writes the local date,** not the UTC date, so a page made near midnight is no longer a day off.
+
 ## 5.0.1 — 2026-11-05
 
 ### Changed
