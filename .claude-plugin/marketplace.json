@@ -21,12 +21,6 @@
       "source": "./plugins/canon-knowledge",
       "version": "3.1.1",
       "description": "Search and answers from your repo's knowledge."
-    },
-    {
-      "name": "canon-styles",
-      "source": "./plugins/canon-styles",
-      "version": "3.1.1",
-      "description": "Short and detail output styles."
     }
   ],
   "description": "canon: domain knowledge and AI rules kept in your repos, enforced, searchable."

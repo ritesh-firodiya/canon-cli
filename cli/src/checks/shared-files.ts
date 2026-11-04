@@ -94,7 +94,7 @@ export const sharedFiles: Check = {
       if (state === "no-source") return finding(pair.to, `${source} has no ${pair.from} (set ${pair.set})`);
       if (state === "missing") return finding(pair.to, `missing — set ${pair.set} is in use; copy it from ${source}`);
       if (state === "unnamed") return finding(pair.to, "no product name to compare with — set name: in context.yaml");
-      if (state === "drift") return finding(pair.to, `differs from ${source}${pair.until ? " above the shared block's end" : ""} — \`canon copies --sync\` copies it`);
+      if (state === "drift") return finding(pair.to, `differs from ${source}${pair.until ? " above the shared block's end" : ""} — \`canon check --copies --sync\` copies it`);
       return [];
     });
   },

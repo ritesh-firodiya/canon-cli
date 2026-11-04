@@ -47,7 +47,6 @@ canon enable process
 | `process` | The decision gate, decisions, standards, ideas with wildcards, and your stage, gates, runs and checks on the band | about 600 |
 | `knowledge` | Search and answers from your repo's knowledge, with a local index | about 1,160 |
 | `routing` | Effort and model picked for each prompt, shown on the band, and you can override it | none |
-| `styles` | `/output-style canon-styles:short` or `canon-styles:detail` to set how long answers are | none |
 
 A feature only affects the repo you enable it in. To turn one on across your
 machine, in every repo and any other folder, add `--user`:
@@ -99,7 +98,7 @@ A command runs only when you type it. These need no feature turned on:
 - **`canon check`** fails when a repo breaks its rules: layout, wiki frontmatter, stale pages, size caps, blocked tasks,
   feature pages, dead paths, prices with no canonical home, the import architecture, pipeline gates and your own checkers. `canon hooks install` runs it on every push.
 - **`canon run`** moves a record through its pipeline with an agent, stopping at each gate and spend cap.
-- **`canon standards`** shows the defaults and library a repo imports by name (`standards: [design-sets, pipeline]`).
+- **`canon check --standards`** shows the defaults and library a repo imports by name (`standards: [design-sets, pipeline]`).
 
 A hosted knowledge site, with every repo's `.context/` in one place for a team,
 is a separate paid product built on this CLI.
@@ -110,12 +109,13 @@ is a separate paid product built on this CLI.
 canon init             # write .context/context.yaml and the missing .context files
 canon add              # list packs; `canon add expo` adds one and indexes its docs
 canon check            # this repo against the standards (exit 1 on any error); --all for every repo beside it
-canon copies --sync    # repair drifted shared files from copies.source (never adds one)
 canon hooks install    # a pre-push hook that runs `canon check` (--all: every product)
-canon standards        # which standards apply here, and where each comes from
-canon sync             # refresh pack docs and the search index, move the pinned version
-canon update           # update the CLI and the Claude plugin to the latest release, then sync
-canon status           # version, kind, modules, config layers, check summary
+canon check --status   # version, kind, modules, config layers, check summary
+canon check --standards   # which standards apply here, and where each comes from
+canon check --copies   # shared files against copies.source (--sync repairs the drifted ones, never adds one)
+canon update           # update the CLI and the Claude plugin, then refresh: packs, search index, pinned version, models
+canon update --refresh # only the refresh, installing nothing
+canon models           # the models this machine can run and their prices
 canon doctor           # node, git, qmd — plus any tools your config lists
 canon learn            # proposals from overridden verdicts
 canon new <kind> <t>   # start a page from its template: problem, idea, plan, finding, ...
@@ -125,20 +125,18 @@ canon work <record>    # select what you are working on; the band follows it (--
 canon reject <stage> --record <id> --note <why>   # a person sends any stage back; it and later stages run again
 canon set <record> field=value   # change a field, checked against the rules
 canon done <record>    # mark it complete
-canon experiment start <name> --from <stage>   # a named experiment, from any stage
+canon new experiment <name> --from <stage>   # a named experiment, from any stage
 canon run <record>     # move a record through its pipeline with an agent; stops at gates and caps
 canon trigger [id]     # read connectors, open problems, join repeats (--run works on new ones)
 canon verdict          # put a weigh verdict on the record it judged
 canon approve <stage> --record <id>   # a person approves a stage on a record, in a terminal
 canon pipeline         # the stages this repo resolves to, and where each stands
-canon weigh "<ask>"    # the decision gate from the terminal
 canon ui               # this repo's design set on localhost, with canon's shell
 canon wiki             # every product wiki on localhost
-canon search "<q>"     # search the knowledge index
 canon flow <product>   # how far each local Claude conversation got against the pipeline (--write: metrics/flow.json)
 canon usage            # what local Claude sessions used and cost at list prices (--skill <name>, --unused, --json, --save)
 canon band             # the facts the band above the Claude Code prompt shows, as JSON
-canon enable <feature> # turn on process, knowledge, routing or styles for this repo (canon disable turns it off)
+canon enable <feature> # turn on process, knowledge or routing for this repo (canon disable turns it off)
 ```
 
 ## Config
@@ -205,7 +203,7 @@ Lists of names (`packs`, `standards`, `copies.use`) add up across the two files;
 ```
 .claude-plugin/   plugin manifest and marketplace
 hooks/            the band: the only thing on by default
-plugins/          what `canon enable` adds per repo: canon-process (weigh, decision, standards, wiki-lint, wildcard, challenger, constitution), canon-knowledge (search, ask, ingest), canon-styles (short, detail)
+plugins/          what `canon enable` adds per repo: canon-process (weigh, decision, standards, wiki-lint, wildcard, challenger, constitution), canon-knowledge (search, ask, ingest)
 standards/        default standards
 packs/            vendor doc packs
 templates/        files init writes (dependency-cruiser base and starters)

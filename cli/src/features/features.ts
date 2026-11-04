@@ -59,7 +59,7 @@ function withField(text: string, features: string[]): string {
   return [...lines.slice(0, start), ...block, ...lines.slice(end), ""].join("\n");
 }
 
-const PLUGINS: Record<string, string> = { process: "canon-process", knowledge: "canon-knowledge", styles: "canon-styles" };
+const PLUGINS: Record<string, string> = { process: "canon-process", knowledge: "canon-knowledge" };
 
 /** The Claude Code command that adds or removes a feature's plugin for one repo. Null when it has none: routing lives in the band. */
 export function pluginCommand(name: string, isOn: boolean, scope: "project" | "user" = "project"): string[] | null {

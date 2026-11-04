@@ -1,6 +1,6 @@
 # standards/
 
-canon's standards. `canon standards` lists the ones that apply to a repo.
+canon's standards. `canon check --standards` lists the ones that apply to a repo.
 
 ## Defaults — apply to every repo
 

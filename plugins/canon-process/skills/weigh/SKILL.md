@@ -24,11 +24,11 @@ product's `.context/context.yaml` may tighten this under `weigh.trivial`.
    missing", "it is slow". The request is not a fact (C-14); each claim is
    checked in step 4.
 
-2. **Rules.** Run `canon standards --constitution` for the principle titles
+2. **Rules.** Run `canon check --constitution` for the principle titles
    (canon's and any the team added), and read the constitution files that
-   `canon standards` lists. If the CLI is not installed, say so and install
+   `canon check --standards` lists. If the CLI is not installed, say so and install
    `@freetesh/canon`. Note every principle the request
-   touches, by ID. Read a standard from `canon standards` only if the request is
+   touches, by ID. Read a standard from `canon check --standards` only if the request is
    in its area.
 
 3. **Domain.** Search before you judge. Run `mcp__plugin_canon-knowledge_qmd__query` with

@@ -23,7 +23,7 @@ the verdict — then open that one file and check it. Spend your reads on what t
 caller missed.
 
 1. If no constitution was among the files handed to you, read it (paths come
-   from `canon standards`; else Glob `**/canon*/standards/constitution.md` under
+   from `canon check --standards`; else Glob `**/canon*/standards/constitution.md` under
    `~/.claude`).
 2. Search the product's knowledge with `mcp__plugin_canon-knowledge_qmd__query` — the goal,
    then the key nouns, for what the caller did not cover. Read the hits. Look for ADRs that already decided this,

@@ -37,16 +37,16 @@ describe("canon enable and disable", () => {
 
   test("a list in the middle of the file, in either form, changes in place", () => {
     const repo = makeTree({ ".context/context.yaml": "kind: package\nfeatures: [routing]\ncap: 3\n" });
-    setFeature(repo, "styles", true);
-    expect(readFileSync(file(repo), "utf8")).toBe("kind: package\nfeatures:\n  - routing\n  - styles\ncap: 3\n");
+    setFeature(repo, "knowledge", true);
+    expect(readFileSync(file(repo), "utf8")).toBe("kind: package\nfeatures:\n  - routing\n  - knowledge\ncap: 3\n");
     setFeature(repo, "routing", false);
-    expect(readFileSync(file(repo), "utf8")).toBe("kind: package\nfeatures:\n  - styles\ncap: 3\n");
+    expect(readFileSync(file(repo), "utf8")).toBe("kind: package\nfeatures:\n  - knowledge\ncap: 3\n");
   });
 
   test("a file with no last line break still gets a clean field", () => {
     const repo = makeTree({ ".context/context.yaml": "kind: package" });
-    setFeature(repo, "styles", true);
-    expect(readFileSync(file(repo), "utf8")).toBe("kind: package\nfeatures:\n  - styles\n");
+    setFeature(repo, "knowledge", true);
+    expect(readFileSync(file(repo), "utf8")).toBe("kind: package\nfeatures:\n  - knowledge\n");
   });
 
   test("enabling twice adds it once, and disabling takes out only that one", () => {
@@ -67,13 +67,13 @@ describe("canon enable and disable", () => {
   });
 
   test("an unknown feature is refused, and names the ones there are", () => {
-    expect(() => setFeature(makeTree({}), "search", true)).toThrow(/unknown feature "search" — choose from: routing, process, knowledge, styles/);
+    expect(() => setFeature(makeTree({}), "search", true)).toThrow(/unknown feature "search" — choose from: routing, process, knowledge/);
   });
 
   test("each feature with a plugin changes it for this repo only, and routing has none", () => {
     expect(pluginCommand("process", true)).toEqual(["plugin", "install", "canon-process@canon", "--scope", "project"]);
     expect(pluginCommand("knowledge", false)).toEqual(["plugin", "uninstall", "canon-knowledge@canon", "--scope", "project"]);
-    expect(pluginCommand("styles", true)?.[2]).toBe("canon-styles@canon");
+    expect(pluginCommand("knowledge", true)?.[2]).toBe("canon-knowledge@canon");
     expect(pluginCommand("routing", true)).toBeNull();
   });
 

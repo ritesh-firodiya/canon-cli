@@ -32,10 +32,18 @@ export function registerRecords(program: Command): void {
     .argument("<title>", "its title")
     .argument("[repo]", "product repo", ".")
     .option("--set <field=value>", "a frontmatter field, like problem=PROB-0001; repeat for each", collect, [] as string[])
-    .action((kind: string, title: string, repo: string, options: { set: string[] }) => {
-      const fields = parsePairs(options.set);
+    .option("--from <stage>", "an experiment: the stage it starts at, so its run and checks begin there")
+    .option("--to <stage>", "an experiment: the stage it stops after; a POC is --from code --to code")
+    .option("--pipeline <name>", "an experiment: the pipeline it follows", "default")
+    .action((kind: string, title: string, repo: string, options: { set: string[]; from?: string; to?: string; pipeline: string }) => {
       const root = resolve(repo);
-      const { id, file } = newPage(root, loadConfig(root).config, kind, title, fields);
+      const { config } = loadConfig(root);
+      if (kind === "experiment") {
+        if (!options.from) throw new Error("an experiment needs --from <stage>: the stage it starts at");
+        const { id, file } = startExperiment(root, config, title, { from: options.from, to: options.to, pipeline: options.pipeline });
+        return void console.log(`${id}: ${file}\nnext: canon run ${id}`);
+      }
+      const { id, file } = newPage(root, config, kind, title, parsePairs(options.set));
       console.log(`${id}: ${file}`);
     });
 
@@ -62,22 +70,6 @@ export function registerRecords(program: Command): void {
       requireNoRun();
       const root = resolve(repo);
       console.log(`${recordId}: ${markDone(root, loadConfig(root).config, recordId)}`);
-    });
-
-  program
-    .command("experiment")
-    .description("start a named experiment from any stage")
-    .command("start")
-    .description("start a named experiment: its run and checks begin at --from")
-    .argument("<name>", "a unique name, like checkout-retry")
-    .argument("[repo]", "product repo", ".")
-    .requiredOption("--from <stage>", "the stage it starts at")
-    .option("--to <stage>", "the stage it stops after; a POC is --from code --to code")
-    .option("--pipeline <name>", "the pipeline it follows", "default")
-    .action((name: string, repo: string, options: { from: string; to?: string; pipeline: string }) => {
-      const root = resolve(repo);
-      const { id, file } = startExperiment(root, loadConfig(root).config, name, options);
-      console.log(`${id}: ${file}\nnext: canon run ${id}`);
     });
 
   program

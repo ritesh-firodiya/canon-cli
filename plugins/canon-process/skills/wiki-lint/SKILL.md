@@ -3,7 +3,7 @@ name: wiki-lint
 description: Audit .context/wiki/ for drift — broken [[links]], orphan pages, contradictions between entities, stale last-verified dates, unprocessed raw files. Optionally auto-fix safe issues and regenerate .context/wiki/index.md. Usage `/wiki-lint` (audit) or `/wiki-lint --fix` (audit + auto-fix).
 ---
 
-You are linting the wiki at `.context/wiki/` against the wiki schema (the `wiki-schema.md` that `canon standards` lists — a team's own replaces canon's; without the CLI, `../../standards/wiki-schema.md` relative to this skill).
+You are linting the wiki at `.context/wiki/` against the wiki schema (the `wiki-schema.md` that `canon check --standards` lists — a team's own replaces canon's; without the CLI, `../../standards/wiki-schema.md` relative to this skill).
 
 Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 

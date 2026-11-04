@@ -3,7 +3,7 @@ import { z } from "zod";
 /** What a repo ships: an app to the stores, a site to the web, both, a package to a registry, or no code at all. */
 export const KINDS = ["mobile", "web", "mobile-and-web", "package", "content"] as const;
 /** What a repo turns on. Everything is off unless named here. */
-export const FEATURES = ["routing", "process", "knowledge", "styles"] as const;
+export const FEATURES = ["routing", "process", "knowledge"] as const;
 export const MODULES = ["docs", "design", "knowledge", "metrics", "code", "architecture", "listing", "refs"] as const;
 
 /**

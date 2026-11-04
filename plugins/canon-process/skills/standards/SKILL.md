@@ -5,7 +5,7 @@ description: Load the standards that cover the work before doing it — the repo
 
 # Load the standards that apply
 
-1. List them: run `canon standards` in the repo. It prints every standard that
+1. List them: run `canon check --standards` in the repo. It prints every standard that
    applies — canon's defaults, then the team's and the repo's own (a team file
    with the same name replaces canon's). If the `canon` CLI is not installed, say so
    and install `@freetesh/canon`.

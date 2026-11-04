@@ -4,7 +4,6 @@ import { Command } from "commander";
 import { registerAdd } from "./packs/add.command.ts";
 import { registerApprove } from "./pipeline/approve.command.ts";
 import { registerCheck } from "./checks/check.command.ts";
-import { registerCopies } from "./checks/copies.command.ts";
 import { registerDoctor } from "./doctor/doctor.command.ts";
 import { registerHooks } from "./checks/hooks.command.ts";
 import type { Env } from "./lib/env.ts";
@@ -13,15 +12,10 @@ import { registerLearn } from "./learn/learn.command.ts";
 import { registerPipeline } from "./pipeline/pipeline.command.ts";
 import { registerRecords } from "./records/records.command.ts";
 import { registerRun } from "./run/run.command.ts";
-import { registerStandards } from "./standards/standards.command.ts";
-import { registerStatus } from "./status/status.command.ts";
-import { registerSync } from "./sync/sync.command.ts";
 import { registerUpdate } from "./update/update.command.ts";
 import { registerUi } from "./ui/ui.command.ts";
 import { registerWiki } from "./wiki/wiki.command.ts";
-import { registerWeigh } from "./weigh/weigh.command.ts";
 import { findWorkspace } from "./checks/check.ts";
-import { registerSearch } from "./search/search.command.ts";
 import { registerFlow } from "./flow/flow.command.ts";
 import { registerModels } from "./models/models.command.ts";
 import { registerUsage } from "./usage/usage.command.ts";
@@ -29,6 +23,7 @@ import { registerBand } from "./band/band.command.ts";
 import { registerWork } from "./work/work.command.ts";
 import { registerFeatures } from "./features/features.command.ts";
 import { canonVersion } from "./status/status.ts";
+import { registerMoved } from "./lib/moved.ts";
 
 const env: Env = {
   canonRoot: resolve(import.meta.dirname, "..", ".."),
@@ -42,11 +37,7 @@ const program = new Command("canon")
 registerInit(program, env);
 registerAdd(program, env);
 registerCheck(program, env);
-registerCopies(program, env);
-registerSync(program, env);
 registerUpdate(program, env);
-registerStatus(program, env);
-registerStandards(program, env);
 registerDoctor(program);
 registerHooks(program, env);
 registerUi(program, env);
@@ -56,15 +47,13 @@ registerApprove(program);
 registerPipeline(program, env);
 registerRecords(program);
 registerRun(program);
-registerWeigh(program);
 registerFlow(program, env);
 registerUsage(program, env);
 registerModels(program);
 registerBand(program, env);
 registerWork(program);
 registerFeatures(program);
-
-registerSearch(program);
+registerMoved(program);
 
 program.parseAsync().catch((error: Error) => {
   console.error(`canon: ${error.message}`);

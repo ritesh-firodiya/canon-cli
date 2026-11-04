@@ -35,7 +35,7 @@ async function askAnswers(inferred: InitPlan, packs: Pack[]): Promise<Choices | 
   const forKind = packs.filter((pack) => pack.kinds.some((wanted) => kindCovers(kind, wanted)));
   if (forKind.length === 0) return { kind, modules, packs: [] };
   const chosen = await prompts.multiselect({
-    message: "Which vendor doc packs? (indexed for search on `canon sync`)",
+    message: "Which vendor doc packs? (indexed for search on `canon update --refresh`)",
     initialValues: inferred.config.packs ?? [],
     options: forKind.map((pack) => ({ value: pack.name, label: pack.name, hint: pack.description })),
     required: false,
@@ -82,6 +82,6 @@ export function registerInit(program: Command, env: Env): void {
       for (const file of plan.create) console.log(`created ${file}`);
       if (plan.create.some((file) => file.endsWith(RULES_FILES[0]))) console.log("architecture: add the checker with `pnpm add -D dependency-cruiser`, then edit the .dependency-cruiser.cjs files to this repo's layers");
       console.log(formatModels(await writeModels()));
-      console.log(plan.config.packs ? "next: canon sync (fetches the packs), then canon check" : "next: canon check");
+      console.log(plan.config.packs ? "next: canon update --refresh (fetches the packs), then canon check" : "next: canon check");
     });
 }

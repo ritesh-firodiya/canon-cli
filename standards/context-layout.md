@@ -246,7 +246,7 @@ AI; with no `when:` it is skipped unless asked for: `canon run <id> --with <stag
 ### Experiments
 
 An experiment has a unique name and can start at any stage, inside a fork too:
-`canon experiment start checkout-retry --from design`. It sets `started-at:`, so its run
+`canon new experiment checkout-retry --from design`. It sets `started-at:`, so its run
 and checks begin there. `--to <stage>` sets `stops-at:`, a stage reachable from the
 start. A POC is `--from code --to code`. Records made for it name it:
 `experiment: checkout-retry`. When the results are in, set `outcome: retained`,
@@ -279,7 +279,7 @@ A repo decides its flow, and canon enforces what it decided. No config can chang
 an agent run cannot approve, reject or close work past a gate; that a stage passes only
 by being done or skipped with a reason; that connectors and checks only read; that no
 key or event text is stored; that a run stops at its spend cap; that ids are unique and
-links resolve; or that a locked value holds. `canon status` lists what a repo has
+links resolve; or that a locked value holds. `canon check --status` lists what a repo has
 weakened against the defaults and its layers, and whether it has a hook and a CI job.
 
 The force comes from the CI job and required reviews on the branch. The hook can be

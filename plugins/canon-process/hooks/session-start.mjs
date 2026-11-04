@@ -15,7 +15,7 @@ function principleTitles() {
 
 const context = [
   "canon constitution — run the weigh skill on any non-trivial request before acting;",
-  "cite principle IDs in verdicts. `canon standards` lists every standard that applies here.",
+  "cite principle IDs in verdicts. `canon check --standards` lists every standard that applies here.",
   "A request is not a fact: check its claims before acting (C-14). Reply in plain words (C-15).",
   ...principleTitles(),
   "",
