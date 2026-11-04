@@ -122,6 +122,8 @@ describe("forks", () => {
     expect(problem.after).toBeUndefined();
     expect(research.after).toBeUndefined();
     expect(research.prompt).toMatch(/find what is already known/);
+    // Due diligence reaches outside the repo: who else has it, how it was solved, and how well.
+    expect(research.prompt).toMatch(/outside this repo[\s\S]*who else[\s\S]*how well it worked/);
   });
 });
 

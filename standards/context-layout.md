@@ -218,7 +218,7 @@ intake ─┬─ problem ──┐
 | `discovery` | Something learned: data, user behavior, a market fact. `wiki/synthesis/`. |
 | `prioritize` | `priority:` set from the facts behind it: how many it hurts, how often, what it costs. |
 | `collect` | Data from the tools, as dated facts in `raw/` (`canon new fact`). No data is written as no data. |
-| `research` | What is already known about it, from the facts. `wiki/synthesis/`. |
+| `research` | What is already known, in the repo and outside it: who else has the problem, how they solved it, and how well it worked. Questions fit the case; vendor claims are marked as claims. `wiki/synthesis/`. |
 | `design` | The screens that change. Optional, gated. Before the plan, so the plan is weighed with them. |
 | `plan` | Each way to solve it written as an idea, one chosen, and why the others lost. Gated. |
 | `feature` | The plan split into features, bugs and chores. |
