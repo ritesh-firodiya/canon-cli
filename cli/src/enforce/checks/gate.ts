@@ -1,6 +1,10 @@
-import { lstatSync, mkdirSync, mkdtempSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, sep } from "node:path";
+import { CACHE_DIR } from "../../lib/system.ts";
+import { listFiles } from "../../lib/files.ts";
 import { runChecks } from "./check.ts";
 import { ALL_CHECKS } from "./index.ts";
 import type { Finding } from "./types.ts";
@@ -41,17 +45,49 @@ const key = (finding: Finding) => `${finding.check}|${finding.file ?? ""}|${find
  * What writing `content` to `file` would newly break: the full check on the repo as it is, and as it would be,
  * so a page is judged by every rule the repo has, and only for what it adds.
  */
+/** What the repo holds now, as far as a page rule can see: the commit, git's changed files, and every .context page. */
+function stateOf(repo: string): string {
+  const git = (...args: string[]) => spawnSync("git", ["-C", repo, ...args], { encoding: "utf8" }).stdout ?? "";
+  const pages = listFiles(repo, ".context", (name) => name.endsWith(".md") || name.endsWith(".yaml") || name.endsWith(".yml"))
+    .filter((path) => !path.split("/").some((name) => LINKED_WHOLE.has(name)))
+    .map((path) => {
+      const { mtimeMs, size } = statSync(join(repo, path));
+      return `${path} ${mtimeMs} ${size}`;
+    });
+  return createHash("sha256").update([git("rev-parse", "HEAD"), git("status", "--porcelain"), ...pages].join("\n")).digest("hex");
+}
+
+/** The repo's findings before the write, kept until the repo changes, so a write runs the page rules once. */
+function findingsBefore(repo: string, file: string, canonRoot: string): Set<string> {
+  const cache = join(CACHE_DIR, "gate", `${createHash("sha256").update(repo).digest("hex").slice(0, 16)}.json`);
+  const state = stateOf(repo);
+  try {
+    const saved = JSON.parse(readFileSync(cache, "utf8")) as { state: string; findings: string[] };
+    // The file being written is not part of the state: its own old text is what "before" means.
+    if (saved.state === state) return new Set(saved.findings);
+  } catch {
+    // No cache yet, or a broken one: the rules run.
+  }
+  const before = overlay(repo, file, null);
+  try {
+    const findings = runChecks(before, { canonRoot, checks: PAGE_RULES }).findings.map(key);
+    mkdirSync(dirname(cache), { recursive: true });
+    writeFileSync(cache, JSON.stringify({ state, findings }));
+    return new Set(findings);
+  } finally {
+    rmSync(before, { recursive: true, force: true });
+  }
+}
+
 export function gate(repo: string, file: string, content: string, canonRoot: string): Finding[] {
   // A page under a linked folder cannot be written apart from the repo, and no page rule reads there.
   if (relative(repo, file).split(sep).slice(0, -1).some((name) => LINKED_WHOLE.has(name))) return [];
-  const before = overlay(repo, file, null);
+  // Both runs see the same links, so a rule that cannot follow one reports it in both and cancels out.
+  const known = findingsBefore(repo, file, canonRoot);
   const after = overlay(repo, file, content);
   try {
-    // Both runs see the same links, so a rule that cannot follow one reports it in both and cancels out.
-    const known = new Set(runChecks(before, { canonRoot, checks: PAGE_RULES }).findings.map(key));
     return runChecks(after, { canonRoot, checks: PAGE_RULES }).findings.filter((finding) => !known.has(key(finding)));
   } finally {
-    rmSync(before, { recursive: true, force: true });
     rmSync(after, { recursive: true, force: true });
   }
 }

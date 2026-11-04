@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, test } from "vitest";
 import { gate } from "../../src/enforce/checks/gate.ts";
@@ -48,5 +48,14 @@ describe("gate", () => {
     const repo = product();
     expect(gate(repo, join(repo, ".context/designs/big.html"), "x", CANON)).toEqual([]);
     expect(readFileSync(join(repo, ".context/designs/big.html"), "utf8")).toBe("<html></html>");
+  });
+
+  test("a change to the repo since the last write is seen, not hidden by the cache", () => {
+    const repo = product();
+    const file = join(repo, ".context/wiki/concepts/new.md");
+    expect(gate(repo, file, page("Another fact that is long enough to count as one fact in this repo."), CANON)).toEqual([]);
+    // The fact now lives in a page written outside the gate, so writing it again repeats it.
+    writeFileSync(join(repo, ".context/wiki/concepts/other.md"), page("Another fact that is long enough to count as one fact in this repo."));
+    expect(gate(repo, file, page("Another fact that is long enough to count as one fact in this repo."), CANON).map((f) => f.check)).toEqual(["one-home"]);
   });
 });

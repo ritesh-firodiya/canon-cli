@@ -19,7 +19,7 @@ EGM (google/elephant-goldfish-model) puts almost nothing in a session until it i
 2. **Weigh as a fresh agent.** The weigh skill hands the request, the repo path and the facts the chat already holds to a read-only agent with no chat history, and shows only its verdict. Its 9,570-character steps and the pages it reads stay out of the session. EGM's reviewers work this way.
 3. **Rare skills on call only.** `wildcard`, `wiki-lint`, `learn` and `ingest` get `disable-model-invocation: true`, like six of EGM's seven skills: about 1,000 characters less per session. None ran in the 30 days to 2026-11-04.
 4. **No Idea for work that simply went ahead.** `canon verdict` with no `--record` and outcome `proceeded` appends to `~/.canon/verdicts.jsonl`, which `canon learn` reads too; the work itself records it. A stopped, dropped or overridden one still becomes an Idea, so a rejected request is not proposed again unseen (C-03).
-5. **A faster gate.** The findings of the repo as it is are cached until a file under `.context/` changes, so a write runs the page rules once: from about 1.5 s to about 0.7 s on the largest product here.
+5. **A faster gate.** The findings of the repo as it is are cached until a file under `.context/` changes, so a write runs the page rules once: from about 1.5 s to about 1.0 s on the largest product here (measured 2026-11-04: 1.9 s cold, 1.0 s warm).
 
 ## Steps
 1. Read-only from `tool.check`; delete `isChangingCall` and its list. A test: a read-only Bash call passes a held prompt, a write does not.
