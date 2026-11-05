@@ -11,7 +11,7 @@ surfaces: []
 # Problems and triggers
 
 ## Summary
-A Problem is one doc that starts work. A person opens it, or a trigger does: a failure, a customer incident, an email, a Dependabot update or a dashboard alert. Formats: [[work-records]].
+A Problem is one doc that starts work. A person opens it, or a trigger does: a failure, a customer incident, an email, a Dependabot update or a dashboard alert. Formats: [work-records](../wiki/decisions/work-records.md).
 
 ## Motivation
 Work only starts today when someone opens a chat. Problems that arrive while the owner is away wait unseen.

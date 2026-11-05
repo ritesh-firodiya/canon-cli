@@ -11,10 +11,10 @@ surfaces: []
 # Stage runner
 
 ## Summary
-`canon-cli` runs a Problem through the repo's stages with Claude Code on the user's machine. It stops at each human gate and records the cost of each stage. Formats: [[work-records]].
+`canon-cli` runs a Problem through the repo's stages with Claude Code on the user's machine. It stops at each human gate and records the cost of each stage. Formats: [work-records](../wiki/decisions/work-records.md).
 
 ## Motivation
-[[flow]] shows where work stops but does not move it. The owner wants to approve gates, not drive each step.
+`canon learn --flow` shows where work stops but does not move it. The owner wants to approve gates, not drive each step.
 
 ## Acceptance scenarios
 - Given a Problem and a pipeline in `.context/context.yaml`, when the runner starts, then it runs stages in order and writes each stage's output to the repo.

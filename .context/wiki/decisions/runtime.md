@@ -15,4 +15,4 @@ running an agent.
 - Python or Ruby for any command: npm does not install them.
 - canon's own agent loop and LLM provider (the first version): Claude Code does it.
 - Codex and Cursor support: Claude Code only, by the owner's choice.
-- A config above the repos (the old estate layer): see [[rule-layers]].
+- A config above the repos (the old estate layer): see [rule-layers](rule-layers.md).

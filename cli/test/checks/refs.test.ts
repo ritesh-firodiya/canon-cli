@@ -37,6 +37,14 @@ describe("refs", () => {
     expect(findings).toEqual([expect.objectContaining({ level: "warn", message: "[[nowhere]] names no page yet" })]);
   });
 
+  test("a relative Markdown link resolves beside its file; a dead one is a warning", () => {
+    const findings = run({
+      ".context/wiki/concepts/a.md": page("[b](../decisions/b.md#why), [web](https://x.dev/a.md) and [gone](gone.md)"),
+      ".context/wiki/decisions/b.md": page("x"),
+    });
+    expect(findings).toEqual([expect.objectContaining({ level: "warn", file: ".context/wiki/concepts/a.md:4", message: "gone.md names no page yet" })]);
+  });
+
   test("placeholders are checked only up to the last real folder", () => {
     expect(run({ "README.md": "pages are .context/wiki/<slug>.md\n", ".context/wiki/x.md": page("x") })).toEqual([]);
     expect(run({ "README.md": "pages are .context/nope/<slug>.md\n" })).toHaveLength(1);

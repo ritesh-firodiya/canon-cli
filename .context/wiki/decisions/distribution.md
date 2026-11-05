@@ -12,7 +12,7 @@ last-verified: 2026-11-02
 
 **Why:** the plugin and the npm package need a public repo. The site is what people
 pay for: every repo in one place, with search and editing for a team. Paying demand
-is not proven ([[hosted-team-version-only-enforcement-has-a-clear]]).
+is not proven ([hosted-team-version-only-enforcement-has-a-clear](../synthesis/hosted-team-version-only-enforcement-has-a-clear.md)).
 
 **Rejected:**
 - One private repo: the plugin cannot install and npm stops updating.

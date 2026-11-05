@@ -31,7 +31,8 @@ A product may add a folder in `.context/context.yaml` under `wiki.types`, with a
 - Write only the sections you have something to say in. No `TBD`, no `none yet`.
 - One file per topic, edited in place. No dated names, no `v2`, no supersede chains.
 - Caps: page 60 lines, decision 30. Synthesis is exempt.
-- Link with `[[slug]]` (the file name without `.md`). `index.md` is one line per page.
+- Link with a relative Markdown link, `[runtime](../decisions/runtime.md)`, so every viewer
+  can follow it. `index.md` is one line per page.
 
 ## Decisions
 
@@ -40,7 +41,7 @@ A product may add a folder in `.context/context.yaml` under `wiki.types`, with a
 last-verified: 2026-10-27
 ---
 # Pricing
-**Choice:** annual plan only, ₹249 ([[plan-pro]]).
+**Choice:** annual plan only, ₹249 ([plan-pro](../entities/plan-pro.md)).
 **Why:** monthly churn was 3× annual in the 2026-06 test.
 **Rejected:** monthly plan (churn) · lifetime deal (no recurring revenue).
 ```

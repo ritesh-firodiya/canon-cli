@@ -1,7 +1,7 @@
 ---
 name: wiki-lint
 disable-model-invocation: true
-description: Audit .context/wiki/ for drift — broken [[links]], orphan pages, contradictions between entities, stale last-verified dates, unprocessed raw files. Optionally auto-fix safe issues and regenerate .context/wiki/index.md. Usage `/wiki-lint` (audit) or `/wiki-lint --fix` (audit + auto-fix).
+description: Audit .context/wiki/ for drift — broken links, orphan pages, contradictions between entities, stale last-verified dates, unprocessed raw files. Optionally auto-fix safe issues and regenerate .context/wiki/index.md. Usage `/wiki-lint` (audit) or `/wiki-lint --fix` (audit + auto-fix).
 ---
 
 You are linting the wiki at `.context/wiki/` against the wiki schema (the `wiki-schema.md` that `canon check --standards` lists — a team's own replaces canon's; without the CLI, `../../standards/wiki-schema.md` relative to this skill).
@@ -22,7 +22,7 @@ Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 
 4. **Build the graph:**
    - Map `id → file path`.
-   - For each page, extract all `[[wikilink]]` tokens from the body.
+   - For each page, extract all relative Markdown links (`[text](path.md)`) and any old `[[slug]]` links from the body.
    - Build inbound and outbound link sets per page.
 
 5. **Run the checks below.** Group findings into **Blockers** and **Warnings**.
@@ -31,7 +31,7 @@ Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 
 | Check | Rule |
 |---|---|
-| Broken `[[wikilink]]` | Target page does not exist |
+| Broken link | Target page does not exist |
 | Duplicate `id` | Two pages claim the same ID |
 | Contradictory canonical value | Two `entity` pages list the same key with different values |
 | Placeholder text | `TBD`, `none yet`: write the fact or delete the section |
@@ -51,13 +51,13 @@ Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 6. **Auto-fix (only if `--fix` is in `$ARGUMENTS`):**
    - Regenerate `.context/wiki/index.md` from scratch: enumerate pages by type, sort alphabetically by slug, keep the structure the file already has.
    - Fix `last-verified` to today's date on any page whose body was edited in the working tree.
-   - **Never** auto-fix: contradictory canonical values, broken `[[wikilinks]]`, merges or cuts. These need a human decision.
+   - **Never** auto-fix: contradictory canonical values, broken links, merges or cuts. These need a human decision.
 
 7. **Report.** Print:
    - Counts: pages, blockers, warnings, auto-fixes applied.
    - Per-finding lines: `[BLOCKER|WARN] <path>:<rule> — <detail>`.
    - For each blocker, one suggested fix.
-   - For broken `[[wikilinks]]`, list candidate existing pages by name similarity.
+   - For broken links, list candidate existing pages by name similarity.
 
 ## Rules
 

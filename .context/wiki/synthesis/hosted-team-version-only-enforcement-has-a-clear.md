@@ -15,7 +15,7 @@ Desk research on 2026-10-25, from web search. Most sources were vendor blogs, an
 Nobody. The research says itself that it is not proof of market fit. This repo has no record that its proposed buyer talks or pilot ran.
 
 ## What it means
-Treat paying demand as unknown, and read [[distribution]] with that in mind. The research named GitHub's organization-wide agent instructions, included with Copilot, as the biggest threat. See IDEA-0001.
+Treat paying demand as unknown, and read [distribution](../decisions/distribution.md) with that in mind. The research named GitHub's organization-wide agent instructions, included with Copilot, as the biggest threat. See IDEA-0001.
 
 ## Evidence
 - 3fddc64

@@ -29,13 +29,13 @@ Source to ingest: `$ARGUMENTS`
    - Filename: the topic, lowercase kebab-case, no date.
    - Check whether a page on the topic already exists. If yes, edit it in place and refresh `last-verified` to today. Keep any `id`.
    - Write only sections with something to say. No placeholders. Stay under the caps (page 60 lines).
-   - Link related pages with `[[slug]]` where it helps a reader. List the source path under `Sources`.
+   - Link related pages with relative Markdown links (`[slug](../concepts/slug.md)`) where it helps a reader. List the source path under `Sources`.
 
 5. **Update `.context/wiki/index.md`:** one line for the new page, under its folder heading, alphabetical. Don't reformat existing entries.
 
 6. **Leave the source where it is.** `.context/raw/` is immutable: a source is "processed" when a wiki page lists it under `Sources`, not when it moves.
 
-7. **Report**: list each page created or updated with its ID and path. Flag any `[[wikilinks]]` to non-existent pages as "TODO targets".
+7. **Report**: list each page created or updated with its ID and path. Flag any links to non-existent pages as "TODO targets".
 
 ## Rules
 

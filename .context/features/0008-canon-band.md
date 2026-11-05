@@ -30,7 +30,7 @@ The state of the work and its cost should be visible without asking, and colour 
 - Given a session in a parent folder or moving between products, when it edits a file in a product or changes folder into one, then the band shows that product, with nothing to link.
 
 ## Out of scope
-- Automatic cache pings ([[PLAN-0001]]).
+- Automatic cache pings ([PLAN-0001](../plans/0001-session-cost-and-canon-band.md)).
 - Approving a gate from the band.
 
 ## Open questions

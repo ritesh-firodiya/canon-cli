@@ -10,6 +10,8 @@ import type { Check, Finding } from "./types.ts";
 const PATH = /(?<![\w/~.-])(\.\/)?(\.context\/[\w./@+-]*)/g;
 const PLACEHOLDER = /[<{*[$]|YYYY|NNNN/;
 const LINK = /\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g;
+// A relative Markdown link to a page: `[text](../decisions/runtime.md#why)`.
+const MD_LINK = /\]\((?![a-z]+:|\/|#)([^)\s#]+\.md)(?:#[^)]*)?\)/g;
 // A line reading a path out of git history names it as it was.
 const FROM_HISTORY = /git (show|checkout|log|diff|restore)\b/;
 // Dated records keep a path as it was on the day.
@@ -50,7 +52,7 @@ export const refs: Check = {
   id: "refs",
   // A module, not always on: a repo whose docs describe other repos' .context/ (a tool, a portfolio) does not use it.
   module: "refs",
-  description: "every .context/ path a tracked or local .context/ file names exists; a [[link]] names a page (a link to a page not yet written is a note)",
+  description: "every .context/ path a tracked or local .context/ file names exists; a Markdown link or [[link]] names a page (a link to a page not yet written is a note)",
   run({ repo, config }) {
     const listed = git(repo, ["ls-files", "-z"]);
     if (listed.status !== 0) return [];
@@ -95,6 +97,12 @@ export const refs: Check = {
             if (path === null) continue;
             if (match[1]) path = normalize(join(dirname(file), path)) + (path.endsWith("/") ? "/" : "");
             if (!present(path)) findings.push({ check: "refs", level: "error", file: at, message: `${path} does not exist` });
+          }
+        }
+        if (links && line.includes("](")) {
+          for (const match of line.matchAll(MD_LINK)) {
+            const target = normalize(join(dirname(file), match[1]));
+            if (!present(target)) findings.push({ check: "refs", level: "warn", file: at, message: `${match[1]} names no page yet` });
           }
         }
         if (links && line.includes("[[")) {

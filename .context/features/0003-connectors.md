@@ -11,7 +11,7 @@ surfaces: []
 # Connectors
 
 ## Summary
-One format for reading a team's own tools, such as Sentry, Datadog and Jenkins, as both a trigger and knowledge for a stage. It builds on `SOURCE` pages. Formats: [[work-records]].
+One format for reading a team's own tools, such as Sentry, Datadog and Jenkins, as both a trigger and knowledge for a stage. It builds on `SOURCE` pages. Formats: [work-records](../wiki/decisions/work-records.md).
 
 ## Motivation
 A plan is only as good as what it can read. A company's facts live in its own tools.

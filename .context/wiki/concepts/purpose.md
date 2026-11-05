@@ -32,9 +32,9 @@ Shared code has one home: `cli/src/lib/`.
 
 ## What canon is not
 
-- Not an agent. Claude Code runs the work ([[runtime]]).
-- Not a design reviewer ([[reviews-and-evals]]).
-- Not the paid knowledge site ([[distribution]]).
+- Not an agent. Claude Code runs the work ([runtime](../decisions/runtime.md)).
+- Not a design reviewer ([reviews-and-evals](../decisions/reviews-and-evals.md)).
+- Not the paid knowledge site ([distribution](../decisions/distribution.md)).
 
 ## Open
 
