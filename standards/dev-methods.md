@@ -24,6 +24,6 @@ logic) and an experiment (does conversion move).
 
 1. No evidence, not done. "It works" without a test, a scenario or a number is
    an opinion.
-2. Evidence lives in the repo (C-03). A dashboard link alone is not evidence —
+2. Evidence lives in the repo (C-02). A dashboard link alone is not evidence —
    it changes; the snapshot in `raw/` does not.
 3. When a method keeps being skipped, make it a check (C-09), not a longer doc.
