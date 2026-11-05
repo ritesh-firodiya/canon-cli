@@ -8,7 +8,7 @@ const canon = () =>
     "standards/constitution.md": "# C\n\n### C-01 Ship\nx\n### C-02 Write less\n",
     "standards/wiki-schema.md": "canon schema",
     "standards/README.md": "index, not a standard",
-    "standards/library/pipeline.md": "# Pipeline\n\n### C-16 Designs before code\n",
+    "standards/library/pipeline.md": "# Pipeline\n\n### C-12 Designs before code\n",
   });
 
 describe("resolveStandards", () => {
@@ -52,6 +52,6 @@ describe("constitutionTitles", () => {
   });
 
   test("an imported library standard adds its principles", () => {
-    expect(constitutionTitles(canon(), ["pipeline"])).toEqual(["C-01 Ship", "C-02 Write less", "C-16 Designs before code"]);
+    expect(constitutionTitles(canon(), ["pipeline"])).toEqual(["C-01 Ship", "C-02 Write less", "C-12 Designs before code"]);
   });
 });

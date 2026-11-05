@@ -25,7 +25,7 @@ export function buildSite(products: string[], options: SiteOptions): void {
     const links: string[] = [];
     if (existsSync(wiki)) {
       relink(wiki, join(options.siteDir, name));
-      links.push(`[[${name}/index|${name}]]`);
+      links.push(`[${name}](${name}/index.md)`);
     }
     const graph = options.graph?.(product);
     if (graph) {
@@ -34,7 +34,7 @@ export function buildSite(products: string[], options: SiteOptions): void {
         join(options.siteDir, "architecture", `${name}.md`),
         `---\ntitle: ${name} architecture\n---\n\nImports between parts of ${name}, from its \`.dependency-cruiser.cjs\`. Broken rules fail \`canon check\`.\n\n${graph}\n`,
       );
-      links.push(`[[architecture/${name}|architecture graph]]`);
+      links.push(`[architecture graph](architecture/${name}.md)`);
     }
     if (links.length > 0) rows.push(`- ${links.join(" · ")}`);
   }
@@ -49,7 +49,7 @@ export function buildSite(products: string[], options: SiteOptions): void {
 
 const IGNORED = ["**/CLAUDE.md"];
 
-/** Quartz's default config, adjusted for a private local site: no analytics, no schema files as pages, no social card images (most of the build time). */
+/** Quartz's default config, adjusted for a private local site: no analytics, no schema files as pages, no social card images (most of the build time), links relative to the page. */
 export function quartzConfig(defaultsYaml: string): string {
   const document = parseDocument(defaultsYaml);
   document.setIn(["configuration", "pageTitle"], "canon");
@@ -59,5 +59,7 @@ export function quartzConfig(defaultsYaml: string): string {
   document.setIn(["configuration", "ignorePatterns"], [...current, ...IGNORED.filter((p) => !current.includes(p))]);
   const plugins = document.get("plugins") as YAMLSeq<YAMLMap> | undefined;
   plugins?.items.find((plugin) => plugin.get("source") === "@quartz-community/og-image")?.set("enabled", false);
+  // Wiki pages link with paths relative to the page; Quartz's default "shortest" sends `../x.md` to the wrong page.
+  plugins?.items.find((plugin) => plugin.get("source") === "@quartz-community/crawl-links")?.setIn(["options", "markdownLinkResolution"], "relative");
   return document.toString();
 }

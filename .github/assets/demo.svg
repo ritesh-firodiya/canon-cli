@@ -17,9 +17,9 @@
   <text x="28" y="194">Goal: let users track cash spends</text>
   <text x="28" y="216">Size: medium, but it breaks a decided rule</text>
   <text x="28" y="246">Why:</text>
-  <text x="28" y="268">- C-04 Goes against no-manual-entry <tspan class="dim">— concepts/no-manual-entry.md</tspan></text>
-  <text x="28" y="290">- C-14 2 of 3 claims have no facts <tspan class="dim">— raw/ empty, no metrics file</tspan></text>
-  <text x="28" y="312">- C-01 T036 is first in the queue <tspan class="dim">— tasks.md</tspan></text>
+  <text x="28" y="268">- C-03 Goes against no-manual-entry <tspan class="dim">— concepts/no-manual-entry.md</tspan></text>
+  <text x="28" y="290">- C-01 2 of 3 claims have no facts <tspan class="dim">— raw/ empty, no metrics file</tspan></text>
+  <text x="28" y="312">- C-04 T036 is first in the queue <tspan class="dim">— tasks.md</tspan></text>
   <text x="28" y="342">Claims:</text>
   <text x="28" y="364">- "Users keep asking for it"  <tspan class="bad">not backed</tspan> <tspan class="dim">— no feedback in .context/raw/</tspan></text>
   <text x="28" y="386">- "It will improve retention" <tspan class="bad">not backed</tspan> <tspan class="dim">— retention is not measured</tspan></text>

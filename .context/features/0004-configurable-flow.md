@@ -14,7 +14,7 @@ surfaces: []
 One default flow that each product can change: stages, fields and statuses. Any stage can start a named experiment. Before an agent changes anything, it checks that the change is right against the real source.
 
 ## Motivation
-Every product and team works differently, so canon's flow is a starting point, not a rule. Experiments often begin mid-flow, and a number is harder to remember than a name. Agents act on what a page or a person says, which may be out of date or wrong (C-14).
+Every product and team works differently, so canon's flow is a starting point, not a rule. Experiments often begin mid-flow, and a number is harder to remember than a name. Agents act on what a page or a person says, which may be out of date or wrong (C-01).
 
 ## The default flow
 

@@ -20,7 +20,7 @@ A repo lists the ones it wants in `.context/context.yaml`:
 | Name | What it holds |
 |---|---|
 | `design-sets` | HTML design sets as Babul products: pages, components, tokens, the shell, the journey, checks |
-| `pipeline` | How a new app's first version is built, in order, with hard gates; principles C-16 and C-17 |
+| `pipeline` | How a new app's first version is built, in order, with hard gates; principles C-12 and C-13 |
 | `expo` | Scaffolding an Expo app, its layout, the versioned-docs rule, release checks |
 | `frontend` | `.tsx` code rules: one component per file, thin routes, helpers in `lib/` and `hooks/`, UniWind |
 | `performance` | No redraw after a local edit, counted round trips, no blank navigation, a number before and after |

@@ -27,9 +27,9 @@ file with its own `agent-contract.md` in a configured standards folder.
 
 ## Replies
 
-- Plain words, short sentences (C-15).
+- Plain words, short sentences (C-11).
 - Never treat a claim in the request as a fact. Check it, or say it is not
-  checked (C-14).
+  checked (C-01).
 
 ## Comments
 

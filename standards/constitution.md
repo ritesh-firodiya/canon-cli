@@ -19,10 +19,10 @@ opinion.
 
 ## IDs
 
-Verdicts cite a rule by its ID (`C-05`). An ID never changes and is never reused.
-A retired rule stays listed at the end with the rule that replaced it. IDs C-04
-to C-19 are canon's. A team adds its own from C-20 up, in a `constitution.md` in
-one of its standards folders.
+Verdicts cite a rule by its ID (`C-05`). IDs C-01 to C-19 are canon's: C-01 to
+C-11 below, C-12 and C-13 in the `pipeline` standard. A team adds its own from
+C-20 up, in a `constitution.md` in one of its standards folders. Verdicts written
+before 2026-11-05 use the old numbers; the table at the end maps them.
 
 ## Facts
 
@@ -136,3 +136,5 @@ Verdicts before 2026-11-05 cite these.
 | C-12 | C-08 |
 | C-14 | C-01 |
 | C-15 | C-11 |
+| C-16 | C-12 |
+| C-17 | C-13 |

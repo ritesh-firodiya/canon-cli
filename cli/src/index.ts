@@ -21,7 +21,6 @@ import { registerModels } from "./setup/models/models.command.ts";
 import { registerBand } from "./serve/band/band.command.ts";
 import { registerFeatures } from "./setup/features/features.command.ts";
 import { canonVersion } from "./enforce/status/status.ts";
-import { registerMoved } from "./lib/moved.ts";
 
 const env: Env = {
   canonRoot: resolve(import.meta.dirname, "..", ".."),
@@ -49,7 +48,6 @@ registerRun(program);
 registerModels(program);
 registerBand(program, env);
 registerFeatures(program);
-registerMoved(program);
 
 program.parseAsync().catch((error: Error) => {
   console.error(`canon: ${error.message}`);

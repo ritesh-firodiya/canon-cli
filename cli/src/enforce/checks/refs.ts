@@ -9,6 +9,7 @@ import type { Check, Finding } from "./types.ts";
 // product's, an absolute path, a URL). A leading `./` means "beside this file".
 const PATH = /(?<![\w/~.-])(\.\/)?(\.context\/[\w./@+-]*)/g;
 const PLACEHOLDER = /[<{*[$]|YYYY|NNNN/;
+// shortcut: accepts the old [[slug]] link until the sibling wikis are converted; remove it in that change.
 const LINK = /\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g;
 // A relative Markdown link to a page: `[text](../decisions/runtime.md#why)`.
 const MD_LINK = /\]\((?![a-z]+:|\/|#)([^)\s#]+\.md)(?:#[^)]*)?\)/g;

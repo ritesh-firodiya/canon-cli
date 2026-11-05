@@ -24,7 +24,7 @@ describe("buildSite", () => {
     const out = makeTree({});
     buildSite([join(root, "alpha"), join(root, "beta")], { siteDir: out });
     const home = readFileSync(join(out, "index.md"), "utf8");
-    expect(home).toContain("[[alpha/index|alpha]]");
+    expect(home).toContain("[alpha](alpha/index.md)");
     expect(home).not.toContain("canon-check");
     expect(existsSync(join(out, "canon-check.md"))).toBe(false);
   });
@@ -44,7 +44,7 @@ describe("buildSite", () => {
     expect(readFileSync(join(out, "architecture/alpha.md"), "utf8")).toContain('```mermaid\nflowchart LR\n  1["web"]-->2["ui"]\n```');
     expect(existsSync(join(out, "architecture/beta.md"))).toBe(false);
     const home = readFileSync(join(out, "index.md"), "utf8");
-    expect(home).toContain("[[alpha/index|alpha]] · [[architecture/alpha|architecture graph]]");
+    expect(home).toContain("[alpha](alpha/index.md) · [architecture graph](architecture/alpha.md)");
     expect(home).not.toContain("architecture/beta");
   });
 
@@ -74,6 +74,11 @@ describe("quartzConfig", () => {
       { source: "@quartz-community/og-image", enabled: false },
       { source: "@quartz-community/favicon", enabled: true },
     ]);
+  });
+
+  test("resolves Markdown links relative to the page", () => {
+    const withLinks = `configuration: {}\nplugins:\n  - source: "@quartz-community/crawl-links"\n    options:\n      markdownLinkResolution: shortest\n`;
+    expect(parse(quartzConfig(withLinks)).plugins[0].options.markdownLinkResolution).toBe("relative");
   });
 
   test("keeps everything else from the defaults", () => {

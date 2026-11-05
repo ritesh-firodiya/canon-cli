@@ -31,13 +31,13 @@ someone asked for is an `experiments/` record, not a head start on the build.
 
 These join canon's constitution when a repo opts in. Verdicts cite them by ID.
 
-### C-16 Designs before code
+### C-12 Designs before code
 No app code for a screen that has no approved HTML design. A component in no
 HTML file does not ship. The wireframe is the spec; when code and wireframe
 disagree, fix the code or change the wireframe first and say so.
 *Source:* `pipeline`, `design-sets`.
 
-### C-17 Stages stop at their gates
+### C-13 Stages stop at their gates
 Designs, scaffold, plan, schema, build — in order, each waiting for approval.
 Approval of a plan is not approval to code. No "small piece", spike or harness
 to get ahead.

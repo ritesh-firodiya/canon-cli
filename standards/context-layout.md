@@ -144,7 +144,7 @@ status: building          # planned | building | shipped | shelved | superseded
 last-verified: 2026-04-02
 release: 3.4.0            # ties to CHANGELOG.md and the release notes
 superseded-by: null
-surfaces: ["[[settings-screen]]"]
+surfaces: [settings-screen]
 plan: PLAN-0007           # optional
 outcome: retained         # once it has run: retained | discarded | retried
 ---
