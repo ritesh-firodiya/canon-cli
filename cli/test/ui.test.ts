@@ -1,6 +1,6 @@
 import { join, resolve } from "node:path";
 import { describe, expect, test } from "vitest";
-import { fileFor, findDesigns } from "../src/serve/ui/ui.command.ts";
+import { fileFor, findDesigns, plainDesignJs, sizesOf } from "../src/serve/ui/ui.command.ts";
 import { loaderAt } from "../src/serve/ui/shell.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
@@ -9,6 +9,19 @@ describe("canon ui", () => {
     const repo = makeTree({ ".context/designs/design.js": "", "src/app/page.tsx": "" });
     expect(findDesigns(join(repo, "src/app"))).toBe(join(repo, ".context/designs"));
     expect(findDesigns(makeTree({ "README.md": "" }))).toBeNull();
+  });
+
+  test("a folder with its own index.html and no design.js is a design too", () => {
+    const repo = makeTree({ ".context/designs/band/index.html": "", ".context/designs/notes/readme.md": "" });
+    const designs = join(repo, ".context/designs");
+    expect(findDesigns(repo)).toBe(designs);
+    expect(sizesOf(designs)).toEqual(["band"]);
+    expect(plainDesignJs(designs)).toContain(`"sizes":["band"]`);
+  });
+
+  test("a set's sizes come from design.js", () => {
+    const repo = makeTree({ ".context/designs/design.js": '(window.BABUL ||= {}).product = {"sizes":["mobile","web"]};', ".context/designs/other/index.html": "" });
+    expect(sizesOf(join(repo, ".context/designs"))).toEqual(["mobile", "web"]);
   });
 
   test("serves canon's shell under /_shell/, the set elsewhere, and nothing outside either", () => {

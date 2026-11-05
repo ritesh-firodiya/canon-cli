@@ -1,6 +1,6 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
-import { dirname, extname, join, resolve, sep } from "node:path";
+import { basename, dirname, extname, join, resolve, sep } from "node:path";
 import type { Command } from "commander";
 import { architectureJson } from "../../enforce/checks/diagrams.ts";
 import type { Env } from "../../lib/env.ts";
@@ -17,12 +17,34 @@ const TYPES: Record<string, string> = {
   ".woff2": "font/woff2", ".mp4": "video/mp4",
 };
 
-/** The design set at or above `start`: the folder holding design.js. */
+/** The folders holding a page of their own (index.html): a design with no design.js, such as a terminal design. */
+function pages(designs: string): string[] {
+  if (!existsSync(designs)) return [];
+  return readdirSync(designs, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && existsSync(join(designs, entry.name, "index.html")))
+    .map((entry) => entry.name)
+    .sort();
+}
+
+/** The designs at or above `start`: a set (design.js) or plain pages (a folder with an index.html). */
 export function findDesigns(start: string): string | null {
   for (let folder = resolve(start); ; folder = dirname(folder)) {
-    if (existsSync(join(folder, DESIGNS, "design.js"))) return join(folder, DESIGNS);
+    const designs = join(folder, DESIGNS);
+    if (existsSync(join(designs, "design.js")) || pages(designs).length > 0) return designs;
     if (dirname(folder) === folder) return null;
   }
+}
+
+/** What to serve: a set's sizes, or else each plain page. */
+export function sizesOf(designs: string): string[] {
+  if (!existsSync(join(designs, "design.js"))) return pages(designs);
+  return JSON.parse(readFileSync(join(designs, "design.js"), "utf8").replace("(window.BABUL ||= {}).product = ", "").replace(/;\s*$/, "")).sizes;
+}
+
+/** Plain pages have no design.js; the shell still needs a product, so the repo's name stands in. */
+export function plainDesignJs(designs: string): string {
+  const product = { name: basename(dirname(dirname(designs))), sizes: pages(designs) };
+  return `(window.BABUL ||= {}).product = ${JSON.stringify(product)};`;
 }
 
 /** The file a request names: canon's shell under /_shell/, the set otherwise; null outside both. */
@@ -38,18 +60,16 @@ export function fileFor(designs: string, shell: string, url: string): string | n
 export function registerUi(program: Command, env: Env): void {
   program
     .command("ui")
-    .description("serve this repo's design set on localhost, with the shell from this canon")
+    .description("serve this repo's designs on localhost: a set with the shell from this canon, or plain pages as they are")
     // Uncommon default: 8080 and 3001 are usually taken by Docker or a dev server.
     .option("--port <port>", "port", "4611")
     .action((options: { port: string }) => {
       const designs = findDesigns(process.cwd());
-      if (!designs) throw new Error(`no ${DESIGNS}/design.js here or above — not a design set`);
+      if (!designs) throw new Error(`no ${DESIGNS} here or above holds a design.js or a folder with an index.html`);
       // Every page loads ../shell.js; serving it from here puts this canon's shell in place of the set's published one.
       const loader = loaderAt(env.canonRoot, SERVED_SHELL);
       const shell = join(env.canonRoot, "shell");
-      const sizes: string[] = JSON.parse(
-        readFileSync(join(designs, "design.js"), "utf8").replace("(window.BABUL ||= {}).product = ", "").replace(/;\s*$/, ""),
-      ).sizes;
+      const sizes = sizesOf(designs);
 
       const server = createServer((request, response) => {
         const url = request.url ?? "/";
@@ -59,6 +79,10 @@ export function registerUi(program: Command, env: Env): void {
         }
         if (url.split(/[?#]/)[0] === "/shell.js") {
           response.writeHead(200, { "content-type": TYPES[".js"], "cache-control": "no-store" }).end(loader);
+          return;
+        }
+        if (url.split(/[?#]/)[0] === "/design.js" && !existsSync(join(designs, "design.js"))) {
+          response.writeHead(200, { "content-type": TYPES[".js"], "cache-control": "no-store" }).end(plainDesignJs(designs));
           return;
         }
         if (url.split(/[?#]/)[0] === DIAGRAMS_URL) {
