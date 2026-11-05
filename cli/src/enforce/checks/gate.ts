@@ -36,7 +36,7 @@ function overlay(repo: string, file: string, content: string | null): string {
 }
 
 // The rules about code and designs run in `canon check`: a page cannot break them, and they cost seconds a write should not wait.
-const NOT_PAGE_RULES = new Set(["architecture", "commands", "designs", "designs-first"]);
+const NOT_PAGE_RULES = new Set(["drift", "architecture", "commands", "designs", "designs-first"]);
 const PAGE_RULES = ALL_CHECKS.filter((check) => !NOT_PAGE_RULES.has(check.id));
 
 const key = (finding: Finding) => `${finding.check}|${finding.file ?? ""}|${finding.message}`;

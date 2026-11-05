@@ -7,6 +7,7 @@ import { standardsCopies } from "./standards-copies.ts";
 import { commandChecks } from "./commands.ts";
 import { designs, designsFirst } from "./designs.ts";
 import { diagrams } from "./diagrams.ts";
+import { drift } from "./drift.ts";
 import { listing } from "./listing.ts";
 import { locks } from "./locks.ts";
 import { metricsDefinitions } from "./metrics-definitions.ts";
@@ -29,6 +30,7 @@ export const ALL_CHECKS: Check[] = [
   listing,
   canonicalValues,
   oneHome,
+  drift,
   standardsCopies,
   sharedFiles,
   refs,

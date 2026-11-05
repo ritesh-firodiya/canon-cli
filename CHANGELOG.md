@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.1.0 — 2026-11-05
+
+### Added
+
+- **Drift check:** a wiki page must match the code it names — a named file exists, and none changed after the page's last-verified date. `canon check --drift` runs only this check; a missing file is an error, a changed file is a warning.
+
 ## 5.0.2 — 2026-11-05
 
 ### Fixed

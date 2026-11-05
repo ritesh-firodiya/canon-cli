@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import type { Command } from "commander";
+import { drift, runDrift } from "./drift.ts";
 import { exitCode, formatReports } from "./format.ts";
 import { findProducts, runChecks } from "./check.ts";
 import { compareCopies, syncCopies } from "./shared-files.ts";
@@ -17,6 +18,7 @@ interface CheckOptions {
   constitution?: boolean;
   copies?: boolean;
   sync?: boolean;
+  drift?: boolean;
 }
 
 function printStandards(env: Env, repo: string, options: CheckOptions): void {
@@ -42,6 +44,13 @@ function printCopies(repo: string, options: CheckOptions): void {
   if (off.length) process.exitCode = 1;
 }
 
+function printDrift(repo: string): void {
+  const findings = runDrift(repo);
+  console.log(findings.length ? findings.map((f) => `${f.level} ${f.file} — ${f.message}`).join("\n") : "ok: each wiki page matches the code it names");
+  // Only a missing file fails; a changed file is a nudge to re-read the page.
+  if (findings.some((f) => f.level === "error")) process.exitCode = 1;
+}
+
 export function registerCheck(program: Command, env: Env): void {
   program
     .command("check")
@@ -55,10 +64,12 @@ export function registerCheck(program: Command, env: Env): void {
     .option("--constitution", "with --standards: only the principle titles")
     .option("--copies", "compare the shared files with copies.source")
     .option("--sync", "with --copies: overwrite the drifted ones (never adds a missing file)")
+    .option("--drift", drift.description.replace(/^each/, "run only the drift check: each"))
     .action((repo: string, options: CheckOptions) => {
       const path = resolve(repo);
       if (options.status) return void console.log(buildStatus(path, { canonRoot: env.canonRoot }));
       if (options.standards || options.constitution) return printStandards(env, path, options);
+      if (options.drift) return printDrift(path);
       if (options.copies) return printCopies(path, options);
       const repos = options.all ? findProducts(requireWorkspace(env)) : [path];
       const reports = repos.map((each) => runChecks(each, { canonRoot: env.canonRoot }));

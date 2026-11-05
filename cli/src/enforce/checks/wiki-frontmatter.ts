@@ -18,7 +18,7 @@ export function wikiPages(repo: string): string[] {
   return listFiles(repo, ".context/wiki", (name) => name.endsWith(".md") && !NOT_PAGES.includes(name));
 }
 
-function asDate(value: unknown): Date | null {
+export function asDate(value: unknown): Date | null {
   const date = value instanceof Date ? value : new Date(String(value));
   return Number.isNaN(date.getTime()) ? null : date;
 }
