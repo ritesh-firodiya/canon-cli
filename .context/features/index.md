@@ -11,3 +11,8 @@
 | [FEAT-0023](0023-wildcard-ideas.md) | Wildcard ideas | shipped | 0.30.0 |
 | [FEAT-0024](0024-canon-band.md) | Canon band | shipped | 0.30.0 |
 | [FEAT-0025](0025-prompt-routing.md) | Prompt routing | shipped | 1.0.1 |
+| [FEAT-0026](0026-stages-that-fork-and-join.md) | Stages that fork and join | planned | |
+| [FEAT-0027](0027-layered-knowledge.md) | Layered knowledge | planned | |
+| [FEAT-0028](0028-models-and-prices-from-the-machine.md) | Models and prices from the machine | shipped | 4.0.0 |
+| [FEAT-0029](0029-knowledge-gate.md) | Knowledge gate | shipped | 4.0.0 |
+| [FEAT-0030](0030-knowledge-beside-each-prompt.md) | Knowledge beside each prompt | planned | |

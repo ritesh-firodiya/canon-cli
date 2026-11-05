@@ -2,6 +2,28 @@
 last-verified: 2026-11-03
 ---
 # Default pipeline
-**Choice:** the default flow is `intake → (problem | idea | discovery) → prioritize → collect → research → design → plan → feature → code → review → release → outcome`, and a discarded or retried outcome opens a new problem at intake (owner, 2026-11-05). Problem, idea and discovery fork from intake: any of them, in any order, or none, each optional with a `when:`. A stage's `after: [ids]` names the stages it may follow, which makes forks; with no `after:` it follows the stage above it, so a plain list stays a line. A stage named for a default inherits its wording but not its place. Work starts at `started-at:`, else the stage named for its kind (done by the page), else the first stage; a trigger's problem starts at the first stage. Every stage checks that what it was given is true before using it. The layout is in the `context-layout` standard.
-**Why:** canon ships one full template that teams change, and a team can only change what the schema can say: a straight list could not let work begin as an idea and open a problem after it. The old words were wrong: a separate `options` stage wrote to `ideas/` like `idea` did, so one folder had two stages; the plan now writes the missing ideas and weighs them. Nothing set `priority:`, data was collected inside research so a verdict could rest on none, and results never fed new work. `result` was the `outcome:` field under another name, and design came after the plan it should inform. Signals arrived as claims, and only stages with `verify:` checked them.
-**Rejected:** a linear default with optional stages (cannot express any order among problem, idea and discovery) · an `any: [...]` group (cannot say "idea only after a problem") · both `any:` and `after:` (two ways to say one thing) · signals as a record kind (a `source:` field already holds them) · `solutions` (options are not proven) · an `after:` edge from outcome back to intake (every stage would then come before and after every other one) · the weighted verdict on the idea too (it lives on the plan) · aliases for old ids (an MVP with no outside users; each product's ids were renamed instead) · experiments writing skip entries for earlier stages (`started-at:` already says where they begin).
+
+**Choice:** the default flow is
+`intake → (problem | idea | discovery) → prioritize → collect → research → design → plan → feature → code → review → release → outcome`
+(owner, 2026-11-05).
+- Problem, idea and discovery fork from intake: any of them, in any order, or none.
+  Each is optional, with a `when:`.
+- `after: [ids]` names the stages a stage may follow, which makes forks. With no
+  `after:` a stage follows the one above it, so a plain list stays a line.
+- A stage named like a default takes its wording, not its place.
+- Work starts at `started-at:`, else the stage named for its kind, else the first stage.
+- Every stage checks that what it was given is true before using it.
+- A discarded or retried outcome opens a new problem at intake.
+
+**Why:** canon ships one full template that teams change, so the schema must say
+"start as an idea, open a problem later". The old flow had two stages writing to
+`ideas/`, no stage setting `priority:`, research with no data stage before it,
+design after the plan, and results that never fed new work.
+
+**Rejected:**
+- A straight list with optional stages: cannot order problem, idea and discovery.
+- `any: [...]` groups, or both `any:` and `after:`: one cannot say "idea only after a problem"; two ways to say one thing.
+- Signals as a record kind: `source:` holds them.
+- An `after:` edge from outcome back to intake: every stage would come before and after every other.
+- Aliases for old stage ids: no outside users; each product was renamed instead.
+- Experiments writing skip entries: `started-at:` says where they begin.

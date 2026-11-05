@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 
-// Commands folded into others by PLAN-0003. shortcut: kept for one release so scripts and old skills say where to go; remove after 4.0.
+// Commands folded into others in 4.0.0. shortcut: kept for one release so scripts and old skills say where to go; remove after 4.0.
 const MOVED: [string, string][] = [
   ["status", "canon check --status"],
   ["standards", "canon check --standards"],

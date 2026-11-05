@@ -2,7 +2,29 @@
 last-verified: 2026-11-02
 ---
 # Work records
-**Choice:** each kind of work record has its own home and ID: `problems/` PROB, `ideas/` IDEA, `experiments/` by unique name (a POC or a test, started from any stage), `plans/` PLAN, `features/` FEAT, `bugs/` BUG. Every record is Markdown with frontmatter, and what happened to it stays on it: `## Verdict`, `approvals:`, `sources:`, `cost:`. Formats are in the `context-layout` standard; the `records` check enforces them. These and the stages (see [default-pipeline](default-pipeline.md)) are defaults: a repo adds, changes or removes them in `context.yaml`, and only `id` is required. Any record can record `outcome: retained | discarded | retried`. Run details are machine logs in `~/.canon/runs.jsonl`, outside the repo.
-**Why:** work starts from what is wrong, not from a proposed solution, so the options and their evidence are weighed before anyone writes a spec. A PRD maps to a feature and an RFC to a plan; those are names, not a second flow. Experiments, plans and bugs had no correct home or were forced into `features/`, and problems, inputs and runs had none. A stage must read and link each record, so the checks need one shape per kind. The product has no customers, so the layout moved without a compatibility layer.
-**Rejected:** a PRD → RFC flow (it starts at a solution, and a team skips the alternatives) · fixed required fields (each product decides) · `experiment: true` and `kind: poc` beside experiment records (one pattern) · a `poc` stage (it is an experiment from `code`) · plans and bugs as `features/` types (misnamed, and they need different fields) · bugs only in an issue tracker (a stage cannot read or link them) · a database for local records (the repo is the only truth) · storing an event's text in `raw/` (it can hold personal data) · logs in the repo for verdicts, gates, events and runs (a decision belongs on the page it decided, and one outage would flood git history) · fixed record kinds (each team's work differs).
+
+**Choice:** each kind of work has its own folder and ID:
+
+| Folder | ID | Holds |
+|---|---|---|
+| `problems/` | PROB | what needs solving |
+| `ideas/` | IDEA | a way to solve it |
+| `experiments/` | by name | a proof or test, from any stage |
+| `plans/` | PLAN | how it will be solved |
+| `features/` | FEAT | what will be built |
+| `bugs/` | BUG | what will be fixed |
+
+Each record is Markdown with frontmatter, and what happened to it stays on it
+(`## Verdict`, `approvals:`, `sources:`, `cost:`, `outcome:`). Only `id` is required;
+a repo changes the kinds in `context.yaml`. Run logs go to `~/.canon/runs.jsonl`.
+
+**Why:** work starts from what is wrong, not from a solution, so options are weighed
+before a spec. A stage must read and link each record, so each kind needs one shape.
+
+**Rejected:**
+- A PRD → RFC flow: it starts at a solution and skips the options.
+- Fixed fields or kinds, `experiment: true`, a `poc` stage, plans or bugs inside `features/`: each team's work differs, and each kind needs its own record.
+- Bugs only in an issue tracker: a stage cannot read or link them.
+- A database, or logs in the repo: the repo is the truth; a decision lives on the page it decided.
+
 **Revisit:** when a team needs records its members cannot commit.

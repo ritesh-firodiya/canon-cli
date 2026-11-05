@@ -6,7 +6,6 @@ priority: p2
 last-verified: 2026-11-04
 release: 4.0.0
 surfaces: []
-plan: PLAN-0003
 ---
 # Knowledge gate
 
@@ -26,7 +25,7 @@ Knowledge must grow without junk: well structured, one home per fact (C-02), no 
 
 ## Out of scope
 - Facts that conflict in meaning but not in words: `canonical-values` covers values; meaning needs a model.
-- A session budget for knowledge read: PLAN-0003 step 8.
+- A session budget for knowledge read: the 4.0.0 context diet.
 
 ## Open questions
 
