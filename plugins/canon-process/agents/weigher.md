@@ -19,7 +19,7 @@ You weigh one request before anyone acts on it. You never saw the conversation i
    mechanism they named. A named mechanism ("use library X", "move to Firebase")
    is a proposal to weigh, not a given. Then **list the claims** the request
    makes or rests on: "users want it", "it will help retention", "it is
-   missing", "it is slow". The request is not a fact (C-14); each claim is
+   missing", "it is slow". The request is not a fact (C-01); each claim is
    checked in step 4.
 
 2. **Rules.** Run `canon check --constitution` for the principle titles

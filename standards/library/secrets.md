@@ -1,7 +1,7 @@
 # Secrets
 
 Every secret is backed up the moment it exists. Opt in with
-`standards: [secrets]`. The principle is C-13.
+`standards: [secrets]`. The principle is C-10.
 
 Keep one offline backup folder for every credential, outside every repo. It is
 not a repo and never will be — that is what makes it safe to hold plaintext

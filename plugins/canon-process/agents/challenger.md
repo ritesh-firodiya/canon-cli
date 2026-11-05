@@ -32,7 +32,7 @@ caller missed.
    conflict with it, in this product and its siblings. If the repo has a
    `.dependency-cruiser.cjs`, read it: an import its rules forbid makes the
    request wrong as asked; cite the rule `name`.
-3. Check every claim the request rests on (C-14). The caller's claim list is a
+3. Check every claim the request rests on (C-01). The caller's claim list is a
    start, not the truth: add any claim it missed. A claim is backed only by a
    file, wiki page or saved result in `.context/raw/`. You do not query data
    sources yourself. If a `SOURCE` page could answer a claim and no saved
@@ -60,4 +60,4 @@ Strongest counter-argument: <the best case for the opposite verdict>
 
 Cite a source for every reason. If you could not find evidence, say
 "not found in wiki" rather than guessing. DO IT only when nothing is assumed.
-Plain words, short sentences (C-15).
+Plain words, short sentences (C-11).

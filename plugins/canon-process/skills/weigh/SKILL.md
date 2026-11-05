@@ -62,7 +62,7 @@ Open questions: <only if a real ambiguity blocks a good answer>
   you show, here or later, are a numbered list, so the user can agree line by
   line.
 
-Write the whole reply in plain words (C-15): short sentences, common words, no
+Write the whole reply in plain words (C-11): short sentences, common words, no
 jargon the wiki does not define.
 
 ## Terms (when the user wants to go on anyway)
@@ -94,7 +94,7 @@ happened next. A trivial request that skipped the gate is not recorded.
 
 ```bash
 canon verdict --record PLAN-0001 --verdict push-back --outcome overridden \
-  --principles C-04,C-14 --request "<one line>" \
+  --principles C-03,C-01 --request "<one line>" \
   --reason "<the user's reason, verbatim>" --term "<term 1>" --term "<term 2>"
 ```
 

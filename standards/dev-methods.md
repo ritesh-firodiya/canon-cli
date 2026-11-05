@@ -26,4 +26,4 @@ logic) and an experiment (does conversion move).
    an opinion.
 2. Evidence lives in the repo (C-02). A dashboard link alone is not evidence —
    it changes; the snapshot in `raw/` does not.
-3. When a method keeps being skipped, make it a check (C-09), not a longer doc.
+3. When a method keeps being skipped, make it a check (C-07), not a longer doc.
