@@ -175,7 +175,7 @@
 
 - **Design sets are quick to move through.** A click between pages no longer crawls the whole set again; only the Journey reads it fresh. A changed page shows after you open the Journey again.
 - **A set's theme no longer comes from another product.** The light/dark choice is kept per product, and a set starts from the first theme in its `design.js`.
-- Not fixed: a report that a link inside a page loads into a frame. It did not reproduce (`BUG-0005`).
+- Not fixed: a report that a link inside a page loads into a frame. It did not reproduce (`BUG-0001`).
 
 ## 2.1.0 — 2026-11-02
 

@@ -1,5 +1,5 @@
 ---
-id: BUG-0005
+id: BUG-0001
 status: open
 severity: medium
 priority: p2

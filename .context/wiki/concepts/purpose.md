@@ -39,4 +39,4 @@ Shared code has one home: `cli/src/lib/`.
 ## Open
 
 PROB-0001 is not solved yet: searching the knowledge before answering is asked,
-not enforced. PLAN-0004 is the next attempt.
+not enforced. PLAN-0003 is the next attempt.

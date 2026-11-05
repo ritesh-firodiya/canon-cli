@@ -1,5 +1,5 @@
 ---
-id: FEAT-0022
+id: FEAT-0006
 type: feature
 status: shipped
 priority: p2

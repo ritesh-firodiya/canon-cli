@@ -1,5 +1,5 @@
 ---
-id: PLAN-0004
+id: PLAN-0003
 status: building
 priority: p2
 last-verified: 2026-11-04

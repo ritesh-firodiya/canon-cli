@@ -1,5 +1,5 @@
 ---
-id: IDEA-0009
+id: IDEA-0001
 status: draft
 last-verified: 2026-11-02
 problems: PROB-0001

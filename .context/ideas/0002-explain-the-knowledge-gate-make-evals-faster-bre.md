@@ -1,5 +1,5 @@
 ---
-id: IDEA-0014
+id: IDEA-0002
 status: accepted
 last-verified: 2026-11-04
 ---

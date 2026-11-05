@@ -9,7 +9,7 @@ approvals:
   - stage: plan
     by: Ritesh Firodiya
     at: 2026-11-04T16:03:16.147Z
-    note: PLAN-0004
+    note: PLAN-0003
 ---
 # Agents guess and ignore product rules
 

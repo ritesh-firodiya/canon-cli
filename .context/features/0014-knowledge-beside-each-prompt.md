@@ -1,12 +1,12 @@
 ---
-id: FEAT-0030
+id: FEAT-0014
 type: feature
 status: planned
 priority: p2
 last-verified: 2026-11-04
 release: null
 surfaces: []
-plan: PLAN-0004
+plan: PLAN-0003
 ---
 # Knowledge beside each prompt
 

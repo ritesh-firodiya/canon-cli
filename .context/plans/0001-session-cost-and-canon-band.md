@@ -12,11 +12,11 @@ Measure first, then cut what the numbers point at, then put it in one band above
 Routing runs inside a mod, on the `turn.step` event. It uses the session's own login, so no proxy sits between Claude Code and Anthropic.
 
 ## Steps
-1. FEAT-0021 Usage report: the baseline for every later step.
-2. FEAT-0022 Session defaults: compact instructions, a smaller startup, output styles.
-3. FEAT-0023 Wildcard ideas.
-4. FEAT-0024 Canon band, with the extend button. The owner approves its design before any code.
-5. FEAT-0025 Prompt routing, in the band's mod.
+1. FEAT-0005 Usage report: the baseline for every later step.
+2. FEAT-0006 Session defaults: compact instructions, a smaller startup, output styles.
+3. FEAT-0007 Wildcard ideas.
+4. FEAT-0008 Canon band, with the extend button. The owner approves its design before any code.
+5. FEAT-0009 Prompt routing, in the band's mod.
 6. After a week of use, compare with the baseline. Set `outcome` on each feature, and remove what did not lower cost or raised rework.
 
 ## Rejected

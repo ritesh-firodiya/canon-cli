@@ -1,5 +1,5 @@
 ---
-id: FEAT-0018
+id: FEAT-0003
 type: feature
 status: shipped
 last-verified: 2026-11-02
