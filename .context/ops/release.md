@@ -6,3 +6,4 @@ Release by bumping the version in `package.json` and `.claude-plugin/plugin.json
 - npm can take a few minutes to list a new version after "being processed".
 - `git add` a new file before running the tests, or `no-product-names` will not see it; it reads tracked files only.
 - This repo is public. A `canon verdict --request` or `--reason` run here is written into an Idea, so it never names another product; say "a sibling product".
+- After a scripted find-and-replace (IDs, links, names), read each changed file once: a later replace can miss text an earlier one already changed.
