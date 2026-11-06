@@ -23,3 +23,8 @@ Refactor .context meta (ideals, principles, knowledge), starting with canon-cli,
   - Term: No cold-start test or init drafting now
   - Term: T010 stays first; stop near 2026-11-10
   - Term: No release or sibling edits without asking
+- 2026-11-06 · do-it-differently · overridden · C-08, C-09, C-04 · Push, release 6.0.0, convert sibling repos, then refresh
+  - Reason: push both and release canon-cli; personal site is last; [a sibling repo] we can; once canon is updated, refresh and we can start with other projects
+  - Term: Push canon-cli and its sibling MVP; release 6.0.0
+  - Term: Convert one sibling's links now; the personal site last
+  - Term: Other products start after the refresh
