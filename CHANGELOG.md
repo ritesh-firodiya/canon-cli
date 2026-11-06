@@ -5,7 +5,23 @@
 ### Changed
 
 - **Plain Context.** `context-layout.md` and `wiki-schema.md` are merged into two standards: `context.md` (where knowledge lives, the start minimum every repo needs, records, the flow, `tasks.md`) and `writing.md` (how every page reads, and the shape of purpose, glossary, rule, decision and research pages). A team that overrode either old file by name renames its copy. Record statuses now live only in `canon records`.
-- **The constitution is rewritten:** eleven rules, C-01 to C-11, in four groups, each with what breaks it and how to check it. The pipeline standard's rules are C-12 and C-13. A table at the end maps the old numbers.
+- **The constitution is rewritten:** eleven rules, C-01 to C-11, in four groups, each with what breaks it and how to check it. The pipeline standard's rules are C-12 and C-13. Verdicts written before 2026-11-05 cite the old numbers:
+
+  | Old | Now |
+  |---|---|
+  | C-01 | C-04 |
+  | C-02, C-03, C-08 | C-02 |
+  | C-04 | C-03 |
+  | C-05 | C-05 |
+  | C-06, C-07 | C-06 |
+  | C-09 | C-07 |
+  | C-10, C-13 | C-10 |
+  | C-11 | C-09 |
+  | C-12 | C-08 |
+  | C-14 | C-01 |
+  | C-15 | C-11 |
+  | C-16 | C-12 |
+  | C-17 | C-13 |
 - **Wiki pages link with relative Markdown links,** so GitHub and editors can follow them. `refs` checks them; old `[[slug]]` links are still checked until every product moves. The wiki site resolves links relative to the page.
 
 ### Removed

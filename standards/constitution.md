@@ -21,8 +21,7 @@ opinion.
 
 Verdicts cite a rule by its ID (`C-05`). IDs C-01 to C-19 are canon's: C-01 to
 C-11 below, C-12 and C-13 in the `pipeline` standard. A team adds its own from
-C-20 up, in a `constitution.md` in one of its standards folders. Verdicts written
-before 2026-11-05 use the old numbers; the table at the end maps them.
+C-20 up, in a `constitution.md` in one of its standards folders.
 
 ## Facts
 
@@ -118,23 +117,3 @@ Short sentences and common words. No jargon unless the wiki defines it.
 A repo's `.context/context.yaml` may raise or lower a rule's weight under
 `weigh.weights` (a game might weigh C-05 higher, a finance product C-10). It may
 not remove one without a written reason, and `canon check` shows every override.
-
-## Old numbers
-
-Verdicts before 2026-11-05 cite these.
-
-| Old | Now |
-|---|---|
-| C-01 | C-04 |
-| C-02, C-03, C-08 | C-02 |
-| C-04 | C-03 |
-| C-05 | C-05 |
-| C-06, C-07 | C-06 |
-| C-09 | C-07 |
-| C-10, C-13 | C-10 |
-| C-11 | C-09 |
-| C-12 | C-08 |
-| C-14 | C-01 |
-| C-15 | C-11 |
-| C-16 | C-12 |
-| C-17 | C-13 |
