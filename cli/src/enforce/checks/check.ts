@@ -64,5 +64,10 @@ export function findWorkspace(start: string): string | null {
   let folder = resolve(start);
   while (!existsSync(join(folder, ".git")) && dirname(folder) !== folder) folder = dirname(folder);
   const workspace = existsSync(join(folder, ".git")) ? dirname(folder) : resolve(start);
-  return findProducts(workspace).length > 0 ? workspace : null;
+  try {
+    return findProducts(workspace).length > 0 ? workspace : null;
+  } catch {
+    // A folder we may not list (a sandbox, a locked parent) holds no product we can see.
+    return null;
+  }
 }

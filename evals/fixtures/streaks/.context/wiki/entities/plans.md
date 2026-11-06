@@ -10,4 +10,4 @@ last-verified: 2026-10-01
 | PLAN.PRO.PRICE.YEARLY | $19.99 a year | 2026-05-02 |
 | PLAN.PRO.HABITS | unlimited | 2026-05-02 |
 
-Why yearly only: [[pricing]].
+Why yearly only: [pricing](../decisions/pricing.md).

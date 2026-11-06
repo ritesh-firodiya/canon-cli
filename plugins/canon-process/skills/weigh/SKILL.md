@@ -22,7 +22,7 @@ Hand the request to the `weigher` agent, which never saw this conversation: a re
 - the repo path;
 - the facts this conversation already holds that bear on it, each with where it came from (a file, a command's output, or "the user said").
 
-It returns the verdict block below. Show it as it came; do not soften it.
+It returns the verdict block below. Paste the whole block in your reply, in a code block, exactly as it came: its principle IDs and sources are the proof. Do not retell it or soften it; your own words go after it.
 
 **Too-large, or the user asked for a second opinion?** Then, and only then, ask
 the `challenger` agent for an independent read too. It costs tens of thousands of

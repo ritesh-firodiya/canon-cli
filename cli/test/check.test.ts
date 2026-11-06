@@ -1,3 +1,4 @@
+import { chmodSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import { findProducts, findWorkspace, runChecks } from "../src/enforce/checks/check.ts";
 import type { Check } from "../src/enforce/checks/types.ts";
@@ -76,5 +77,15 @@ describe("findWorkspace", () => {
 
   test("is null when the folder holds no product", () => {
     expect(findWorkspace(makeTree({ "notes.md": "" }))).toBeNull();
+  });
+
+  test("is null, not a crash, when the folder above the repo cannot be read", () => {
+    const root = workspace();
+    chmodSync(root, 0o311);
+    try {
+      expect(findWorkspace(`${root}/a/src`)).toBeNull();
+    } finally {
+      chmodSync(root, 0o755);
+    }
   });
 });
