@@ -107,7 +107,7 @@ A command runs only when you type it. These need no feature turned on:
 
 - **`canon learn`** shows what history says: verdicts and the rule changes they propose; `--cost` shows what your sessions used and would cost at list prices, by skill, tool, model and product.
 - **`canon check`** fails when a repo breaks its rules: layout, wiki frontmatter, stale pages, size caps, blocked tasks,
-  feature pages, dead paths, prices with no canonical home, the import architecture, pipeline gates and your own checkers. `canon hooks install` runs it on every push.
+  feature pages, dead paths and links, wiki pages that no longer match their code, missing start-minimum pages (as warnings), prices with no canonical home, the import architecture, pipeline gates and your own checkers. `canon hooks install` runs it on every push.
 - **`canon run`** moves a record through its pipeline with an agent, stopping at each gate and spend cap.
 - **`canon check --standards`** shows the defaults and library a repo imports by name (`standards: [design-sets, pipeline]`).
 
@@ -135,7 +135,8 @@ canon gate <file>      # a page on stdin, judged by every rule before it is writ
 canon check            # this repo against the standards (exit 1 on any error); --all for every repo beside it
 canon hooks install    # a pre-push hook that runs `canon check` (--all: every product)
 canon check --status   # version, kind, modules, config layers, check summary
-canon check --standards   # which standards apply here, and where each comes from
+canon check --standards   # which standards apply here, and where each comes from (--constitution: only the rule titles)
+canon check --drift    # only the drift check: each wiki page still matches the code it names
 canon check --copies   # shared files against copies.source (--sync repairs the drifted ones, never adds one)
 canon update           # update the CLI and the Claude plugin, then refresh: packs, search index, pinned version, models
 canon update --refresh # only the refresh, installing nothing
@@ -171,7 +172,7 @@ holds the repo you are in, or `CANON_WORKSPACE`.
 
 ```yaml
 # <repo>/.context/context.yaml — written by `canon init`
-canon: 5.1.0
+canon: 6.0.0
 kind: mobile                        # mobile | web | mobile-and-web | package | content
 standards: [design-sets, pipeline, expo]   # canon's library standards this repo follows; ./rules adds a folder of its own
 modules: [docs, knowledge, code, listing, refs]
