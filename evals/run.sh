@@ -3,7 +3,7 @@
 #   evals/run.sh          quick: 1 run per case, no baseline arm, 8 at once (before a release)
 #   evals/run.sh full     3 runs per case with the no-plugin baseline (weekly)
 # The eval tool reads cases only from inside the plugin, so both are copied to a temp folder.
-# Gated tools (Write, Edit, Bash) need this operator grant; each case's allowed_tools still narrows them.
+# Gated tools need this operator grant; the sandbox is the boundary. The weigher reads with shell commands (cat, find), so Bash is not narrowed to canon.
 set -euo pipefail
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 work="$(mktemp -d)"
@@ -26,4 +26,4 @@ else
   mode=(--ablation none --runs 1 --concurrency 8 --max-cost-usd 3)
 fi
 cd "$work"
-PATH="$work/bin:$PATH" claude plugin eval ./plugin --eval-dir evals --trust-plugin --scaffold ${KEEP:+--keep-temp} --allow-tools Write Edit "Bash(canon:*)" "${mode[@]}" ${CASE:+--case "$CASE"} --json "$repo/evals/results/latest.json"
+PATH="$work/bin:$PATH" claude plugin eval ./plugin --eval-dir evals --trust-plugin --scaffold ${KEEP:+--keep-temp} --allow-tools Write Edit Bash "${mode[@]}" ${CASE:+--case "$CASE"} --json "$repo/evals/results/latest.json"
