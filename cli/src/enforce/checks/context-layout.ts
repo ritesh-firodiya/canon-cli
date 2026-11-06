@@ -1,22 +1,22 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join, relative } from "node:path";
-import { CONFIG_FILE, CONTEXT_FOLDERS, DEFAULT_RECORDS, LOCAL_CONFIG_FILE, type Module, type RecordKind } from "../../config/schema.ts";
+import { CONFIG_FILE, CONTEXT_FOLDERS, DEFAULT_RECORDS, LOCAL_CONFIG_FILE, type Kind, type Module, type RecordKind } from "../../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 
-/** What .context must hold: README.md and tasks.md always, the knowledge folders only when docs or knowledge is on. */
-export function requiredContext(modules: Module[], records: RecordKind[] = DEFAULT_RECORDS): string[] {
+/** What .context must hold: README.md and tasks.md always, the knowledge folders only when docs or knowledge is on. A content repo builds nothing, so it needs no features/. */
+export function requiredContext(modules: Module[], records: RecordKind[] = DEFAULT_RECORDS, kind?: Kind): string[] {
   const knowledge = modules.includes("docs") || modules.includes("knowledge");
-  const features = records.some((kind) => kind.folder === "features") ? ["features"] : [];
+  const features = kind !== "content" && records.some((record) => record.folder === "features") ? ["features"] : [];
   return ["README.md", "tasks.md", ...(knowledge ? ["raw", "wiki", ...features] : [])];
 }
-/** The start minimum (the context standard): each page, and the question it answers. Only where the wiki is on. */
-const START_MINIMUM: [string, string][] = [
-  ["wiki/concepts/purpose.md", "what the product is, who it is for and what it is not"],
-  ["wiki/concepts/glossary.md", "the product's and the domain's words"],
-  ["wiki/decisions", "what was chosen and what was rejected"],
-  ["architecture/architecture.json", "how it is built and what it costs"],
-  ["ops/run.md", "how to run, test and release it"],
+/** The start minimum (the context standard): each page, the question it answers, and whether a content repo needs it too. Only where the wiki is on. */
+const START_MINIMUM: [string, string, boolean][] = [
+  ["wiki/concepts/purpose.md", "what the product is, who it is for and what it is not", true],
+  ["wiki/concepts/glossary.md", "the product's and the domain's words", false],
+  ["wiki/decisions", "what was chosen and what was rejected", true],
+  ["architecture/architecture.json", "how it is built and what it costs", false],
+  ["ops/run.md", "how to run, test and release it", false],
 ];
 const ROOT_FILES = ["README.md", "tasks.md", basename(CONFIG_FILE), basename(LOCAL_CONFIG_FILE)];
 const LIVE_FOLDERS = ["marketing", "metrics", "support", "legal"];
@@ -46,12 +46,13 @@ export const contextLayout: Check = {
     });
     if (!existsSync(context)) return [finding("error", ".context", "no .context/ folder — run `canon init`")];
 
-    const findings = requiredContext(config.modules, config.records).filter((name) => !existsSync(join(context, name))).map((name) =>
+    const required = requiredContext(config.modules, config.records, config.kind);
+    const findings = required.filter((name) => !existsSync(join(context, name))).map((name) =>
       finding("error", `.context/${name}`, `required ${name} is missing`),
     );
-    if (requiredContext(config.modules, config.records).includes("wiki")) {
-      for (const [page, answers] of START_MINIMUM) {
-        if (!existsSync(join(context, page))) findings.push(finding("warn", `.context/${page}`, `start minimum: no page says ${answers}`));
+    if (required.includes("wiki")) {
+      for (const [page, answers, everyKind] of START_MINIMUM) {
+        if ((everyKind || config.kind !== "content") && !existsSync(join(context, page))) findings.push(finding("warn", `.context/${page}`, `start minimum: no page says ${answers}`));
       }
     }
     const allowed = [...CONTEXT_FOLDERS, ...config.records.map((kind) => kind.folder), ...config.context.folders.map((entry) => entry.folder)];

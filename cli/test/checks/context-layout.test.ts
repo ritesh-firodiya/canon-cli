@@ -25,6 +25,19 @@ describe("context-layout", () => {
     ]);
   });
 
+  test("a content repo needs only purpose and decisions, and no features/", () => {
+    const tree = makeTree({
+      ".context/README.md": "# c\n",
+      ".context/tasks.md": "# T\n",
+      ".context/raw/.gitkeep": "",
+      ".context/wiki/concepts/purpose.md": "# Purpose\n",
+      ".context/context.yaml": "kind: content\nmodules: [docs]\n",
+    });
+    expect(contextLayout.run(contextFor(tree))).toEqual([
+      expect.objectContaining({ level: "warn", file: ".context/wiki/decisions", message: expect.stringMatching(/chosen/) }),
+    ]);
+  });
+
   test("designs/ is never required, even with the design module on", () => {
     const { ".context/designs/mobile/index.html": _, ...noDesigns } = VALID_CONTEXT;
     expect(contextLayout.run(contextFor(makeTree({ ...noDesigns, ".context/context.yaml": "modules: [docs, design]\n" })))).toEqual([]);

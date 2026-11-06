@@ -56,13 +56,12 @@ describe("planInit", () => {
     expect(planInit(makeTree({}), { canonVersion: "1", packs: [] }).config).not.toHaveProperty("packs");
   });
 
-  test("lists only the .context files that are missing", () => {
+  test("lists only the .context files that are missing; a content repo gets no features/", () => {
     const repo = makeTree({ ".context/README.md": "mine", ".context/wiki/index.md": "mine" });
     const plan = planInit(repo, { canonVersion: "0.4.0" });
     expect(plan.create).toEqual([
       ".context/tasks.md",
       ".context/raw/.gitkeep",
-      ".context/features/index.md",
       ".github/workflows/canon.yml",
     ]);
   });

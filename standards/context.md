@@ -23,7 +23,8 @@ is next.
 | `wiki/decisions/` | What was chosen, and what was rejected |
 | `tasks.md` | What is next |
 
-`canon check` warns when one is missing.
+`canon check` warns when one is missing. A `kind: content` repo holds knowledge only and
+runs nothing, so it needs only `README.md`, `purpose.md`, `wiki/decisions/` and `tasks.md`.
 
 ## Three kinds of knowledge
 
@@ -80,7 +81,7 @@ is next.
 | When | Add |
 |---|---|
 | always | `README.md` · `tasks.md` · `context.yaml` |
-| the `docs` or `knowledge` module is on | `raw/` · `wiki/` · `features/` |
+| the `docs` or `knowledge` module is on | `raw/` · `wiki/` · `features/` (not in a content repo) |
 | it draws a UI | `designs/` (designs come before code) |
 | it is in a store | `listing/` |
 | it is live to users | `marketing/` · `metrics/` · `support/` · `legal/` |

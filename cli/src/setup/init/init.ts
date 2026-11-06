@@ -125,7 +125,7 @@ export function planInit(repo: string, answers: InitAnswers): InitPlan {
   const packs = answers.packs?.length ? { packs: answers.packs } : {};
   const config: InitPlan["config"] = { canon: answers.canonVersion, kind, modules, ...(sdk ? { expo: { sdk } } : {}), ...packs };
 
-  const create = requiredContext(modules).filter((name) => !existsSync(join(repo, ".context", name))).map((name) => FIRST_FILE[name]);
+  const create = requiredContext(modules, undefined, kind).filter((name) => !existsSync(join(repo, ".context", name))).map((name) => FIRST_FILE[name]);
   if (!existsSync(join(repo, CI_WORKFLOW))) create.push(CI_WORKFLOW);
   if (modules.includes("architecture")) {
     // A workspace that already has rules of its own (any name dependency-cruiser reads) keeps them.

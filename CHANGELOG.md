@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **A content repo has a smaller start minimum.** `kind: content` (knowledge only, nothing runs) needs `README.md`, `wiki/concepts/purpose.md`, `wiki/decisions/` and `tasks.md`; `canon check` no longer asks it for a glossary, `architecture.json`, `ops/run.md` or `features/`, and `canon init` does not create `features/` there.
+
 ## 6.1.0 — 2026-11-06
 
 ### Added

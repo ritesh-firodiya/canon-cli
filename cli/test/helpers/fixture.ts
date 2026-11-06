@@ -20,6 +20,7 @@ export function makeTree(files: Record<string, string>): string {
 export const VALID_CONTEXT = {
   ".context/README.md": "# context\n",
   ".context/tasks.md": "# Tasks\n",
+  ".context/context.yaml": "kind: package\n",
   ".context/raw/.gitkeep": "",
   ".context/wiki/index.md": "# Index\n",
   ".context/wiki/concepts/purpose.md": "# Purpose\n",
