@@ -114,6 +114,18 @@ A command runs only when you type it. These need no feature turned on:
 A hosted knowledge site, with every repo's `.context/` in one place for a team,
 is a separate paid product built on this CLI.
 
+## What canon expects in a repo
+
+A repo keeps its knowledge in `.context/`, in **Plain Context**: one home per fact,
+short pages in plain words, every fact with a source and a date.
+
+- [`standards/constitution.md`](standards/constitution.md): the eleven rules every request is weighed against.
+- [`standards/context.md`](standards/context.md): where knowledge lives, and the start minimum: a purpose page, a glossary, how to run it, the architecture, the decisions.
+- [`standards/writing.md`](standards/writing.md): how every page reads.
+
+`canon check` warns when a start-minimum page is missing. This repo's own
+`.context/` follows the same rules: start at [`.context/README.md`](.context/README.md).
+
 ## All commands
 
 ```bash
@@ -159,7 +171,7 @@ holds the repo you are in, or `CANON_WORKSPACE`.
 
 ```yaml
 # <repo>/.context/context.yaml — written by `canon init`
-canon: 0.18.0
+canon: 5.1.0
 kind: mobile                        # mobile | web | mobile-and-web | package | content
 standards: [design-sets, pipeline, expo]   # canon's library standards this repo follows; ./rules adds a folder of its own
 modules: [docs, knowledge, code, listing, refs]
@@ -214,7 +226,7 @@ Lists of names (`packs`, `standards`, `copies.use`) add up across the two files;
 ```
 .claude-plugin/   plugin manifest and marketplace
 hooks/            the band: the only thing on by default
-plugins/          what `canon enable` adds per repo: canon-process (weigh, decision, standards, learn, wiki-lint, wildcard, challenger, constitution), canon-knowledge (ask, ingest)
+plugins/          what `canon enable` adds per repo: canon-process (weigh, decision, standards, learn, wiki-lint and wildcard skills; weigher and challenger agents), canon-knowledge (ask, ingest)
 standards/        default standards
 packs/            vendor doc packs
 templates/        files init writes (dependency-cruiser base and starters)
@@ -234,7 +246,7 @@ work/             records, pipeline and gates, run and trigger
 learn/            learn, flow, usage: what history says
 serve/            ui, wiki, the band's facts
 config/           .context/context.yaml: schema and loading
-lib/              shared helpers: files, frontmatter, env, qmd, transcripts, system calls, moved commands
+lib/              shared helpers: files, frontmatter, env, qmd, transcripts, system calls
 ```
 
 Each feature folder holds its logic and a `<command>.command.ts` per command (options and output only).
@@ -242,8 +254,6 @@ Tests mirror it in `cli/test/`.
 
 ## Develop
 
-`pnpm check` runs `canon check` on this repo, the typecheck and every test.
-The version lives in `package.json` and `.claude-plugin/plugin.json`; bump both
-with a CHANGELOG entry. A push to main with a new version publishes to npm.
+How to run, test and release canon itself: [`.context/ops/run.md`](.context/ops/run.md).
 
 MIT licence.
