@@ -17,10 +17,6 @@ export const WIKI_FOLDER_BY_TYPE: Record<string, string> = {
   decision: "decisions",
   synthesis: "synthesis",
 };
-/** Wiki folders that no longer exist, and what to do with what was in them. */
-export const REMOVED_WIKI_FOLDERS: Record<string, string> = {
-  flows: "fold a journey worth keeping into a concept page",
-};
 /** Where a repo keeps its config, and the uncommitted override beside it. */
 export const CONFIG_FILE = ".context/context.yaml";
 export const LOCAL_CONFIG_FILE = ".context/context.local.yaml";

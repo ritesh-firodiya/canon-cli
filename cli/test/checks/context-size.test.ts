@@ -36,14 +36,12 @@ describe("context-size", () => {
     expect(findings).toEqual([expect.objectContaining({ message: expect.stringMatching(/by topic/) })]);
   });
 
-  test("flows/ is flagged once, not page by page; a short screen note passes, a long one is capped", () => {
+  test("a short screen note passes, a long one is capped", () => {
     const findings = run({
-      ".context/wiki/flows/a.md": page(100),
-      ".context/wiki/flows/b.md": page(5),
       ".context/wiki/surfaces/home.md": page(10),
       ".context/wiki/surfaces/paywall.md": page(70),
     });
-    expect(findings.map((f) => f.file).sort()).toEqual([".context/wiki/flows", ".context/wiki/surfaces/paywall.md"]);
+    expect(findings.map((f) => f.file).sort()).toEqual([".context/wiki/surfaces/paywall.md"]);
   });
 
   test("tasks.md with Done or Session Notes is flagged, and so is a long README", () => {

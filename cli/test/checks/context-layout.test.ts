@@ -26,7 +26,7 @@ describe("context-layout", () => {
   });
 
   test("designs/ is never required, even with the design module on", () => {
-    const { ".context/designs/mobile/routes.js": _, ...noDesigns } = VALID_CONTEXT;
+    const { ".context/designs/mobile/index.html": _, ...noDesigns } = VALID_CONTEXT;
     expect(contextLayout.run(contextFor(makeTree({ ...noDesigns, ".context/context.yaml": "modules: [docs, design]\n" })))).toEqual([]);
   });
 

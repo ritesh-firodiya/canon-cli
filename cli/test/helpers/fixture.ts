@@ -28,7 +28,7 @@ export const VALID_CONTEXT = {
   ".context/architecture/architecture.json": "{}\n",
   ".context/ops/run.md": "# Run\n",
   ".context/features/index.md": "# Features\n",
-  ".context/designs/mobile/routes.js": "window.ROUTES = {};\n",
+  ".context/designs/mobile/index.html": "<!doctype html>\n",
 };
 
 export function wikiPage(fields: Record<string, string>, body = "## Summary\nx\n"): string {

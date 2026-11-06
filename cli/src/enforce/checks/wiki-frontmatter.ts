@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { listFiles } from "../../lib/files.ts";
 import { parseFrontmatter } from "../../lib/frontmatter.ts";
-import { REMOVED_WIKI_FOLDERS, WIKI_FOLDER_BY_TYPE } from "../../config/schema.ts";
+import { WIKI_FOLDER_BY_TYPE } from "../../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 
 const REQUIRED_FIELDS = ["last-verified"];
@@ -39,7 +39,6 @@ export const wikiFrontmatter: Check = {
 
     for (const file of wikiPages(repo)) {
       const folder = file.split("/")[2];
-      if (folder in REMOVED_WIKI_FOLDERS) continue; // context-size reports the folder once
       const { data, body } = parseFrontmatter(readFileSync(join(repo, file), "utf8"));
       if (!data) {
         add("error", file, "no frontmatter");

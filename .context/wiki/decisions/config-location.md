@@ -4,8 +4,7 @@ last-verified: 2026-10-31
 # Config location
 
 **Choice:** a repo's canon config is `.context/context.yaml`, with an uncommitted
-override at `.context/context.local.yaml` (owner, 2026-10-31). An old
-`canon.yaml` in `.claude` is an error.
+override at `.context/context.local.yaml` (owner, 2026-10-31).
 
 **Why:** the owner wants the config with the rest of the repo's context. The old
 path came from canon's start as a Claude Code plugin.

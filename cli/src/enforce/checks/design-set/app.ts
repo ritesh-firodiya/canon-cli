@@ -21,7 +21,7 @@ export function routes(s: Surface): void {
   }
   const onDisk = new Set(walkAll(s.appDir).filter((f) => isScreen(s, basename(f))));
   const declared = new Set(sorted(s.declared).flatMap((f) => s.files.get(f)?.route ?? []));
-  for (const r of sorted([...declared].filter((r) => !onDisk.has(r)))) s.report.bad(`routes.js points at src/app/${r}, which does not exist`);
+  for (const r of sorted([...declared].filter((r) => !onDisk.has(r)))) s.report.bad(`a drawing points at src/app/${r}, which does not exist`);
   // A route that ships with no drawing is allowed ONLY while `missing` says why.
   const said = recorded(s);
   // One screen can ship as page.ce.tsx and page.cloud.tsx (an edition each): a drawing of either draws the route.

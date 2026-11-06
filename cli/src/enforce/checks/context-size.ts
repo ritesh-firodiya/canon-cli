@@ -1,6 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { REMOVED_WIKI_FOLDERS as REMOVED_FOLDERS } from "../../config/schema.ts";
 import type { Check, Finding } from "./types.ts";
 import { wikiPages } from "./wiki-frontmatter.ts";
 
@@ -13,7 +12,7 @@ const lineCount = (repo: string, file: string) => readFileSync(join(repo, file),
 export const contextSize: Check = {
   id: "context-size",
   module: "docs",
-  description: "pages, decisions, README.md and tasks.md stay under their line caps; decisions are one file per topic; no flow pages",
+  description: "pages, decisions, README.md and tasks.md stay under their line caps; decisions are one file per topic",
   run({ repo }) {
     const findings: Finding[] = [];
     const warn = (file: string, message: string) => findings.push({ check: "context-size", level: "warn", file, message });
@@ -22,12 +21,9 @@ export const contextSize: Check = {
       if (lines > cap) warn(file, `${lines} lines, cap ${cap} — cut what code, designs or git already say`);
     };
 
-    for (const [folder, why] of Object.entries(REMOVED_FOLDERS)) {
-      if (existsSync(join(repo, ".context/wiki", folder))) warn(`.context/wiki/${folder}`, `${folder}/ is gone: ${why}`);
-    }
     for (const file of wikiPages(repo)) {
       const folder = file.split("/")[2];
-      if (folder === "synthesis" || folder in REMOVED_FOLDERS) continue;
+      if (folder === "synthesis") continue;
       if (folder === "decisions" && DATED_NAME.test(basename(file))) {
         warn(file, "name a decision by topic and edit it in place — git keeps the history");
       }

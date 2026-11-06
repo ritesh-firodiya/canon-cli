@@ -29,13 +29,6 @@ describe("buildSite", () => {
     expect(existsSync(join(out, "canon-check.md"))).toBe(false);
   });
 
-  test("removes the check report an older canon left in the site", () => {
-    const root = workspace();
-    const out = makeTree({ "canon-check.md": "old" });
-    buildSite([join(root, "alpha")], { siteDir: out });
-    expect(existsSync(join(out, "canon-check.md"))).toBe(false);
-  });
-
   test("gives each product with architecture rules a graph page, linked from home", () => {
     const root = workspace();
     const out = makeTree({});

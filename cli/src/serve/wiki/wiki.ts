@@ -43,8 +43,6 @@ export function buildSite(products: string[], options: SiteOptions): void {
     join(options.siteDir, "index.md"),
     `---\ntitle: canon\n---\n\nEvery product's wiki, searchable and linked; products with architecture rules also get an import graph.\n\n${rows.join("\n")}\n`,
   );
-  // The site folder outlives upgrades: an older canon wrote this page, and Quartz would still render it.
-  rmSync(join(options.siteDir, "canon-check.md"), { force: true });
 }
 
 const IGNORED = ["**/CLAUDE.md"];
