@@ -28,7 +28,7 @@ Copy the lint rules in at the same time (`frontend`).
   CLAUDE.md        # stack, directory tree, monetization, persistence rules
   AGENTS.md        # the agent contract; CLAUDE.md imports it with @AGENTS.md
   CHANGELOG.md     # Keep a Changelog 1.1.0 — feeds the store release notes
-  .context/        # see context-layout
+  .context/        # see the context standard
   src/             # application code; routes in src/app/ (or apps/<name>/src/ in a monorepo)
 ```
 

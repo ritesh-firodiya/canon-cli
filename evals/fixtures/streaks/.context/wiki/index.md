@@ -1,6 +1,6 @@
 # Wiki index
 
-One line per page. Rules: `canon check --standards` → `wiki-schema`.
+One line per page. Rules: `canon check --standards` → `writing`.
 
 ## Concepts
 - [[offline-first]] — All habit data lives on the device; the app works with no network.

@@ -16,11 +16,10 @@ file with its own `agent-contract.md` in a configured standards folder.
 ## Repository rules
 
 1. Product material lives in whichever `.context/` folder owns it
-   (`context-layout.md`). The wiki is the knowledge base; its schema is
-   `wiki-schema.md`.
+   (`context.md`). Every page follows `writing.md`.
 2. Do not add top-level `docs/` or `wireframes/` folders, or root `TODO.md`,
    `STATUS.md` or `SETUP.md`. What stays at the root, and where the rest goes:
-   `context-layout.md`, "Repo root".
+   `context.md`, "Repo root".
 3. Generated folders are never hand-edited; change their source and regenerate.
 4. File names are lowercase kebab-case unless the language says otherwise.
 5. Names follow the repo's current identity, not a legacy name.

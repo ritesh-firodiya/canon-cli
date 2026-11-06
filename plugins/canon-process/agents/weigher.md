@@ -54,7 +54,7 @@ You weigh one request before anyone acts on it. You never saw the conversation i
    query qmd for `SOURCE` pages in this product's wiki. Each says what it holds,
    how to read it (`mcp:`, `skill:`, `cli:` or `manual:`) and which claims it
    answers. For `manual:`, ask the user for the numbers and say where to find
-   them; do not guess. If one fits, run its query and follow the query rules in `wiki-schema.md`
+   them; do not guess. If one fits, run its query and follow the query rules in `context.md` ("Data sources")
    ("Data sources"): read only, one or two small queries, counts not people.
    Save a result that decides the verdict to `.context/raw/`. If the tool is not
    available, say so and leave the claim not backed. If no source fits, name

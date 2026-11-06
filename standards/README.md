@@ -7,8 +7,8 @@ canon's standards. `canon check --standards` lists the ones that apply to a repo
 | File | What it holds |
 |---|---|
 | `constitution.md` | The rules a request is checked against, grouped as facts, value, control and words (C-01 to C-19 are canon's) |
-| `wiki-schema.md` | Wiki page types, frontmatter, required sections, lint rules |
-| `context-layout.md` | The `.context/` folder layout, where each kind of document lives, the repo root, records and `tasks.md` formats |
+| `context.md` | Plain Context, part 1: where knowledge lives, the start minimum every repo needs, records, the flow and `tasks.md` |
+| `writing.md` | Plain Context, part 2: how every page reads, and the shape of purpose, glossary, rule, decision and research pages |
 | `dev-methods.md` | The evidence spec-, test- and data-driven work leaves behind |
 | `agent-contract.md` | What every agent does before, during and after work |
 

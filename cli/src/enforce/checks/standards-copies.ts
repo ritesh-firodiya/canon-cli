@@ -5,7 +5,7 @@ import type { Check, Finding } from "./types.ts";
 // Fraction of a shared standard's lines that must appear in a product file
 // before it counts as a copy rather than a reference.
 const COPY_THRESHOLD = 0.6;
-const STANDARD_COPIES = [{ file: ".context/wiki/CLAUDE.md", standard: "standards/wiki-schema.md" }];
+const STANDARD_COPIES = [{ file: ".context/wiki/CLAUDE.md", standard: "standards/writing.md" }];
 
 function meaningfulLines(text: string): Set<string> {
   return new Set(

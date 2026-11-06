@@ -6,7 +6,7 @@ import { makeTree } from "./helpers/fixture.ts";
 const canon = () =>
   makeTree({
     "standards/constitution.md": "# C\n\n### C-01 Ship\nx\n### C-02 Write less\n",
-    "standards/wiki-schema.md": "canon schema",
+    "standards/writing.md": "canon writing",
     "standards/README.md": "index, not a standard",
     "standards/library/pipeline.md": "# Pipeline\n\n### C-12 Designs before code\n",
   });
@@ -14,12 +14,12 @@ const canon = () =>
 describe("resolveStandards", () => {
   test("canon's defaults first, then each configured folder; a later file of the same name wins", () => {
     const root = canon();
-    const rules = makeTree({ "wiki-schema.md": "repo schema", "design-sets.md": "designs" });
+    const rules = makeTree({ "writing.md": "repo writing", "design-sets.md": "designs" });
     const found = resolveStandards(root, [rules]);
     expect(found).toEqual([
       { name: "constitution", path: join(root, "standards/constitution.md"), from: "canon" },
       { name: "design-sets", path: join(rules, "design-sets.md"), from: rules },
-      { name: "wiki-schema", path: join(rules, "wiki-schema.md"), from: rules },
+      { name: "writing", path: join(rules, "writing.md"), from: rules },
     ]);
   });
 
@@ -34,7 +34,7 @@ describe("resolveStandards", () => {
     expect(resolveStandards(root, ["pipeline"]).map((s) => [s.name, s.from])).toEqual([
       ["constitution", "canon"],
       ["pipeline", "canon library"],
-      ["wiki-schema", "canon"],
+      ["writing", "canon"],
     ]);
     expect(() => resolveStandards(root, ["expo"])).toThrow(/no canon standard named expo — canon has: pipeline/);
   });

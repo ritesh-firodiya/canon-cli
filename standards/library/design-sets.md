@@ -262,7 +262,7 @@ shadow**, as W3C design tokens in Babul's groups:
 - **What a picture cannot hold is canon's**, in `.context/wiki/`: a screen's
   notes in `surfaces/<slug>.md` (only screens that have some), design choices in
   `decisions/`, a colour's or a pattern's rule in `concepts/`. The rules are
-  `wiki-schema`.
+  `context` and `writing`.
 - **A note holds only what the drawing cannot show.** Never what the HTML, the
   app's CLAUDE.md or git already say — no layout, no history.
 - **Where they disagree**: the HTML wins on layout and flow; the wiki's

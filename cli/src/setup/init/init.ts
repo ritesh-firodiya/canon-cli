@@ -109,7 +109,7 @@ function template(file: string): string {
     case ".context/features/index.md":
       return "# Features\n\n| ID | Title | Status | Release |\n|---|---|---|---|\n";
     case ".context/wiki/index.md":
-      return "# Wiki index\n\nPages by type. Schema: the canon plugin's wiki-schema standard.\n";
+      return "# Wiki index\n\nOne line per page, grouped by folder. How pages read: canon's writing standard.\n";
     default:
       return "";
   }

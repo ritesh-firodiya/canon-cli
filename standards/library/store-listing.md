@@ -105,7 +105,7 @@ differs from the reference repo's style or when its two files disagree.
 ## Release notes come from `features/`
 
 A feature page carries `release: x.y.z` and a `## Store copy` blockquote (see
-`context-layout`). `pnpm listing:notes` (`scripts/release-notes.mjs`, copied
+`context`). `pnpm listing:notes` (`scripts/release-notes.mjs`, copied
 from the reference repo) collects the blockquote from every feature with that
 release and writes both `listing/ios/metadata/en-US/release_notes.txt` and
 `listing/android/metadata/en-US/changelogs/<versionCode>.txt`. That makes the
