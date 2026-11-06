@@ -20,8 +20,8 @@ Cache rereads are most of the cost, and every reply rereads what loaded at start
 
 ## Acceptance scenarios
 - Given the owner's global `CLAUDE.md`, then its `# Compact instructions` section keeps decisions, open tasks, file paths and failed attempts. A hook cannot set this: `PreCompact` can only block.
-- Given the canon plugin, then `short` and `detail` output styles are available beside the default, and switching keeps the cache.
-- Given `/context` and `canon usage`, then the owner sees what could be turned off before anything changes.
+- ~~Given the canon plugin, then `short` and `detail` output styles are available.~~ Removed in 4.0.0: the band's reply size (S, M, L) replaced them.
+- Given `/context` and `canon learn --cost`, then the owner sees what could be turned off before anything changes.
 - Given the approved trim, then context at the first reply is lower than the baseline.
 
 ## Out of scope

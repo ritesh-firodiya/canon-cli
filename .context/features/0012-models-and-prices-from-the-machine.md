@@ -11,7 +11,7 @@ plan: PLAN-0002
 # Models and prices from the machine
 
 ## Summary
-`canon models` finds the models this machine can run and their prices, sorts each into small, medium or large, and writes `~/.canon/models.json`. `canon init` and `canon update` run it. Routing, the band and `canon usage` read that file instead of names and prices written in the code.
+`canon models` finds the models this machine can run and their prices, sorts each into small, medium or large, and writes `~/.canon/models.json`. `canon init` and `canon update` run it. Routing, the band and `canon learn --cost` read that file instead of names and prices written in the code.
 
 ## Motivation
 A company may run Claude through Bedrock, Vertex, a gateway or its own model ids. Today routing sends it to `haiku`, `sonnet` and `opus` by name and prices calls it cannot price at $0.
@@ -26,7 +26,7 @@ A company may run Claude through Bedrock, Vertex, a gateway or its own model ids
 - Given a model with no size, then it is listed but never routed to.
 
 ## Out of scope
-- Routing, the band and `canon usage` reading the file: PLAN-0002 steps 2 and 3.
+- Routing, the band and `canon learn --cost` reading the file: PLAN-0002 steps 2 and 3.
 - Fetching prices from the web: there is no price API.
 
 ## Open questions

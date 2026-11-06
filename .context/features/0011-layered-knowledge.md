@@ -38,7 +38,7 @@ Knowledge, not only rules, comes in layers: a repo's own `.context/`, then the c
 
 ## Decided
 - Layers are named with the existing `extends:` key in `.context/context.yaml`; there is no separate `knowledge:` list (2026-11-04).
-- A layer that is not on this machine, or that the person cannot read, is skipped without an error, and `canon status` lists which layers were found. Today a missing `extends:` target throws (`config/load.ts`); that changes (2026-11-04).
+- A layer that is not on this machine, or that the person cannot read, is skipped without an error, and `canon check --status` lists which layers were found. Today a missing `extends:` target throws (`config/load.ts`); that changes (2026-11-04).
 - The person's layer is one repo, read-only where needed (2026-11-04).
 - The person's own settings are a file in their personal context repo. It holds only that person's settings: no organization, no repo settings, no organization or repo names. A repo's settings stay in that repo's own `.context/` (local only where it cannot be pushed) (2026-11-04).
 - An outside knowledge tool is fetched on demand through its connector; nothing from it is copied to disk (2026-11-04).

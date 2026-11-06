@@ -24,7 +24,7 @@ Opus is 99% of cost. Most of the saving must come from building on a smaller mod
 - Given a session under way, then effort may change, while the model only moves up, because moving to another model misses the cache.
 - Given a failed or unclear decision, then the session's own model and effort are used.
 - Given a pick, then the band shows it, and the owner can override it.
-- Given a pick, then it is logged for `canon usage`, without the prompt's text.
+- Given a pick, then it is logged for `canon learn --cost`, without the prompt's text.
 - Given a `canon run` agent or a headless session, then nothing is routed, so a stage's model and cap hold.
 - Given `/model`, then it holds like a choice on the band.
 - Given a prompt sized large, then the band refuses its first Edit, Write or changing Bash command until the weigh skill has run in that turn, and says why; reading is never held.
@@ -39,7 +39,7 @@ On 2026-11-02, through `turn.step` on a 41,000-token session: changing effort ke
 - Routing to other companies' models.
 
 ## Open questions
-- Whether a local Laya classifier beats Haiku. Try it only if the classifier's cost shows up in `canon usage`.
+- Whether a local Laya classifier beats Haiku. Try it only if the classifier's cost shows up in `canon learn --cost`.
 
 ## Store copy
 > Canon picks the right effort and model for each prompt.

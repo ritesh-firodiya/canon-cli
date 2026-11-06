@@ -13,7 +13,7 @@ plan: PLAN-0001
 # Usage report
 
 ## Summary
-`canon usage` reads Claude Code's local transcripts and canon's run log, and shows what was used, when, for what and at what cost.
+`canon learn --cost` reads Claude Code's local transcripts and canon's run log, and shows what was used, when, for what and at what cost.
 
 ## Motivation
 `/usage` gives shares only, and no view shows what is costly inside a skill. Nothing can be cut with confidence without a baseline.
@@ -36,4 +36,4 @@ plan: PLAN-0001
 - Skill cost runs from the skill's call to the next person's message. Check this against real sessions before relying on it.
 
 ## Store copy
-> `canon usage` shows which skills you use and where your tokens go.
+> `canon learn --cost` shows which skills you use and where your tokens go.
