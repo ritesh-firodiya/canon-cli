@@ -12,6 +12,9 @@ export interface Report {
   skipped: Array<{ check: string; why: string }>;
 }
 
+/** The person's calendar day, at UTC midnight like a `2026-11-07` read from a page, so a page dated today is never "in the future". */
+export const calendarDay = (now: Date): Date => new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+
 export interface RunOptions {
   checks?: Check[];
   canonRoot: string;
@@ -39,7 +42,7 @@ export function runChecks(repo: string, options: RunOptions): Report {
     }
     try {
       report.findings.push(
-        ...check.run({ repo, name: report.name, config, canonRoot: options.canonRoot, today: options.today ?? new Date() }),
+        ...check.run({ repo, name: report.name, config, canonRoot: options.canonRoot, today: options.today ?? calendarDay(new Date()) }),
       );
     } catch (error) {
       report.findings.push({ check: check.id, level: "error", message: `check crashed: ${(error as Error).message}` });

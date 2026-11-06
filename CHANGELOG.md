@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **A stage of a repo's own says who does it.** A pipeline stage not named like one of canon's must set `by: agent` or `by: person`, or the config does not load and the error names the pipeline and the stage. A stage named like canon's still brings canon's owner. Before, a missing `by:` meant a person, so when canon dropped `options` from its default, every product listing it quietly stopped `canon run` there for a person. It also showed in `canon run` but not in `canon queue`; now both agree.
+
+### Fixed
+
+- `canon check` counts days on your own calendar. A page dated today no longer fails as "in the future" in the hours when UTC is still on yesterday (all of the morning in India).
+
 ## 6.5.0 — 2026-11-06
 
 ### Added

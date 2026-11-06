@@ -218,7 +218,7 @@ describe("canon new", () => {
 
   test("a fact is a dated page in raw/", () => {
     const repo = makeTree({});
-    const { file } = newPage(repo, loadConfig(repo).config, "fact", "Store installs", {}, new Date("2026-11-05"));
+    const { file } = newPage(repo, loadConfig(repo).config, "fact", "Store installs", {}, new Date(2026, 10, 5));
     expect(file).toBe(join(".context", "raw", "2026-11-05-store-installs.md"));
     expect(readFileSync(join(repo, file), "utf8")).toMatch(/## Value[\s\S]*## Source[\s\S]*## How it was collected/);
   });

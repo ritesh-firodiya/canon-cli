@@ -30684,7 +30684,7 @@ var stage = external_exports.object({
   done: external_exports.array(external_exports.string().min(1)).optional(),
   /** A person must approve this stage on the record (`canon approve <id> --record <id>`) before any later stage runs. */
   gate: external_exports.boolean().optional(),
-  /** Who does the work; a person when absent. */
+  /** Who does the work. Required, except on a stage named like one of canon's, which brings its own. */
   by: external_exports.enum(["person", "agent"]).optional(),
   /** A stage the run may skip. `when` says in words when it is needed. */
   optional: external_exports.boolean().optional(),
@@ -31053,7 +31053,9 @@ function resolvePipelines(pipelines) {
   const resolved2 = Object.entries(pipelines).map(([name, stages]) => {
     const specs = stages.map((stage2) => {
       const { after: _after, ...inherited } = DEFAULT_PIPELINE.find((entry) => entry.id === stage2.id) ?? {};
-      return { ...inherited, ...stage2, done: stage2.done ?? inherited.done ?? [], gate: stage2.gate ?? inherited.gate ?? false };
+      const by = stage2.by ?? inherited.by;
+      if (!by) throw new Error(`pipelines.${name}: stage "${stage2.id}" is not a canon stage; say by: agent or by: person`);
+      return { ...inherited, ...stage2, by, done: stage2.done ?? inherited.done ?? [], gate: stage2.gate ?? inherited.gate ?? false };
     });
     const problem = afterProblem(specs);
     if (problem) throw new Error(`pipelines.${name}: ${problem}`);
@@ -33110,6 +33112,7 @@ var ALL_CHECKS = [
 ];
 
 // cli/src/enforce/checks/check.ts
+var calendarDay = (now) => new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
 function runChecks(repo, options) {
   const report = { repo, name: basename7(repo), findings: [], skipped: [] };
   if (!isDirectory(repo)) {
@@ -33130,7 +33133,7 @@ function runChecks(repo, options) {
     }
     try {
       report.findings.push(
-        ...check2.run({ repo, name: report.name, config: config2, canonRoot: options.canonRoot, today: options.today ?? /* @__PURE__ */ new Date() })
+        ...check2.run({ repo, name: report.name, config: config2, canonRoot: options.canonRoot, today: options.today ?? calendarDay(/* @__PURE__ */ new Date()) })
       );
     } catch (error62) {
       report.findings.push({ check: check2.id, level: "error", message: `check crashed: ${error62.message}` });
@@ -35701,7 +35704,7 @@ function moveRecord(repo, config2, recordId, agent2, options) {
           continue;
         }
       }
-      if ((stage2.by ?? "person") === "person") {
+      if (stage2.by === "person") {
         if (!isApproved(stage2, record2.data)) return stop("waiting", stage2.id, `${stage2.id} is for a person. When it is done: canon approve ${stage2.id} --record ${recordId}`);
       } else {
         const capUsd = stage2.cap ?? config2.cap ?? DEFAULT_CAP_USD;

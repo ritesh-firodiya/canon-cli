@@ -1,6 +1,6 @@
 import { chmodSync } from "node:fs";
 import { describe, expect, test } from "vitest";
-import { findProducts, findWorkspace, runChecks } from "../src/enforce/checks/check.ts";
+import { calendarDay, findProducts, findWorkspace, runChecks } from "../src/enforce/checks/check.ts";
 import type { Check } from "../src/enforce/checks/types.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
@@ -88,4 +88,10 @@ describe("findWorkspace", () => {
       chmodSync(root, 0o755);
     }
   });
+});
+
+test("checks count days on the person's calendar, so a page dated today is not in the future anywhere on earth", () => {
+  const lateEvening = new Date(2026, 10, 7, 1, 22); // 01:22 on 7 Nov, local time
+  expect(calendarDay(lateEvening).toISOString()).toBe("2026-11-07T00:00:00.000Z");
+  expect(calendarDay(lateEvening).getTime()).toBe(new Date("2026-11-07").getTime());
 });
