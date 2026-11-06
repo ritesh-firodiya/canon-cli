@@ -1,7 +1,7 @@
 ---
 id: FEAT-0010
 type: feature
-status: planned
+status: shelved
 priority: p2
 last-verified: 2026-11-02
 release: null

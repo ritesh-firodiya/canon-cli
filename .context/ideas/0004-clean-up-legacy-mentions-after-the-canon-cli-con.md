@@ -1,6 +1,6 @@
 ---
 id: IDEA-0004
-status: accepted
+status: shipped
 last-verified: 2026-11-05
 ---
 # Clean up legacy mentions after the canon-cli context, principles and link migration

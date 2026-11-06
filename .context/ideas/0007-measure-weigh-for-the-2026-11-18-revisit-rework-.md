@@ -1,6 +1,6 @@
 ---
 id: IDEA-0007
-status: accepted
+status: shipped
 last-verified: 2026-11-06
 ---
 # Measure weigh for the 2026-11-18 revisit: rework definition, size/claims/contradicted on verdicts, weekly learn --cost table

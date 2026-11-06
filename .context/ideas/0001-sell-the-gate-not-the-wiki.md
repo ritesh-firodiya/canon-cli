@@ -1,6 +1,6 @@
 ---
 id: IDEA-0001
-status: draft
+status: dropped
 last-verified: 2026-11-02
 problems: PROB-0001
 source: backfill

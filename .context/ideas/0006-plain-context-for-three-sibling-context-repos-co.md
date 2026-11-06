@@ -1,6 +1,6 @@
 ---
 id: IDEA-0006
-status: accepted
+status: shipped
 last-verified: 2026-11-06
 ---
 # Plain Context for three sibling context repos; content repos get a smaller start minimum

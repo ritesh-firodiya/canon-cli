@@ -1,6 +1,6 @@
 ---
 id: BUG-0001
-status: open
+status: wontfix
 severity: medium
 priority: p2
 last-verified: 2026-11-02

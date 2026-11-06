@@ -1,6 +1,6 @@
 ---
 id: IDEA-0003
-status: accepted
+status: shipped
 last-verified: 2026-11-05
 ---
 # Refactor .context meta (ideals, principles, knowledge), starting with canon-cli, modeled on a sibling product
