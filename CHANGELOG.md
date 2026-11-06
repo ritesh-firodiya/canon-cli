@@ -1,5 +1,13 @@
 # Changelog
 
+## 6.1.1 — 2026-11-06
+
+### Fixed
+
+- `canon check` and `canon verdict` no longer crash when the folder above the repo cannot be read (a sandbox, a locked parent).
+- The weigh skill pastes the weigher's verdict block as it came, so its principle IDs reach the reply.
+- Evals run this checkout's `canon` inside the eval sandbox, grant the tools cases list, and use Markdown links in the fixture.
+
 ## 6.2.0 — 2026-11-06
 
 ### Changed
