@@ -61,6 +61,18 @@ describe("the models this machine can run", () => {
     expect(models[0]?.price).toEqual(priceOf("claude-opus-5-5", 0));
   });
 
+  test("an org's own name for its main model is sized and priced as the newest Claude model its sessions name, else ?", () => {
+    const org = { ...NONE, settings: [{ model: "acme.standard[1m]" }] };
+    const named = gatherModels({ ...org, usedIds: ["acme.standard[1m]", "us.anthropic.claude-opus-4-5-20251101-v1:0"] })[0];
+    expect(named).toEqual({ id: "acme.standard[1m]", size: "large", price: priceOf("claude-opus-4-5", 0), source: "settings model", runs: "us.anthropic.claude-opus-4-5-20251101-v1:0" });
+    expect(gatherModels({ ...org, usedIds: ["acme.standard[1m]"] })[0]).toEqual({ id: "acme.standard[1m]", size: null, price: null, source: "settings model" });
+  });
+
+  test("an id that is not the main model is never guessed", () => {
+    const models = gatherModels({ ...NONE, apiIds: ["acme-y"], usedIds: ["claude-opus-5-5"] });
+    expect(models.find((m) => m.id === "acme-y")).toEqual({ id: "acme-y", size: null, price: null, source: "api" });
+  });
+
   test("a config entry that is not a size or a full price is refused", () => {
     expect(() => gatherModels({ ...NONE, config: { models: { a: "huge" } } })).toThrow(/size of a/);
     expect(() => gatherModels({ ...NONE, config: { prices: { a: { input: 1 } } } })).toThrow(/price of a/);

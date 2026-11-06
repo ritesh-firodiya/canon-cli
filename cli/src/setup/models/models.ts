@@ -15,6 +15,8 @@ export interface ModelEntry {
   /** USD per million tokens; null when neither config nor the shipped list prices know it. */
   price: Price | null;
   source: string;
+  /** The Claude model it was sized and priced as, when that is not the id itself: public list price, not an org's rate. */
+  runs?: string;
 }
 
 /** What a company or a person sets in `~/.canon/models.config.json`. It wins over everything found. */
@@ -58,16 +60,24 @@ function checkPrice(id: string, value: unknown): Price {
 
 const strings = (value: unknown): string[] => (Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item !== "") : typeof value === "string" && value ? [value] : []);
 
-/** A bare family name (`opus`, `opus[1m]`) runs whatever this machine last ran in that family; no table says which. */
-function resolved(id: string, usedIds: string[]): string {
+const mainIds = (input: ModelsInput): string[] => [...input.settings.flatMap((settings) => strings(settings.model)), ...strings(input.env.ANTHROPIC_MODEL)];
+
+/**
+ * The model an id runs, as far as this machine shows. A bare family name (`opus[1m]`) runs what recent sessions
+ * ran in that family. An org's own name for its main model (`acme.standard`) runs the newest Claude model the
+ * sessions name, since nothing else says. No table says either.
+ */
+function resolved(id: string, input: ModelsInput): string {
   const family = FAMILIES.find(([name]) => listId(id) === name)?.[0];
-  return family ? (usedIds.find((used) => used.includes(`-${family}-`)) ?? id) : id;
+  if (family) return input.usedIds.find((used) => used.includes(`-${family}-`)) ?? id;
+  if (priceOf(id, 0) || !mainIds(input).includes(id)) return id;
+  return input.usedIds.find((used) => priceOf(used, 0)) ?? id;
 }
 
 const configPrices = (config: ModelsConfig): Record<string, Price> => Object.fromEntries(Object.entries(config.prices ?? {}).map(([id, price]) => [id, checkPrice(id, price)]));
 
 /** A model's price: the config's, else the public list price of what it runs, else null. */
-export const priceIn = (input: ModelsInput, id: string, prompt: number): Price | null => configPrices(input.config)[id] ?? priceOf(resolved(id, input.usedIds), prompt);
+export const priceIn = (input: ModelsInput, id: string, prompt: number): Price | null => configPrices(input.config)[id] ?? priceOf(resolved(id, input), prompt);
 
 /** Every model this machine can run, sized and priced. Pure, so the tests hand it what a machine would hold. */
 export function gatherModels(input: ModelsInput): ModelEntry[] {
@@ -93,7 +103,8 @@ export function gatherModels(input: ModelsInput): ModelEntry[] {
 
   return found.map(({ id, slot, source }) => ({
     id,
-    size: configSizes[id] ?? slot ?? FAMILIES.find(([family]) => id.toLowerCase().includes(family))?.[1] ?? null,
+    ...(resolved(id, input) === id ? {} : { runs: resolved(id, input) }),
+    size: configSizes[id] ?? slot ?? FAMILIES.find(([family]) => resolved(id, input).toLowerCase().includes(family))?.[1] ?? null,
     price: priceIn(input, id, 0),
     source,
   }));
@@ -127,7 +138,8 @@ function readJson(file: string): Record<string, unknown> | null {
 const RECENT_SESSIONS = 20;
 // The band asks on every refresh and a long chat is many MB; its last replies name the model it runs.
 const TAIL_BYTES = 256 * 1024;
-const MODEL_FIELD = /"model":"([^"<][^"]*)"/g;
+// A reply names its model; Claude Code's identity note names the real one behind an org's own name.
+const MODEL_FIELD = /"model(?:Id)?":"([^"<][^"]*)"/g;
 
 function tail(file: string, size: number): string {
   const length = Math.min(size, TAIL_BYTES);
@@ -207,7 +219,7 @@ export async function writeModels(fetcher?: typeof fetch): Promise<ModelsFile> {
 const usd = (value: number): string => `$${value}`;
 
 export function formatModels(file: ModelsFile): string {
-  const lines = file.models.map((m) => `${m.id.padEnd(32)} ${(m.size ?? "no size").padEnd(8)} ${m.price ? `${usd(m.price.input)} in, ${usd(m.price.output)} out per M` : "price ?"}   ${m.source}`);
+  const lines = file.models.map((m) => `${m.id.padEnd(32)} ${(m.size ?? "no size").padEnd(8)} ${m.price ? `${usd(m.price.input)} in, ${usd(m.price.output)} out per M` : "price ?"}   ${m.source}${m.runs ? `, list price of ${m.runs}` : ""}`);
   const unsized = file.models.filter((m) => !m.size).length;
   return [
     ...lines,
