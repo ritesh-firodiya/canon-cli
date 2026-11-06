@@ -15,8 +15,8 @@ PROB-0001's Expected has three parts. Since 4.0.0 two hold: `canon check` and th
 3. **Measure.** Log what was attached and whether the agent opened it; after a week, check that answers cite the attached pages and that rework fell. Remove step 1 if the pages are mostly ignored.
 
 ## Steps
-1. A feature: knowledge beside each prompt, with its log.
-2. A feature: weigh sizing without routing.
+1. Done (4.0.0): a feature, knowledge beside each prompt, with its log.
+2. Done: a feature, weigh sizing without routing.
 3. After a week of use, PROB-0001 is solved if answers cite the knowledge and work is weighed; else this plan says what to try next.
 
 ## Rejected

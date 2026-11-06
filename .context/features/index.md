@@ -15,4 +15,4 @@
 | [FEAT-0011](0011-layered-knowledge.md) | Layered knowledge | planned | |
 | [FEAT-0012](0012-models-and-prices-from-the-machine.md) | Models and prices from the machine | shipped | 4.0.0 |
 | [FEAT-0013](0013-knowledge-gate.md) | Knowledge gate | shipped | 4.0.0 |
-| [FEAT-0014](0014-knowledge-beside-each-prompt.md) | Knowledge beside each prompt | planned | |
+| [FEAT-0014](0014-knowledge-beside-each-prompt.md) | Knowledge beside each prompt | shipped | 4.0.0 |
