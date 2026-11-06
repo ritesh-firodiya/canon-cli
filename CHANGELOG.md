@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Weigh is measured for the 2026-11-18 revisit.** `canon verdict` takes `--size` and `--claims 2/5`, kept on the verdict line. `canon learn --cost` adds a weekly table (sessions, weigh runs, calls held for weigh, verdict outcomes) and the rework rate with and without a weigh verdict. Mark rework with `canon set <ID> contradicted=<date>`.
+
 ## 6.2.1 — 2026-11-06
 
 ### Fixed

@@ -2,7 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 import { proposals, readDecisions, readVerdicts, recordDecision, summarise } from "../src/learn/learn/learn.ts";
-import { formatVerdict, parseVerdicts, recordVerdict, type Outcome } from "../src/work/records/verdicts.ts";
+import { formatVerdict, parseVerdicts, recordVerdict, reworkRates, type Outcome } from "../src/work/records/verdicts.ts";
+import { weighReport } from "../src/learn/usage/cost.ts";
 import { loadConfig } from "../src/config/load.ts";
 import { findRecord } from "../src/work/records/records.ts";
 import { makeTree } from "./helpers/fixture.ts";
@@ -118,5 +119,40 @@ describe("recordVerdict", () => {
       if (before === undefined) delete process.env.CANON_HOME;
       else process.env.CANON_HOME = before;
     }
+  });
+});
+
+describe("weigh measures", () => {
+  const base = { at: "2026-11-04T09:00:00Z", verdict: "do-it", outcome: "proceeded" as const, principles: ["C-01"], request: "r", reason: "", terms: [] };
+
+  test("size and claims round-trip, and a line written before them still parses", () => {
+    const text = `## Verdict\n${formatVerdict({ ...base, size: "large", claims: { backed: 2, total: 5 } })}\n${formatVerdict(base)}\n`;
+    const [withMeasures, old] = parseVerdicts(text);
+    expect(withMeasures).toMatchObject({ size: "large", claims: { backed: 2, total: 5 } });
+    expect(old.size).toBeUndefined();
+    expect(old.claims).toBeUndefined();
+  });
+
+  test("rework is counted apart for records with and without a weigh verdict", () => {
+    const record = (id: string, contradicted: boolean, verdict: boolean) =>
+      `---\nid: ${id}\n${contradicted ? "contradicted: 2026-11-05\n" : ""}---\n## Summary\ns\n${verdict ? `\n## Verdict\n${formatVerdict(base)}\n` : ""}`;
+    const root = makeTree({
+      "a/.context/ideas/0001-x.md": record("IDEA-0001", true, true),
+      "a/.context/ideas/0002-y.md": record("IDEA-0002", false, true),
+      "a/.context/features/0001-z.md": record("FEAT-0001", true, false),
+    });
+    const repo = join(root, "a");
+    expect(reworkRates([repo], () => loadConfig(repo).config)).toEqual({ withWeigh: { records: 2, contradicted: 1 }, withoutWeigh: { records: 1, contradicted: 1 } });
+  });
+
+  test("verdict outcomes join the transcript week they fall in, and old ones are left out", () => {
+    const week = { week: "2026-11-02", sessions: 10, weighRuns: 2, weighBlocks: 1 };
+    const verdicts = [
+      { ...base, product: "a" },
+      { ...base, outcome: "stopped" as const, product: "a" },
+      { ...base, at: "2026-10-01T00:00:00Z", product: "a" },
+    ];
+    const rework = { withWeigh: { records: 0, contradicted: 0 }, withoutWeigh: { records: 0, contradicted: 0 } };
+    expect(weighReport([week], verdicts, new Date("2026-10-15T00:00:00Z"), rework).weeks).toEqual([{ ...week, proceeded: 1, stopped: 1, overridden: 0, dropped: 0 }]);
   });
 });

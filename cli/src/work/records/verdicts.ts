@@ -2,11 +2,17 @@ import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from
 import { homedir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import type { Config } from "../../config/schema.ts";
-import { appendToSection, createRecord, findRecord, kindByFolder } from "./records.ts";
+import { allRecords, appendToSection, createRecord, findRecord, kindByFolder } from "./records.ts";
 
 export const VERDICTS = ["do-it", "do-it-differently", "push-back"] as const;
 export const OUTCOMES = ["proceeded", "stopped", "overridden", "dropped"] as const;
 export type Outcome = (typeof OUTCOMES)[number];
+export const SIZES = ["small", "medium", "large", "too-large"] as const;
+
+export interface Claims {
+  backed: number;
+  total: number;
+}
 
 export interface Verdict {
   at: string;
@@ -16,17 +22,25 @@ export interface Verdict {
   request: string;
   reason: string;
   terms: string[];
+  size?: string;
+  claims?: Claims;
 }
 
 const SEP = " · ";
 
 export function formatVerdict(verdict: Verdict): string {
   const line = `- ${verdict.at.slice(0, 10)}${SEP}${verdict.verdict}${SEP}${verdict.outcome}${SEP}${verdict.principles.join(", ") || "none"}${SEP}${verdict.request.replace(/\s+/g, " ")}`;
-  const details = [...(verdict.reason ? [`  - Reason: ${verdict.reason.replace(/\s+/g, " ")}`] : []), ...verdict.terms.map((term) => `  - Term: ${term.replace(/\s+/g, " ")}`)];
+  const details = [
+    ...(verdict.size ? [`  - Size: ${verdict.size}`] : []),
+    ...(verdict.claims ? [`  - Claims: ${verdict.claims.backed}/${verdict.claims.total} backed`] : []),
+    ...(verdict.reason ? [`  - Reason: ${verdict.reason.replace(/\s+/g, " ")}`] : []),
+    ...verdict.terms.map((term) => `  - Term: ${term.replace(/\s+/g, " ")}`),
+  ];
   return [line, ...details].join("\n");
 }
 
 const LINE = /^- (\d{4}-\d{2}-\d{2}) · ([a-z-]+) · ([a-z]+) · ([^·]+) · (.*)$/;
+const CLAIMS = /^ {2}- Claims: (\d+)\/(\d+) backed$/;
 
 export function parseVerdicts(text: string): Verdict[] {
   const section = /^## Verdict[ \t]*\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(text)?.[1] ?? "";
@@ -37,7 +51,12 @@ export function parseVerdicts(text: string): Verdict[] {
     if (match) {
       const [, at, verdict, outcome, principles, request] = match;
       verdicts.push({ at, verdict, outcome: outcome as Outcome, principles: principles === "none" ? [] : principles.split(", "), request, reason: "", terms: [] });
-    } else if (last && raw.startsWith("  - Reason: ")) last.reason = raw.slice(12);
+      continue;
+    }
+    const claims = CLAIMS.exec(raw);
+    if (last && claims) last.claims = { backed: Number(claims[1]), total: Number(claims[2]) };
+    else if (last && raw.startsWith("  - Size: ")) last.size = raw.slice(10);
+    else if (last && raw.startsWith("  - Reason: ")) last.reason = raw.slice(12);
     else if (last && raw.startsWith("  - Term: ")) last.terms.push(raw.slice(10));
   }
   return verdicts;
@@ -96,4 +115,25 @@ function onPages(repos: string[]): VerdictEntry[] {
           .flatMap((name) => parseVerdicts(readFileSync(join(context, folder.name, name), "utf8")).map((verdict) => ({ ...verdict, product: basename(repo) }))),
       );
   });
+}
+
+export interface Rework {
+  records: number;
+  contradicted: number;
+}
+
+/**
+ * Rework on records with a weigh verdict and on records without one. A record is reworked when it carries
+ * `contradicted:` (see the reviews-and-evals decision); `canon set <id> contradicted=<date>` marks it.
+ */
+export function reworkRates(repos: string[], configOf: (repo: string) => Config): { withWeigh: Rework; withoutWeigh: Rework } {
+  const rates = { withWeigh: { records: 0, contradicted: 0 }, withoutWeigh: { records: 0, contradicted: 0 } };
+  for (const repo of repos) {
+    for (const record of allRecords(repo, configOf(repo))) {
+      const rate = parseVerdicts(record.body).length ? rates.withWeigh : rates.withoutWeigh;
+      rate.records += 1;
+      if (record.data.contradicted) rate.contradicted += 1;
+    }
+  }
+  return rates;
 }

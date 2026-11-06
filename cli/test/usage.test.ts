@@ -187,3 +187,16 @@ test("a bare family name is priced as the model it runs today", () => {
   expect(priceOf("opus", 10)).toEqual(priceOf("claude-opus-5-5", 10));
   expect(priceOf("unknown", 10)).toBeNull();
 });
+
+describe("weigh per week", () => {
+  test("counts sessions, weigh runs and the band's weigh refusals in the week they happened, once each", () => {
+    const refusal = JSON.stringify({ type: "user", timestamp: at(2), message: { content: [{ type: "tool_result", tool_use_id: "t1", is_error: true, content: "Permission to use Bash denied by plugin canon: This prompt looked large, so canon asks for the weigh skill before any change." }] } });
+    const tally = run([ask("plan it"), reply("m1", 1, output(10), [tool("Bash")]), refusal, refusal, reply("m2", 3, output(10), [tool("Skill", { skill: "canon-process:weigh" })])]);
+    expect(buildReport(tally).weeks).toEqual([{ week: "2026-09-28", sessions: 1, weighRuns: 1, weighBlocks: 1 }]);
+  });
+
+  test("a subagent's weigh is not counted as a session's weigh run", () => {
+    const tally = run([reply("m1", 1, output(10), [tool("Skill", { skill: "canon-process:weigh" })])], { ...main, subagent: true });
+    expect(buildReport(tally).weeks).toEqual([]);
+  });
+});

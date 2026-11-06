@@ -19,3 +19,8 @@ slow and noisy to gate each release.
 
 **Revisit:** 2026-11-18. If the knowledge log and weigh refusals show no drop in
 rework, cut canon back to the band and `check`.
+
+**Rework** (owner, 2026-11-06): a record marked `contradicted: <date>` — its
+verdict proved wrong, or a FEAT or BUG reopened within 14 days of done.
+`canon learn --cost` shows weigh runs, refusals and verdict outcomes per week, and
+the rework rate on records with a weigh verdict and without.

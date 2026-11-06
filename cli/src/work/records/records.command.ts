@@ -6,7 +6,7 @@ import { startExperiment } from "./experiment.ts";
 import { newPage } from "./new.ts";
 import { formatQueue, queueOf } from "./queue.ts";
 import { markDone, setRecordFields } from "./set.ts";
-import { OUTCOMES, recordVerdict, VERDICTS, type Outcome } from "./verdicts.ts";
+import { OUTCOMES, recordVerdict, SIZES, VERDICTS, type Outcome } from "./verdicts.ts";
 
 function parsePairs(pairs: string[]): Record<string, string> {
   return Object.fromEntries(
@@ -103,15 +103,31 @@ export function registerRecords(program: Command): void {
     .option("--principles <ids>", "comma-separated, like C-01,C-05", "")
     .option("--reason <text>", "the person's reason, verbatim. Required for an override", "")
     .option("--term <text>", "one agreed term; repeat for each", collect, [] as string[])
-    .action((repo: string, options: { verdict: string; outcome: string; request: string; record?: string; principles: string; reason: string; term: string[] }) => {
+    .option("--size <size>", SIZES.join(" | "))
+    .option("--claims <backed/total>", "claims backed out of claims listed, like 2/5")
+    .action((repo: string, options: { verdict: string; outcome: string; request: string; record?: string; principles: string; reason: string; term: string[]; size?: string; claims?: string }) => {
       if (!(VERDICTS as readonly string[]).includes(options.verdict)) throw new Error(`--verdict must be one of ${VERDICTS.join(", ")}`);
       if (!(OUTCOMES as readonly string[]).includes(options.outcome)) throw new Error(`--outcome must be one of ${OUTCOMES.join(", ")}`);
       if (options.outcome === "overridden" && !options.reason.trim()) throw new Error("--reason is required: an override without a reason teaches nothing");
       const principles = options.principles.split(",").map((id) => id.trim()).filter(Boolean);
       const invalid = principles.filter((id) => !/^C-\d{2}$/.test(id));
       if (invalid.length) throw new Error(`not principle IDs: ${invalid.join(", ")}`);
+      if (options.size && !(SIZES as readonly string[]).includes(options.size)) throw new Error(`--size must be one of ${SIZES.join(", ")}`);
+      const claims = options.claims === undefined ? undefined : /^(\d+)\/(\d+)$/.exec(options.claims);
+      if (claims === null || (claims && Number(claims[1]) > Number(claims[2]))) throw new Error(`--claims must be backed/total, like 2/5, not ${options.claims}`);
       const root = resolve(repo);
-      const saved = recordVerdict(root, loadConfig(root).config, { at: new Date().toISOString(), verdict: options.verdict, outcome: options.outcome as Outcome, principles, request: options.request.trim(), reason: options.reason.trim(), terms: options.term }, options.record);
+      const verdict = {
+        at: new Date().toISOString(),
+        verdict: options.verdict,
+        outcome: options.outcome as Outcome,
+        principles,
+        request: options.request.trim(),
+        reason: options.reason.trim(),
+        terms: options.term,
+        ...(options.size ? { size: options.size } : {}),
+        ...(claims ? { claims: { backed: Number(claims[1]), total: Number(claims[2]) } } : {}),
+      };
+      const saved = recordVerdict(root, loadConfig(root).config, verdict, options.record);
       console.log(`${saved.id}: ${saved.file}`);
     });
 }

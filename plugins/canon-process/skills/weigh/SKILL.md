@@ -94,9 +94,15 @@ happened next. A trivial request that skipped the gate is not recorded.
 
 ```bash
 canon verdict --record PLAN-0001 --verdict push-back --outcome overridden \
-  --principles C-03,C-01 --request "<one line>" \
+  --principles C-03,C-01 --request "<one line>" --size large --claims 2/5 \
   --reason "<the user's reason, verbatim>" --term "<term 1>" --term "<term 2>"
 ```
+
+`--size` is the verdict's Size; `--claims` is backed/listed from its Claims list.
+When work a verdict let through is later redone (the verdict proved wrong, or a
+FEAT or BUG reopened within 14 days), mark the record:
+`canon set <ID> contradicted=<date>`. `canon learn --cost` reports rework with
+and without weigh from it.
 
 With no `--record`, a stopped, dropped or overridden request becomes a new Idea,
 so a rejected request is not proposed again unseen; one that simply proceeded is

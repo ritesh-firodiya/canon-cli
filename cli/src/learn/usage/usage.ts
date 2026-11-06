@@ -11,6 +11,9 @@ const COLD_MIN_WRITE = 50_000;
 const PER_MILLION = 1_000_000;
 const COMMAND = /<command-name>\/?([^<]+)<\/command-name>/;
 const NO_KINDS: KindCost = { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 };
+const WEIGH_SKILL = /(^|:)weigh$/;
+// The band's WEIGH_FIRST refusal (hooks/band/facts.ts), as Claude Code shows it in the tool result.
+const WEIGH_BLOCK = "This prompt looked large, so canon asks for the weigh skill";
 
 export interface FileContext {
   subagent: boolean;
@@ -21,6 +24,9 @@ export interface FileContext {
 
 interface ToolUse {
   type?: string;
+  id?: string;
+  tool_use_id?: string;
+  content?: unknown;
   name?: string;
   input?: Record<string, unknown>;
 }
@@ -77,6 +83,27 @@ export interface Tally {
   coldExtraUsd: number;
   unpriced: Set<string>;
   sessionCount: number;
+  weeks: Map<string, WeekRow>;
+}
+
+export interface WeekRow {
+  /** The Monday the week starts on. */
+  week: string;
+  sessions: number;
+  weighRuns: number;
+  weighBlocks: number;
+}
+
+export function weekOf(at: Date): string {
+  const monday = new Date(Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate() - ((at.getUTCDay() + 6) % 7)));
+  return monday.toISOString().slice(0, 10);
+}
+
+function weekRow(tally: Tally, at: Date): WeekRow {
+  const week = weekOf(at);
+  const row = tally.weeks.get(week) ?? { week, sessions: 0, weighRuns: 0, weighBlocks: 0 };
+  tally.weeks.set(week, row);
+  return row;
 }
 
 export const newTally = (since: Date, installed: Set<string>): Tally => ({
@@ -97,6 +124,7 @@ export const newTally = (since: Date, installed: Set<string>): Tally => ({
   coldExtraUsd: 0,
   unpriced: new Set(),
   sessionCount: 0,
+  weeks: new Map(),
 });
 
 const sumKinds = (cost: KindCost): number => cost.input + cost.output + cost.cacheWrite + cost.cacheRead;
@@ -121,6 +149,7 @@ function startSkill(tally: Tally, state: SessionState, name: string, at: Date): 
   skill.calls += 1;
   skill.lastUsed = at.toISOString().slice(0, 10);
   state.skill = name;
+  if (!state.context.subagent && WEIGH_SKILL.test(name)) weekRow(tally, at).weighRuns += 1;
 }
 
 // shortcut: a reply naming two products goes to the last one, split it if a report ever needs that.
@@ -159,6 +188,7 @@ function closeReply(tally: Tally, state: SessionState): void {
   tally.seen.add(reply.id);
   if (!state.counted && !state.context.subagent) {
     tally.sessionCount += 1;
+    weekRow(tally, reply.at).sessions += 1;
     tally.firstContexts.push(promptTokens(reply.usage));
   }
   state.counted = true;
@@ -191,7 +221,21 @@ function typedText(content: unknown): string {
   return (content as { type?: string; text?: string }[]).filter((block) => block?.type === "text").map((block) => block.text ?? "").join(" ");
 }
 
+/** Counts the band's weigh refusals; a resumed session repeats them, so each tool call counts once. */
+function readBlocks(tally: Tally, state: SessionState, entry: Entry, at: Date): void {
+  const content = entry.message?.content;
+  if (state.context.subagent || !Array.isArray(content)) return;
+  for (const block of content as ToolUse[]) {
+    if (block?.type !== "tool_result" || !block.tool_use_id || tally.seen.has(block.tool_use_id)) continue;
+    const text = typeof block.content === "string" ? block.content : typedText(block.content);
+    if (!text.includes(WEIGH_BLOCK)) continue;
+    tally.seen.add(block.tool_use_id);
+    weekRow(tally, at).weighBlocks += 1;
+  }
+}
+
 function readAsk(tally: Tally, state: SessionState, entry: Entry, at: Date): void {
+  readBlocks(tally, state, entry, at);
   if (entry.isMeta || entry.isCompactSummary) return;
   const text = typedText(entry.message?.content).trimStart();
   if (!text) return;
@@ -292,6 +336,7 @@ export interface UsageReport {
   routes: { small: number; medium: number; large: number; failed: number; decideUsd: number };
   unpricedModels: string[];
   skippedLines: number;
+  weeks: WeekRow[];
 }
 
 const usd = (value: number): number => Math.round(value * 10000) / 10000;
@@ -368,6 +413,7 @@ export function buildReport(tally: Tally, runsFile?: string, routesFile?: string
     routes: readRoutes(routesFile, tally.since),
     unpricedModels: [...tally.unpriced].sort(),
     skippedLines: tally.skippedLines,
+    weeks: [...tally.weeks.values()].sort((a, b) => a.week.localeCompare(b.week)),
   };
 }
 
