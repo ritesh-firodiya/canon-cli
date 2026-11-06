@@ -184,7 +184,6 @@ export function loadConfig(repo: string): { config: Config; sources: ConfigSourc
     standards: [...new Set(layers.flatMap((layer) => (layer.data.standards ?? []).map((entry) => (isStandardName(entry) ? entry : resolve(layer.base, entry)))))],
     commands: mergeBy(pick("commands").map((list) => list ?? []), (command) => command.id),
     doctor: { tools: mergeBy(pick("doctor").map((doctor) => doctor?.tools ?? []), (tool) => tool.tool) },
-    weigh: { weights: Object.assign({}, ...pick("weigh").map((weigh) => weigh?.weights)) },
     wiki: { types: mergeBy(pick("wiki").map((wiki) => wiki?.types ?? []), (entry) => entry.type) },
     context: {
       folders: mergeBy(pick("context").map((context) => context?.folders ?? []), (entry) => entry.folder),

@@ -112,12 +112,6 @@ Short sentences and common words. No jargon unless the wiki defines it.
 - **Breaks it:** a reply or page a newcomer must read twice.
 - **Check:** say what was checked, what was found and what happens next.
 
-## Weights
-
-A repo's `.context/context.yaml` may raise or lower a rule's weight under
-`weigh.weights` (a game might weigh C-05 higher, a finance product C-10). It may
-not remove one without a written reason, and `canon check` shows every override.
-
 ## MVP
 
 A product not listed on Google Play or the App Store is an MVP. That is the

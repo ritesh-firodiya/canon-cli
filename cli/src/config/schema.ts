@@ -150,8 +150,6 @@ export type Kind = (typeof KINDS)[number];
 export type Module = (typeof MODULES)[number];
 export type Feature = (typeof FEATURES)[number];
 
-const principleId = z.string().regex(/^C-\d{2}$/, "principle IDs look like C-07");
-
 const command = z
   .object({
     id: z.string().regex(/^[a-z0-9-]+$/),
@@ -305,7 +303,6 @@ export const layerSchema = z
     standards: z.array(z.string()),
     commands: z.array(command),
     doctor: z.object({ tools: z.array(tool) }).partial(),
-    weigh: z.object({ weights: z.record(principleId, z.number().nonnegative()) }).partial(),
     wiki: z.object({ types: z.array(wikiType) }).partial(),
     context: z.object({ folders: z.array(contextFolder), rootFolders: z.array(contextFolder) }).partial(),
     /** Named pipelines. A more specific layer replaces a pipeline of the same name and keeps the others. */
@@ -368,7 +365,6 @@ export interface Config {
   standards: string[];
   commands: CommandSpec[];
   doctor: { tools: ToolSpec[] };
-  weigh: { weights: Record<string, number> };
   /** Wiki page types added to the built-in six. */
   wiki: { types: WikiTypeSpec[] };
   /** `.context/` folders added to the built-in ten. */

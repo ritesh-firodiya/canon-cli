@@ -9,6 +9,7 @@
 ### Removed
 
 - The weigh skill no longer mentions `weigh.trivial`; the schema never accepted it.
+- `weigh.weights` and the constitution's `## Weights` section. Nothing read the setting and no product set it; a `context.yaml` that still has it now fails `canon check`.
 
 ## 6.0.0 — 2026-11-06
 

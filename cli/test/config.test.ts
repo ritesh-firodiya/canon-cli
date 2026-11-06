@@ -65,12 +65,12 @@ describe("loadConfig", () => {
 
   test("the local layer wins over the repo's context.yaml", () => {
     const repo = makeTree({
-      ".context/context.yaml": "weigh:\n  weights:\n    C-07: 2\n    C-11: 3\n",
-      ".context/context.local.yaml": "weigh:\n  weights:\n    C-07: 0.5\n",
+      ".context/context.yaml": "cap: 5\n",
+      ".context/context.local.yaml": "cap: 2\n",
       "app.config.ts": "",
     });
     const { config, sources } = loadConfig(repo);
-    expect(config.weigh.weights).toEqual({ "C-07": 0.5, "C-11": 3 });
+    expect(config.cap).toBe(2);
     expect(sources.map((s) => s.layer)).toEqual(["product", "local"]);
   });
 
