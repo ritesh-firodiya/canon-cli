@@ -18,7 +18,7 @@ describe("refs", () => {
   test("a path that exists and a link to a page pass", () => {
     expect(
       run({
-        ".context/wiki/concepts/a.md": page("See [[b]] and `.context/wiki/concepts/b.md`."),
+        ".context/wiki/concepts/a.md": page("See [b](b.md) and `.context/wiki/concepts/b.md`."),
         ".context/wiki/concepts/b.md": page("x"),
       }),
     ).toEqual([]);
@@ -29,12 +29,9 @@ describe("refs", () => {
     expect(findings).toEqual([expect.objectContaining({ level: "error", file: "README.md:2", message: ".context/wiki/gone.md does not exist" })]);
   });
 
-  test("a link to a page not yet written is a warning; a feature id resolves", () => {
-    const findings = run({
-      ".context/wiki/concepts/a.md": page("[[nowhere]] and [[FEAT-0002]]"),
-      ".context/features/0002-scan.md": "x",
-    });
-    expect(findings).toEqual([expect.objectContaining({ level: "warn", message: "[[nowhere]] names no page yet" })]);
+  test("a [[slug]] link is an error that asks for a Markdown link", () => {
+    const findings = run({ ".context/wiki/concepts/a.md": page("See [[b]], not `[[c]]`.") });
+    expect(findings).toEqual([expect.objectContaining({ level: "error", file: ".context/wiki/concepts/a.md:4", message: expect.stringMatching(/\[\[b\]\].*relative Markdown link/) })]);
   });
 
   test("a relative Markdown link resolves beside its file; a dead one is a warning", () => {
@@ -77,12 +74,12 @@ describe("refs", () => {
   test("a local-only .context/ (listed in .gitignore) is checked from disk", () => {
     const findings = run({
       ".gitignore": ".context/\n",
-      ".context/wiki/concepts/a.md": page("[[b]] [[nowhere]] and .context/wiki/gone.md"),
+      ".context/wiki/concepts/a.md": page("[b](b.md) [gone](nowhere.md) and .context/wiki/gone.md"),
       ".context/wiki/concepts/b.md": page("x"),
     });
     expect(findings).toEqual([
       expect.objectContaining({ level: "error", file: ".context/wiki/concepts/a.md:4", message: ".context/wiki/gone.md does not exist" }),
-      expect.objectContaining({ level: "warn", message: "[[nowhere]] names no page yet" }),
+      expect.objectContaining({ level: "warn", message: "nowhere.md names no page yet" }),
     ]);
   });
 

@@ -22,7 +22,7 @@ Mode: `$ARGUMENTS` (empty = audit only; `--fix` = audit + auto-fix safe issues).
 
 4. **Build the graph:**
    - Map `id → file path`.
-   - For each page, extract all relative Markdown links (`[text](path.md)`) and any old `[[slug]]` links from the body.
+   - For each page, extract all relative Markdown links (`[text](path.md)`) from the body.
    - Build inbound and outbound link sets per page.
 
 5. **Run the checks below.** Group findings into **Blockers** and **Warnings**.

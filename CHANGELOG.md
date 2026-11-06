@@ -22,7 +22,7 @@
   | C-15 | C-11 |
   | C-16 | C-12 |
   | C-17 | C-13 |
-- **Wiki pages link with relative Markdown links,** so GitHub and editors can follow them. `refs` checks them; old `[[slug]]` links are still checked until every product moves. The wiki site resolves links relative to the page.
+- **Wiki pages link with relative Markdown links,** so GitHub and editors can follow them. `refs` checks them, and a `[[slug]]` link is now an error. The wiki site resolves links relative to the page.
 
 ### Removed
 
