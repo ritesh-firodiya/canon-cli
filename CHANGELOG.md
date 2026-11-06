@@ -27,6 +27,8 @@
 ### Removed
 
 - The old command names kept after 4.0 (`status`, `standards`, `copies`, `sync` and the rest). Use what `canon --help` lists.
+- `[[slug]]` wiki links: `refs` reports each one as an error.
+- The hint for the retired `wiki/flows/` folder, and the wiki site's cleanup of a page only older versions wrote.
 
 ## 5.1.0 — 2026-11-05
 

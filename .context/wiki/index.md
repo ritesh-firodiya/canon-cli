@@ -10,7 +10,7 @@ last-verified: 2026-11-06
 ## Decisions
 - [runtime](decisions/runtime.md) — Node, git and qmd only; Claude Code runs the agent
 - [distribution](decisions/distribution.md) — the CLI and plugins are free and MIT; the knowledge site is private and paid
-- [config-location](decisions/config-location.md) — config is `.context/context.yaml`; `.claude/canon.yaml` is an error
+- [config-location](decisions/config-location.md) — config is `.context/context.yaml`, with an uncommitted local override
 - [rule-layers](decisions/rule-layers.md) — `extends:` organization, product, team, repo, machine; the closest wins unless locked
 - [features-off-by-default](decisions/features-off-by-default.md) — only the band is on; routing, process and knowledge are turned on per repo
 - [work-records](decisions/work-records.md) — one folder and ID per kind of work: problem, idea, experiment, plan, feature, bug
