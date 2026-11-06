@@ -117,3 +117,13 @@ Short sentences and common words. No jargon unless the wiki defines it.
 A repo's `.context/context.yaml` may raise or lower a rule's weight under
 `weigh.weights` (a game might weigh C-05 higher, a finance product C-10). It may
 not remove one without a written reason, and `canon check` shows every override.
+
+## MVP
+
+A product not listed on Google Play or the App Store is an MVP. That is the
+default; a listed product sets `mvp: false` in `.context/context.yaml`.
+- **In an MVP:** no aliases, shims or readers for old formats. Replace in place,
+  delete freely, and break things when it makes the code simpler. Git is the backup.
+- **When `mvp: false`:** a change that breaks an installed app or its saved data
+  needs a migration path.
+- C-08 and C-10 hold either way.

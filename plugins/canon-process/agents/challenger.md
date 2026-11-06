@@ -38,7 +38,8 @@ caller missed.
    sources yourself. If a `SOURCE` page could answer a claim and no saved
    result exists, say which one.
 4. Size it (small / medium / large / too-large) and name its ongoing cost and
-   the user or metric it serves.
+   the user or metric it serves. Read `mvp:` in `.context/context.yaml`; absent
+   means MVP, where removing or breaking old forms costs nothing (constitution `## MVP`).
 5. Climb the write-less ladder: delete → reuse here → reuse from a sibling →
    platform / stdlib → existing package → fewer lines → new code.
 
@@ -48,6 +49,7 @@ Return only this block:
 Verdict: DO IT | DO IT DIFFERENTLY | PUSH BACK
 Goal: <one line>
 Size: <size>
+MVP: yes | no
 Why:
 - <C-xx> <one line> — <cited file or wiki page>
 Instead: <only for DO IT DIFFERENTLY>

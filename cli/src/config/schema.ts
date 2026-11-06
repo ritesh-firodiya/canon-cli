@@ -295,6 +295,8 @@ export const layerSchema = z
   .object({
     canon: z.string(),
     kind: z.enum(KINDS),
+    /** False once the product is listed on Google Play or the App Store. Absent: an MVP. */
+    mvp: z.boolean(),
     modules: z.array(z.enum(MODULES)),
     features: z.array(z.enum(FEATURES)),
     expo: z.object({ sdk: z.number().int().positive() }).partial(),

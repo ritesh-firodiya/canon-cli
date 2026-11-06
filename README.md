@@ -174,6 +174,7 @@ holds the repo you are in, or `CANON_WORKSPACE`.
 # <repo>/.context/context.yaml — written by `canon init`
 canon: 6.0.0
 kind: mobile                        # mobile | web | mobile-and-web | package | content
+mvp: false                          # listed on Google Play or the App Store; absent means MVP
 standards: [design-sets, pipeline, expo]   # canon's library standards this repo follows; ./rules adds a folder of its own
 modules: [docs, knowledge, code, listing, refs]
 packs: [expo]

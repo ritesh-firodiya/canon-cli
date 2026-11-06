@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { loadConfig } from "../src/config/load.ts";
-import { kindCovers } from "../src/config/schema.ts";
+import { kindCovers, layerSchema } from "../src/config/schema.ts";
 import { makeTree } from "./helpers/fixture.ts";
 
 describe("loadConfig", () => {
@@ -21,6 +21,11 @@ describe("loadConfig", () => {
   test("infers kind package from a public package.json that ships a CLI or library", () => {
     expect(loadConfig(makeTree({ "package.json": JSON.stringify({ name: "x", bin: { x: "cli.js" } }) })).config.kind).toBe("package");
     expect(loadConfig(makeTree({ "package.json": JSON.stringify({ name: "x", private: true, bin: { x: "cli.js" } }) })).config.kind).toBe("content");
+  });
+
+  test("mvp is a yes/no flag that a store-listed product sets to false", () => {
+    expect(layerSchema.safeParse({ mvp: false }).success).toBe(true);
+    expect(layerSchema.safeParse({ mvp: "no" }).success).toBe(false);
   });
 
   test("a repo that ships mobile and web counts as both", () => {

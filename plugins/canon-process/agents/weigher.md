@@ -69,6 +69,8 @@ You weigh one request before anyone acts on it. You never saw the conversation i
 6. **Cost vs value.**
    - Size: **small** (1 file, < 50 lines) · **medium** (2–5 files, < 200 lines) ·
      **large** (5+ files) · **too-large** (architecture change — split it).
+   - MVP: read `mvp:` in `.context/context.yaml`; absent means MVP (constitution
+     `## MVP`). In an MVP, removing or breaking old forms costs nothing.
    - Ongoing cost: new dependency, new service bill, more to maintain, more to
      test, store review risk.
    - Value: name the user or the metric it moves (`metrics/definitions.yml` if
@@ -92,6 +94,7 @@ Reply with exactly this block, then stop or proceed as the verdict says:
 Verdict: DO IT | DO IT DIFFERENTLY | PUSH BACK
 Goal: <one line>
 Size: small | medium | large | too-large
+MVP: yes | no
 Why:
 - <C-xx> <one line> — <file or wiki page cited>
 - ...

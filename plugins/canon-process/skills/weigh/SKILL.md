@@ -12,8 +12,7 @@ Request: `$ARGUMENTS` (empty = the user's latest request in this conversation).
 
 Answer and act directly, with no verdict block, when **all** are true: one file,
 no new dependency, no schema / money / store / release / delete, and the change is
-fully specified (a typo, a spacing fix, a copy edit the user dictated). A
-product's `.context/context.yaml` may tighten this under `weigh.trivial`.
+fully specified (a typo, a spacing fix, a copy edit the user dictated).
 
 ## Weigh with fresh eyes
 
@@ -39,6 +38,7 @@ The weigher replies with exactly this block; you then stop or proceed as the ver
 Verdict: DO IT | DO IT DIFFERENTLY | PUSH BACK
 Goal: <one line>
 Size: small | medium | large | too-large
+MVP: yes | no
 Why:
 - <C-xx> <one line> — <file or wiki page cited>
 - ...

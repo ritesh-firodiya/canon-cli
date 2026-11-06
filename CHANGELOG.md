@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **MVP by default.** The constitution's new `## MVP` section: a product not on Google Play or the App Store is an MVP, where old forms are deleted rather than kept for compatibility. A store-listed product sets `mvp: false` in `context.yaml`. Weigh verdicts now carry an `MVP: yes | no` line.
+
+### Removed
+
+- The weigh skill no longer mentions `weigh.trivial`; the schema never accepted it.
+
 ## 6.0.0 — 2026-11-06
 
 ### Changed
