@@ -1,6 +1,6 @@
 ---
 id: IDEA-0005
-status: dropped
+status: shipped
 last-verified: 2026-11-06
 ---
 # Add an auto-detected, changeable product mode (MVP, has users, legacy, refactoring, support) to canon-cli
