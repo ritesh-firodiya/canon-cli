@@ -9,12 +9,12 @@ else is off until turned on (owner, 2026-11-02):
 - per person: `--user`, kept in `~/.canon/features.json`, never committed.
 
 Features: `routing`, `process` (weigh, decisions, standards, session-start text),
-`knowledge` (search, ask, ingest), `styles`. A command you type still runs; off
-means nothing runs on its own. Each feature is its own plugin under `plugins/`,
-because Claude Code loads skills and MCP servers per plugin and a setting cannot
+`knowledge` (search, ask, ingest). A command you type still runs; off
+means nothing runs on its own. `process` and `knowledge` are plugins under
+`plugins/`; routing runs inside the band. Plugins, because Claude Code loads skills and MCP servers per plugin and a setting cannot
 hide them.
 
-**Why:** the owner said "by default canon should only enable band". Each feature
+**Why:** the owner said (2026-11-02) "by default canon should only enable band". Each feature
 moved out also cuts startup tokens for everyone.
 
 **Rejected:**
