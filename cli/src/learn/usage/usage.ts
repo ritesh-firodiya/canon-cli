@@ -4,7 +4,8 @@ import { join, sep } from "node:path";
 import { createInterface } from "node:readline";
 import { productPath } from "../flow/sessions.ts";
 import { transcriptFiles } from "../../lib/transcripts.ts";
-import { costOf, priceOf, promptTokens, tokens, type KindCost, type Usage } from "../../setup/models/prices.ts";
+import { priceFor } from "../../setup/models/models.ts";
+import { costOf, promptTokens, tokens, type KindCost, type Usage } from "../../setup/models/prices.ts";
 
 const CACHE_HOUR_MS = 60 * 60 * 1000;
 const COLD_MIN_WRITE = 50_000;
@@ -164,7 +165,7 @@ function chargeCold(tally: Tally, state: SessionState, reply: OpenReply): void {
   const idle = state.lastAt !== null && reply.at.getTime() - state.lastAt.getTime() > CACHE_HOUR_MS;
   // The system prefix stays warm across sessions, so a cold reload still reads some: it writes more than it reads.
   if (state.context.subagent || !idle || written < COLD_MIN_WRITE || tokens(reply.usage.cache_read_input_tokens) >= written) return;
-  const rate = priceOf(reply.model, promptTokens(reply.usage));
+  const rate = priceFor(reply.model, promptTokens(reply.usage));
   if (!rate) return;
   tally.coldCount += 1;
   tally.coldExtraUsd += (written * (rate.write1h - rate.cacheRead)) / PER_MILLION;
@@ -196,7 +197,7 @@ function closeReply(tally: Tally, state: SessionState): void {
   chargeCold(tally, state, reply);
   state.lastAt = reply.at;
 
-  const cost = costOf(reply.usage, reply.model);
+  const cost = costOf(reply.usage, priceFor(reply.model, promptTokens(reply.usage)));
   if (!cost && !reply.model.startsWith("<")) tally.unpriced.add(reply.model);
   const usd = cost ? sumKinds(cost) : 0;
   if (cost) {

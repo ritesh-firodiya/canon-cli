@@ -1,6 +1,6 @@
 // Pure helpers for the band: no `$`, so the tests call them directly.
 
-import { priceOf } from '../../cli/src/setup/models/prices'
+import { priceOf, type Price } from '../../cli/src/setup/models/prices'
 import type { BandFacts, CacheFacts, Info, Level, Panel, ReplySize, Tests, UsageWindow } from './types'
 
 export const TTL_MS = 60 * 60 * 1000
@@ -70,11 +70,17 @@ export type CacheView =
   | { mode: 'warm'; minutesLeft: number; extendUsd: number | null }
   | { mode: 'cold'; nextUsd: number | null }
 
+type Prices = Record<string, Price>
+
+/** The machine's price from `canon band` (config, or what a family name runs there), else the public list price. */
+// shortcut: `canon band` prices at a short prompt, so a long Haiku 5.5 prompt there misses its higher rate; pass the prompt size if Haiku runs long chats.
+const rateOf = (model: string, tokens: number, prices?: Prices): Price | null => prices?.[model] ?? priceOf(model, tokens)
+
 /** Warm for an hour after the last request. Null before there is anything cached. */
-export function cacheView(cache: CacheFacts | null, now: number): CacheView | null {
+export function cacheView(cache: CacheFacts | null, now: number, prices?: Prices): CacheView | null {
   if (!cache || cache.lastAt <= 0 || cache.tokens <= 0) return null
   const idle = Math.max(0, now - cache.lastAt)
-  const price = cache.model ? priceOf(cache.model, cache.tokens) : null
+  const price = cache.model ? rateOf(cache.model, cache.tokens, prices) : null
   if (idle >= TTL_MS) return { mode: 'cold', nextUsd: price ? (cache.tokens * price.write1h) / PER_MILLION : null }
   return { mode: 'warm', minutesLeft: Math.ceil((TTL_MS - idle) / 60000), extendUsd: price ? (cache.tokens * price.cacheRead) / PER_MILLION : null }
 }
@@ -171,15 +177,15 @@ export function movedTo(command: string, cwd: string): string | null {
 export const isInside = (path: string, product: string | null | undefined): boolean => Boolean(product) && `${path}/`.includes(`/${product}/`)
 
 /** What moving a live chat to another model costs: all of it is written to the cache again. */
-export function reloadUsd(cache: CacheFacts | null): number | null {
-  const price = cache?.model ? priceOf(cache.model, cache.tokens) : null
+export function reloadUsd(cache: CacheFacts | null, prices?: Prices): number | null {
+  const price = cache?.model ? rateOf(cache.model, cache.tokens, prices) : null
   return cache && price && cache.tokens > 0 ? (cache.tokens * price.write1h) / PER_MILLION : null
 }
 
-/** What a small model call cost, at list price. */
-export function callUsd(model: string, inputTokens: number, outputTokens: number): number {
-  const price = priceOf(model, inputTokens)
-  return price ? (inputTokens * price.input + outputTokens * price.output) / PER_MILLION : 0
+/** What a small model call cost; null when nobody knows the model's price, never $0. */
+export function callUsd(model: string, inputTokens: number, outputTokens: number, prices?: Prices): number | null {
+  const price = rateOf(model, inputTokens, prices)
+  return price ? (inputTokens * price.input + outputTokens * price.output) / PER_MILLION : null
 }
 
 /** A link to a record's page, for the terminal or surface to open. */

@@ -3,7 +3,7 @@ id: FEAT-0012
 type: feature
 status: shipped
 priority: p2
-last-verified: 2026-11-03
+last-verified: 2026-11-06
 release: 4.0.0
 surfaces: []
 plan: PLAN-0002
@@ -11,7 +11,7 @@ plan: PLAN-0002
 # Models and prices from the machine
 
 ## Summary
-`canon models` finds the models this machine can run and their prices, sorts each into small, medium or large, and writes `~/.canon/models.json`. `canon init` and `canon update` run it. Routing, the band and `canon learn --cost` read that file instead of names and prices written in the code.
+`canon models` finds the models this machine can run and their prices, sorts each into small, medium or large, and writes `~/.canon/models.json`. `canon init` and `canon update` run it. The band and `canon learn --cost` price each model from the same scan, done fresh each time: a price from config wins, then the public list price of the model it runs, else `?`. A family name (`opus`) is priced as the model recent sessions ran in that family. Routing still picks `haiku`, `sonnet` and `opus` by name (PLAN-0002 step 2).
 
 ## Motivation
 A company may run Claude through Bedrock, Vertex, a gateway or its own model ids. Today routing sends it to `haiku`, `sonnet` and `opus` by name and prices calls it cannot price at $0.
@@ -24,9 +24,11 @@ A company may run Claude through Bedrock, Vertex, a gateway or its own model ids
 - Given `~/.canon/models.config.json` with `models: { id: size }` or `prices: { id: price }`, then those win over everything else.
 - Given a model with no price from config or the shipped list prices, then its price is null and is shown as `?`, never $0.
 - Given a model with no size, then it is listed but never routed to.
+- Given recent sessions ran `us.anthropic.claude-opus-…`, then that id is listed, and `opus` is priced as it.
+- Given a model id wrapped by Bedrock or Vertex, then the band and `canon learn --cost` price it as the model it wraps.
 
 ## Out of scope
-- Routing, the band and `canon learn --cost` reading the file: PLAN-0002 steps 2 and 3.
+- Routing by the scanned list instead of family names: PLAN-0002 step 2, after T010 decides whether routing stays.
 - Fetching prices from the web: there is no price API.
 
 ## Open questions

@@ -17,3 +17,6 @@ Re-evaluate open ideas, problems and tasks; close what is done, cut what has no 
   - Term: BUG-0001 wontfix
   - Term: IDEA-0001 dropped
   - Term: T002 dropped; T011 added for 2026-11-18
+
+## Correction
+2026-11-06: the term on PLAN-0002 was wrong. Steps 2, 3 and 4 were all open, not only step 4. Step 3 is now built; see PLAN-0002.

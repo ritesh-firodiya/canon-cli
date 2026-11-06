@@ -6,6 +6,8 @@ import { runChecks } from "../../enforce/checks/check.ts";
 import type { Config, Feature } from "../../config/schema.ts";
 import { loadConfig } from "../../config/load.ts";
 import { readUserFeatures } from "../../setup/features/features.ts";
+import { machinePrices } from "../../setup/models/models.ts";
+import type { Price } from "../../setup/models/prices.ts";
 import { queueOf } from "../../work/records/queue.ts";
 import { allRecords, type WorkRecord } from "../../work/records/records.ts";
 import { DEFAULT_CAP_USD } from "../../work/run/run.ts";
@@ -33,9 +35,11 @@ export interface BandFacts {
   errors: { file?: string; message: string }[];
   warnings: { file?: string; message: string }[];
   features: Feature[];
+  /** What each model costs on this machine, so the band never prices from a list it cannot see. */
+  prices: Record<string, Price>;
 }
 
-const NOTHING: Omit<BandFacts, "product"> = { root: null, stage: null, stages: [], waiting: null, running: null, problem: null, errors: [], warnings: [], features: [] };
+const NOTHING: Omit<BandFacts, "product" | "prices"> = { root: null, stage: null, stages: [], waiting: null, running: null, problem: null, errors: [], warnings: [], features: [] };
 
 const titleOf = (body: string, id: string): string => /^# (.+)$/m.exec(body)?.[1]?.trim() ?? id;
 
@@ -64,7 +68,9 @@ function markStages(config: Config, record: WorkRecord | undefined, here: StageM
 }
 
 /** Everything the band above the prompt shows about the work. It only reads, and approves nothing. */
-export function buildBand(start: string, options: { canonRoot: string }): BandFacts {
+export const buildBand = (start: string, options: { canonRoot: string }): BandFacts => ({ ...workFacts(start, options), prices: machinePrices() });
+
+function workFacts(start: string, options: { canonRoot: string }): Omit<BandFacts, "prices"> {
   const repo = productRoot(start);
   const onMachine = readUserFeatures();
   if (!repo) return { product: null, ...NOTHING, features: onMachine };

@@ -25,11 +25,13 @@ export type BandFacts = {
   errors: Finding[]
   warnings: Finding[]
   features?: string[]
+  /** USD per million tokens for the models this machine runs, by id. */
+  prices?: Record<string, { input: number; output: number; write5m: number; write1h: number; cacheRead: number }>
 }
 
 export type CacheFacts = { lastAt: number; tokens: number; model: string | null }
 
-export type Route = { size: Size | null; decideUsd: number; isFailed: boolean }
+export type Route = { size: Size | null; decideUsd: number | null; isFailed: boolean }
 
 export type Applied = { model: string; effort?: string }
 

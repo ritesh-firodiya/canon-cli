@@ -2,13 +2,27 @@ import { describe, expect, test } from "vitest";
 import { gatherModels } from "../src/setup/models/models.ts";
 import { priceOf } from "../src/setup/models/prices.ts";
 
-const NONE = { settings: [], env: {}, apiIds: [], config: {} };
+const NONE = { settings: [], env: {}, apiIds: [], usedIds: [], config: {} };
 
 describe("the models this machine can run", () => {
   test("with nothing set, the list is the family names Claude Code resolves", () => {
     const models = gatherModels(NONE);
     expect(models.map((m) => [m.id, m.size])).toEqual([["haiku", "small"], ["sonnet", "medium"], ["opus", "large"]]);
-    expect(models[0]?.price).toEqual(priceOf("claude-haiku-5-5", 0));
+    expect(models.map((m) => m.price)).toEqual([null, null, null]);
+  });
+
+  test("a family name is priced as the model recent sessions ran in it, which the list also shows", () => {
+    const models = gatherModels({ ...NONE, usedIds: ["us.anthropic.claude-opus-4-5-20251101-v1:0", "claude-haiku-4-5"] });
+    expect(models.map((m) => [m.id, m.source])).toEqual([
+      ["us.anthropic.claude-opus-4-5-20251101-v1:0", "used"],
+      ["claude-haiku-4-5", "used"],
+      ["haiku", "claude code default"],
+      ["sonnet", "claude code default"],
+      ["opus", "claude code default"],
+    ]);
+    expect(models.find((m) => m.id === "opus")?.price).toEqual(priceOf("claude-opus-4-5", 0));
+    expect(models.find((m) => m.id === "haiku")?.price).toEqual(priceOf("claude-haiku-4-5", 0));
+    expect(models.find((m) => m.id === "sonnet")?.price).toBeNull();
   });
 
   test("a company's own ids come from settings and env, the default slots give their size, and availableModels is the whole list", () => {
@@ -42,9 +56,9 @@ describe("the models this machine can run", () => {
   });
 
   test("a family with a larger window is priced as the family, and only availableModels limits the list", () => {
-    const models = gatherModels({ ...NONE, settings: [{ model: "opus[1m]" }] });
-    expect(models.map((m) => m.id)).toEqual(["opus[1m]", "haiku", "sonnet", "opus"]);
-    expect(models[0]?.price).toEqual(priceOf("opus", 0));
+    const models = gatherModels({ ...NONE, settings: [{ model: "opus[1m]" }], usedIds: ["claude-opus-5-5"] });
+    expect(models.map((m) => m.id)).toEqual(["opus[1m]", "claude-opus-5-5", "haiku", "sonnet", "opus"]);
+    expect(models[0]?.price).toEqual(priceOf("claude-opus-5-5", 0));
   });
 
   test("a config entry that is not a size or a full price is refused", () => {

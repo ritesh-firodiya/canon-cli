@@ -2,7 +2,7 @@
 id: PLAN-0002
 status: building
 priority: p2
-last-verified: 2026-11-04
+last-verified: 2026-11-06
 ---
 # Models and prices from the machine, not the code
 
@@ -19,10 +19,20 @@ Routing and the band name only `haiku`, `sonnet` and `opus` and price them from 
 ## Steps
 1. A feature: `canon models` builds and prints `models.json`; `init` and `update` run it.
 2. Routing picks from `models.json` by size, and moves up only to a model on the list.
-3. The band and `canon learn --cost` price from `models.json`; unknown shows `?`.
-4. Remove the hardcoded tiers, the alias map in `prices.ts` and the built-in price table, keeping public list prices as the shipped default the config overrides.
+3. Done 2026-11-06. The band and `canon learn --cost` price from a fresh scan of the machine (config, then the list price of the model each id runs, else `?`). Family names resolve through the models recent sessions ran; the alias map is gone.
+4. Remove the hardcoded tiers, keeping public list prices as the shipped default the config overrides. Waits for T010, with step 2.
 
 ## Rejected
 - Keep the hardcoded table: wrong for every company with its own models.
 - Fetch prices from a web page: no public price API; scraping breaks without warning.
 - Jev or Laya as the classifier: see PLAN-0001.
+
+## Verdict
+- 2026-11-06 · do-it-differently · overridden · C-01, C-09, C-02, C-05, C-04, C-10 · Finish PLAN-0002 step 4 and mark it done
+  - Reason: I do use canon on my work laptop they do have Claude through bedrock and curosr, codex and other models as well
+  - Term: Band and canon learn --cost price from scanned models; no price shows ?, never $0
+  - Term: Test with a Bedrock-style id
+  - Term: Fix FEAT-0012 summary; correction line on IDEA-0008
+  - Term: Routing (step 2) and tier removal (step 4) wait for T010; PLAN-0002 stays open
+  - Term: Cursor, Codex and other non-Claude tools out of scope
+  - Term: Always scan models, no hardcoded model list; prices: config, then public list price, else ?

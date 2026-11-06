@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **Models and prices come from a scan of the machine, not a list in the code.** The band and `canon learn --cost` price each model fresh: a price in `~/.canon/models.config.json` wins, then the public list price of the model an id runs, else `?`. `haiku`, `sonnet` and `opus` are priced as the model recent sessions ran in that family; the alias map is gone. `canon models` also lists the models recent sessions ran.
+
+### Fixed
+
+- Bedrock and Vertex ids (`us.anthropic.claude-…`, `claude-…@date`) get a price in the band and in `canon learn --cost`.
+- A model with no known price shows its cost as unknown in the band, never $0.
+
 ## 6.3.0 — 2026-11-06
 
 ### Added

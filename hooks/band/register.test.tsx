@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { afterEditText, fileLink, hitPath, isHeldForWeigh, keywordsOf, rankHits, isGatedPage, isInside, isWeighSkill, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, contextView, cut, extendLabel, infoLine, isNarrow, isTestCommand, nextSize, panelLines, replyRule, windowViews } from './facts'
+import { afterEditText, fileLink, hitPath, isHeldForWeigh, keywordsOf, rankHits, isGatedPage, isInside, isWeighSkill, movedTo, afterEdit, afterTestRun, cacheView, canExtend, coldLabel, contextView, cut, extendLabel, infoLine, isNarrow, isTestCommand, nextSize, panelLines, replyRule, windowViews, callUsd, reloadUsd } from './facts'
 import { classifierPrompt, isRoutable, parseSize, pick, routeLabel, routeMode, tierOf } from './routing'
 import type { BandFacts } from './types'
 
@@ -52,6 +52,14 @@ test('with nothing cached, or an unknown model, nothing false is shown', () => {
   expect(cacheView({ lastAt: 1, tokens: 5, model: 'new-model' }, 2)).toEqual({ mode: 'warm', minutesLeft: 60, extendUsd: null })
   expect(extendLabel(5, null)).toBe('↻ 5m')
   expect(extendLabel(5, 0.001)).toBe('↻ 5m +<$0.01')
+})
+
+test('a model with no known price costs ?, never $0, and the machine price wins over the list', () => {
+  expect(callUsd('acme-small-1', 1000, 10)).toBeNull()
+  expect(callUsd('us.anthropic.claude-haiku-4-5-20251001-v1:0', 1_000_000, 0)).toBe(1)
+  const own = { input: 7, output: 0, write5m: 0, write1h: 3, cacheRead: 0 }
+  expect(callUsd('acme-small-1', 1_000_000, 0, { 'acme-small-1': own })).toBe(7)
+  expect(reloadUsd({ lastAt: 1, tokens: 1_000_000, model: 'acme-small-1' }, { 'acme-small-1': own })).toBe(3)
 })
 
 test('extend shows only on a warm cache with no reply running', () => {

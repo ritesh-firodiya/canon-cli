@@ -54,19 +54,21 @@ export const tokens = (value: unknown): number => (typeof value === "number" && 
 
 export const promptTokens = (usage: Usage): number => tokens(usage.input_tokens) + tokens(usage.cache_creation_input_tokens) + tokens(usage.cache_read_input_tokens);
 
-/** A model's list price, or null when this table does not know it. A dated id finds its model. */
-// What a bare family name runs today, as Claude Code resolves it without an API key. Move with the newest rows above.
-const ALIASES: Record<string, string> = { haiku: "claude-haiku-5-5", sonnet: "claude-sonnet-5-5", opus: "claude-opus-5-5" };
+// `opus[1m]` is opus with a larger window, and a Bedrock or Vertex id wraps the model's own (`us.anthropic.claude-…`, `claude-…@date`).
+export function listId(id: string): string {
+  const bare = id.replace(/\[[^\]]*\]$/, "");
+  return bare.includes("claude-") ? bare.slice(bare.indexOf("claude-")) : bare;
+}
 
-export function priceOf(alias: string, prompt: number): Price | null {
-  const model = ALIASES[alias] ?? alias;
+/** A model's public list price, or null when this table does not know it. A dated or wrapped id finds its model. */
+export function priceOf(id: string, prompt: number): Price | null {
+  const model = listId(id);
   const found = PRICES.find(([prefix]) => model.startsWith(prefix))?.[1] ?? null;
   return found && model.startsWith("claude-haiku-5-5") && prompt > HAIKU_LARGE_PROMPT ? HAIKU_LARGE : found;
 }
 
-/** What one reply costs at list price, by kind of token. */
-export function costOf(usage: Usage, model: string): KindCost | null {
-  const rate = priceOf(model, promptTokens(usage));
+/** What one reply costs at a given price, by kind of token. */
+export function costOf(usage: Usage, rate: Price | null): KindCost | null {
   if (!rate) return null;
   const written = tokens(usage.cache_creation_input_tokens);
   const short = tokens(usage.cache_creation?.ephemeral_5m_input_tokens);

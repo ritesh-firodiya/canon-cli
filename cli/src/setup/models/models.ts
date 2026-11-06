@@ -1,7 +1,8 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { closeSync, mkdirSync, openSync, readFileSync, readSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
-import { priceOf, type Price } from "./prices.ts";
+import { transcriptFiles } from "../../lib/transcripts.ts";
+import { listId, priceOf, type Price } from "./prices.ts";
 
 export type Size = "small" | "medium" | "large";
 const SIZES: readonly Size[] = ["small", "medium", "large"];
@@ -28,6 +29,8 @@ export interface ModelsInput {
   env: Record<string, string | undefined>;
   /** Ids `/v1/models` returned, when there is an API key. */
   apiIds: string[];
+  /** Ids recent sessions ran on, newest first: what the family names resolve to on this machine. */
+  usedIds: string[];
   config: ModelsConfig;
 }
 
@@ -55,16 +58,21 @@ function checkPrice(id: string, value: unknown): Price {
 
 const strings = (value: unknown): string[] => (Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item !== "") : typeof value === "string" && value ? [value] : []);
 
-// `opus[1m]` is opus with a larger window, and a Bedrock id wraps the model's own (`us.anthropic.claude-…`).
-function listId(id: string): string {
-  const bare = id.replace(/\[[^\]]*\]$/, "");
-  return bare.includes("claude-") ? bare.slice(bare.indexOf("claude-")) : bare;
+/** A bare family name (`opus`, `opus[1m]`) runs whatever this machine last ran in that family; no table says which. */
+function resolved(id: string, usedIds: string[]): string {
+  const family = FAMILIES.find(([name]) => listId(id) === name)?.[0];
+  return family ? (usedIds.find((used) => used.includes(`-${family}-`)) ?? id) : id;
 }
+
+const configPrices = (config: ModelsConfig): Record<string, Price> => Object.fromEntries(Object.entries(config.prices ?? {}).map(([id, price]) => [id, checkPrice(id, price)]));
+
+/** A model's price: the config's, else the public list price of what it runs, else null. */
+export const priceIn = (input: ModelsInput, id: string, prompt: number): Price | null => configPrices(input.config)[id] ?? priceOf(resolved(id, input.usedIds), prompt);
 
 /** Every model this machine can run, sized and priced. Pure, so the tests hand it what a machine would hold. */
 export function gatherModels(input: ModelsInput): ModelEntry[] {
   const configSizes = Object.fromEntries(Object.entries(input.config.models ?? {}).map(([id, size]) => [id, checkSize(id, size)]));
-  const configPrices = Object.fromEntries(Object.entries(input.config.prices ?? {}).map(([id, price]) => [id, checkPrice(id, price)]));
+  configPrices(input.config); // a bad price fails here, even for a model nobody lists
   const found: { id: string; slot: Size | null; source: string }[] = [];
   const add = (id: string, slot: Size | null, source: string) => {
     const known = found.find((entry) => entry.id === id);
@@ -77,6 +85,7 @@ export function gatherModels(input: ModelsInput): ModelEntry[] {
   }
   for (const [name, slot] of ENV_SLOTS) for (const id of strings(input.env[name])) add(id, slot, `env ${name}`);
   for (const id of input.apiIds) add(id, null, "api");
+  for (const id of input.usedIds) add(id, null, "used");
   for (const id of Object.keys(configSizes)) add(id, null, "config");
   // A Claude Code login can always run the families, unless `availableModels` limits the list.
   const isLimited = input.settings.some((settings) => strings(settings.availableModels).length > 0);
@@ -85,7 +94,7 @@ export function gatherModels(input: ModelsInput): ModelEntry[] {
   return found.map(({ id, slot, source }) => ({
     id,
     size: configSizes[id] ?? slot ?? FAMILIES.find(([family]) => id.toLowerCase().includes(family))?.[1] ?? null,
-    price: configPrices[id] ?? priceOf(listId(id), 0),
+    price: priceIn(input, id, 0),
     source,
   }));
 }
@@ -115,6 +124,53 @@ function readJson(file: string): Record<string, unknown> | null {
   }
 }
 
+const RECENT_SESSIONS = 20;
+// The band asks on every refresh and a long chat is many MB; its last replies name the model it runs.
+const TAIL_BYTES = 256 * 1024;
+const MODEL_FIELD = /"model":"([^"<][^"]*)"/g;
+
+function tail(file: string, size: number): string {
+  const length = Math.min(size, TAIL_BYTES);
+  const buffer = Buffer.alloc(length);
+  const fd = openSync(file, "r");
+  try {
+    readSync(fd, buffer, 0, length, size - length);
+  } finally {
+    closeSync(fd);
+  }
+  return buffer.toString("utf8");
+}
+
+/** The model ids the newest sessions ran on, newest first. */
+export function usedModelIds(files: string[] = transcriptFiles()): string[] {
+  const newest = files
+    .map((file) => ({ file, stat: statSync(file) }))
+    .sort((a, b) => b.stat.mtimeMs - a.stat.mtimeMs)
+    .slice(0, RECENT_SESSIONS);
+  const ids = newest.flatMap(({ file, stat }) => [...tail(file, stat.size).matchAll(MODEL_FIELD)].map((match) => match[1] as string));
+  return [...new Set(ids)];
+}
+
+let scanned: ModelsInput | null = null;
+
+/** What this machine runs now: settings, environment, config and recent sessions. Scanned once per process; no list in the code. */
+export function machineModels(): ModelsInput {
+  scanned ??= {
+    settings: SETTINGS_FILES().map(readJson).filter((value): value is Record<string, unknown> => value !== null),
+    env: process.env,
+    apiIds: [],
+    usedIds: usedModelIds(),
+    config: (readJson(configFile()) ?? {}) as ModelsConfig,
+  };
+  return scanned;
+}
+
+/** Every priced model on this machine, by id, for the band. */
+export const machinePrices = (): Record<string, Price> => Object.fromEntries(gatherModels(machineModels()).flatMap((m) => (m.price ? [[m.id, m.price]] : [])));
+
+/** A model's price on this machine, for `canon learn --cost`. */
+export const priceFor = (id: string, prompt: number): Price | null => priceIn(machineModels(), id, prompt);
+
 const MODELS_URL = "https://api.anthropic.com/v1/models?limit=1000";
 const API_VERSION = "2023-06-01";
 const LOOKUP_TIMEOUT_MS = 5000;
@@ -140,9 +196,8 @@ export interface ModelsFile {
 
 /** Finds the machine's models and writes `~/.canon/models.json`. */
 export async function writeModels(fetcher?: typeof fetch): Promise<ModelsFile> {
-  const settings = SETTINGS_FILES().map(readJson).filter((value): value is Record<string, unknown> => value !== null);
   const api = await apiModelIds(process.env.ANTHROPIC_API_KEY, fetcher);
-  const models = gatherModels({ settings, env: process.env, apiIds: api.ids, config: (readJson(configFile()) ?? {}) as ModelsConfig });
+  const models = gatherModels({ ...machineModels(), apiIds: api.ids });
   const result: ModelsFile = { at: new Date().toISOString(), models, warnings: api.error ? [api.error] : [] };
   mkdirSync(dirname(modelsFile()), { recursive: true });
   writeFileSync(modelsFile(), `${JSON.stringify(result, null, 2)}\n`);

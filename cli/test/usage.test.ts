@@ -34,12 +34,12 @@ describe("prices", () => {
   });
 
   test("one-hour and five-minute cache writes have their own prices", () => {
-    const cost = costOf({ input_tokens: 1_000_000, output_tokens: 1_000_000, cache_read_input_tokens: 1_000_000, cache_creation_input_tokens: 2_000_000, cache_creation: { ephemeral_1h_input_tokens: 1_000_000, ephemeral_5m_input_tokens: 1_000_000 } }, "claude-opus-5-5");
+    const cost = costOf({ input_tokens: 1_000_000, output_tokens: 1_000_000, cache_read_input_tokens: 1_000_000, cache_creation_input_tokens: 2_000_000, cache_creation: { ephemeral_1h_input_tokens: 1_000_000, ephemeral_5m_input_tokens: 1_000_000 } }, priceOf("claude-opus-5-5", 0));
     expect(cost).toEqual({ input: 4, output: 20, cacheRead: 0.2, cacheWrite: 13 });
   });
 
   test("a write with no split is priced as the longer one, what a plan's main session uses", () => {
-    expect(costOf({ cache_creation_input_tokens: 1_000_000 }, "claude-opus-5-5")?.cacheWrite).toBe(8);
+    expect(costOf({ cache_creation_input_tokens: 1_000_000 }, priceOf("claude-opus-5-5", 0))?.cacheWrite).toBe(8);
   });
 });
 
@@ -182,9 +182,10 @@ describe("canon usage", () => {
   });
 });
 
-test("a bare family name is priced as the model it runs today", () => {
-  expect(priceOf("haiku", 10)).toEqual(priceOf("claude-haiku-5-5", 10));
-  expect(priceOf("opus", 10)).toEqual(priceOf("claude-opus-5-5", 10));
+test("a wrapped id is priced as its model, and a bare family name by no table", () => {
+  expect(priceOf("us.anthropic.claude-sonnet-4-5-20250929-v1:0", 10)).toEqual(priceOf("claude-sonnet-4-5", 10));
+  expect(priceOf("claude-opus-4-5@20251101", 10)).toEqual(priceOf("claude-opus-4-5", 10));
+  expect(priceOf("haiku", 10)).toBeNull();
   expect(priceOf("unknown", 10)).toBeNull();
 });
 

@@ -180,7 +180,7 @@ async function decide($: EngineInterface, text: string): Promise<void> {
     .complete({ model, system: CLASSIFIER_SYSTEM, prompt: classifierPrompt(text), maxTokens: CLASSIFIER_MAX_TOKENS, timeoutMs: CLASSIFIER_TIMEOUT_MS })
     .catch(() => undefined)
   const size = answer?.isAnswered ? parseSize(answer.text) : null
-  const entry: Route = { size, isFailed: size === null, decideUsd: answer ? callUsd(model, answer.usage.input_tokens, answer.usage.output_tokens) : 0 }
+  const entry: Route = { size, isFailed: size === null, decideUsd: answer ? callUsd(model, answer.usage.input_tokens, answer.usage.output_tokens, (await read($, facts))?.prices) : 0 }
   await update($, route, () => entry)
   await logRoute($, entry).catch(() => undefined)
 }
@@ -376,7 +376,7 @@ export const register: Register = on => {
     const now = await $.clock.now()
     const open = await read($, panel)
     const extending = await read($, isExtending)
-    const view = cacheView(await read($, cache), now)
+    const view = cacheView(await read($, cache), now, f?.prices)
     const usage = windowViews(await read($, windows), now)
     const testState = await read($, tests)
     const sessionUsd = await read($, taskUsd)
@@ -418,11 +418,11 @@ export const register: Register = on => {
         ))}
       </Box>
     )
-    const reload = reloadUsd(cached)
+    const reload = reloadUsd(cached, f?.prices)
     const routePanel = open === 'route' ? (
       <Box key="route-panel" flexDirection="column">
         {lastRoute ? (
-          <Text>{lastRoute.isFailed ? 'Could not decide for this prompt. Used your normal settings.' : `This prompt: ${lastRoute.size} work. Decided by Haiku, ${usdLabel(lastRoute.decideUsd)}.`}</Text>
+          <Text>{lastRoute.isFailed ? 'Could not decide for this prompt. Used your normal settings.' : `This prompt: ${lastRoute.size} work. Decided by Haiku, ${lastRoute.decideUsd === null ? 'cost unknown' : usdLabel(lastRoute.decideUsd)}.`}</Text>
         ) : null}
         {choiceRow('Model ', 'model', TIERS as readonly Tier[], choice.model)}
         {reload === null ? null : <Text dimColor>Changing model mid-session reloads the chat: ~{money(reload)}. Changing effort keeps the cache.</Text>}
