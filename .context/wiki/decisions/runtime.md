@@ -5,7 +5,8 @@ last-verified: 2026-11-05
 
 **Choice:** canon needs only Node, git and qmd, and runs inside Claude Code. It
 ships rules, a gate and checks; Claude Code runs the agent. `canon run` starts work
-through Claude Code, not its own loop.
+through Claude Code, not its own loop. (Node only since 0.21.0, 2026-10-30, who: not
+recorded; Claude Code only: owner, 2026-11-04.)
 
 **Why:** a package installed from npm cannot depend on tools npm does not install
 (0.21.0 ported the last Python and Ruby code). Claude Code's plugins already cover

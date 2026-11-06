@@ -7,6 +7,7 @@ last-verified: 2026-10-30
 draws it as one page under Architecture in the shell's top bar: how the parts fit,
 what they cost, what grows the bill, what breaks and what is not known. Agents read
 the same file and `canon check` verifies it. Format: the `architecture-page` standard.
+(0.25.0, 2026-10-30; who: not recorded.)
 
 **Why:** diagrams of folders told nobody anything; the owner needs architecture and
 cost. Every figure carries a basis and a source, so a guess cannot pass for a fact.

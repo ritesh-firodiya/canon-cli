@@ -3,7 +3,7 @@ last-verified: 2026-11-02
 ---
 # Distribution
 
-**Choice:** two repos.
+**Choice:** two repos (since 0.15.0, 2026-10-27; who: not recorded).
 - `canon-cli`: public, MIT. The CLI, the Claude Code plugins, the standards, packs
   and the search server. Ships as `@freetesh/canon` on npm and installs as a plugin
   from this repo. Whatever runs on one machine from the repo belongs here.

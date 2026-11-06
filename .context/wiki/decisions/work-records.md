@@ -3,7 +3,7 @@ last-verified: 2026-11-02
 ---
 # Work records
 
-**Choice:** each kind of work has its own folder and ID:
+**Choice:** each kind of work has its own folder and ID (0.29.0, 2026-11-02; who: not recorded):
 
 | Folder | ID | Holds |
 |---|---|---|

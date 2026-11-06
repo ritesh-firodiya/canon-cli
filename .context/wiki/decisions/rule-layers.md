@@ -6,7 +6,7 @@ last-verified: 2026-11-02
 **Choice:** a repo builds on named files with `extends:`, furthest first:
 organization, product, team. Then its own `context.yaml`, then the uncommitted
 `context.local.yaml`. The closest wins, unless a higher layer put the key under
-`locked:`.
+`locked:` (shipped in 0.27.0, 2026-11-02; who: not recorded).
 - Single values replace.
 - Lists with IDs merge by ID.
 - A named pipeline replaces only that name.

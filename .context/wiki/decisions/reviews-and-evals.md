@@ -3,7 +3,7 @@ last-verified: 2026-11-04
 ---
 # Reviews and evals
 
-**Choice:**
+**Choice:** (owner approved PLAN-0005, 2026-11-04)
 - Design reviews use EGM (google/elephant-goldfish-model): fresh reviewers check a
   spec before code. canon does not build its own.
 - canon sticks to enforcing rules and knowledge in the repo: the knowledge gate,
