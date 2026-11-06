@@ -22,8 +22,9 @@ agents that check the real source before they change anything.
 
 ## What shipped
 - **Stages, fields and statuses are config.** A product reorders, adds, removes or
-  renames stages and record fields in `context.yaml`. Only `id` is required; a value
-  that is present must fit its type.
+  renames stages and record fields in `context.yaml`. Only `id` is required, except
+  that a stage of the repo's own also says `by: agent` or `by: person`; a value that
+  is present must fit its type.
 - **`canon set` and `canon done`** change a field or close a record, checked against
   the config.
 - **Named experiments** (`experiments/<name>.md`) start at any stage and replaced
@@ -43,6 +44,8 @@ config can change". The current stages are in
 - Given a page with only an `id`, then `canon check` passes and `canon queue` shows
   it as open.
 - Given two experiments with one name, then `canon check` fails.
+- Given a stage that is not one of canon's and has no `by:`, then the config does not
+  load, and the error names the pipeline and the stage. With `by: person` it loads.
 - Given `verify: [sentry]` and a source that says the problem is gone, then the stage
   does not run and the record says what was found.
 - Given a source that cannot be reached, then the run stops for a person, and

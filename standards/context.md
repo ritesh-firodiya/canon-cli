@@ -235,7 +235,8 @@ intake ─┬─ problem ──┐
 - **Start.** A record starts at `started-at:`, else the stage named for its kind, else
   the first stage. A trigger's problem starts at the first stage, so its signal is checked.
 - **Change it.** A repo reorders, adds, removes or renames stages under `pipelines:`.
-  An optional stage with `when:` is decided by the agent; with none it runs only when
+  A stage it adds says who does it, `by: agent` or `by: person`; one named like a
+  stage above brings its own. canon refuses a pipeline that leaves it out. An optional stage with `when:` is decided by the agent; with none it runs only when
   asked (`canon run <id> --with <stage>`). `canon pipeline` shows the result.
 - **Experiments** start anywhere: `canon new experiment checkout-retry --from design
   --to code`. Records made for one name it with `experiment:`.

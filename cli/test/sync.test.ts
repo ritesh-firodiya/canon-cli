@@ -47,7 +47,7 @@ describe("syncRepo", () => {
   });
 
   test("moving the version changes only that line", async () => {
-    const text = 'canon: 0.3.0\npipelines:\n  default:\n    - { id: a, prompt: "' + "long words ".repeat(12).trim() + '" }\n';
+    const text = 'canon: 0.3.0\npipelines:\n  default:\n    - { id: a, by: agent, prompt: "' + "long words ".repeat(12).trim() + '" }\n';
     const repo = makeTree({ ".context/context.yaml": text });
     const h = harness();
     await syncRepo(repo, { canonRoot: canonWith("0.4.0"), cacheDir: makeTree({}), run: h.run, fetchText: h.fetchText });

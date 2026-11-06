@@ -51,12 +51,12 @@ describe("rule layers", () => {
   });
 
   test("a stage naming a default id inherits what it does not set, and can change it", () => {
-    const { config } = loadConfig(makeTree({ ".context/context.yaml": "pipelines:\n  default:\n    - { id: plan, cap: 2 }\n    - { id: store-review, done: [x] }\n" }));
+    const { config } = loadConfig(makeTree({ ".context/context.yaml": "pipelines:\n  default:\n    - { id: plan, cap: 2 }\n    - { id: store-review, by: person, done: [x] }\n" }));
     const [plan, store] = config.pipelines.default;
     expect(plan).toMatchObject({ gate: true, by: "agent", cap: 2, done: [".context/plans"] });
     expect(plan.prompt).toMatch(/weigh/);
     expect(store).toMatchObject({ gate: false, done: ["x"] });
-    expect(store.by).toBeUndefined();
+    expect(store.by).toBe("person");
   });
 
   test("with no pipeline set, canon's default flow applies", () => {

@@ -134,12 +134,18 @@ function mergeMeanings(base: RecordKind["meanings"], extra: RecordKind["meanings
   return Object.fromEntries([...new Set([...Object.keys(base), ...Object.keys(extra)])].map((field) => [field, { ...base[field], ...extra[field] }]));
 }
 
-/** An entry naming a default stage inherits what it does not set, so one flow keeps one wording. Where it sits (`after`) is the repo's own. */
+/**
+ * An entry naming a default stage inherits what it does not set, so one flow keeps one wording. Where it sits (`after`)
+ * is the repo's own. A stage of the repo's own says who does it: one canon drops from its default would otherwise turn
+ * into a person's stage without anyone choosing that.
+ */
 function resolvePipelines(pipelines: Record<string, StageEntry[]>): Record<string, StageSpec[]> {
   const resolved = Object.entries(pipelines).map(([name, stages]) => {
     const specs = stages.map((stage): StageSpec => {
       const { after: _after, ...inherited } = DEFAULT_PIPELINE.find((entry) => entry.id === stage.id) ?? ({} as Partial<StageSpec>);
-      return { ...inherited, ...stage, done: stage.done ?? inherited.done ?? [], gate: stage.gate ?? inherited.gate ?? false };
+      const by = stage.by ?? inherited.by;
+      if (!by) throw new Error(`pipelines.${name}: stage "${stage.id}" is not a canon stage; say by: agent or by: person`);
+      return { ...inherited, ...stage, by, done: stage.done ?? inherited.done ?? [], gate: stage.gate ?? inherited.gate ?? false };
     });
     const problem = afterProblem(specs);
     if (problem) throw new Error(`pipelines.${name}: ${problem}`);

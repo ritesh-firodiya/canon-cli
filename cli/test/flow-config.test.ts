@@ -107,13 +107,22 @@ describe("forks", () => {
     expect(id).toBe("PROB-0001");
   });
 
+  test("a stage of the repo's own says who does it, so none turns into a person's stage unseen; a canon stage brings its own", () => {
+    const yaml = (stages: string) => ({ ".context/context.yaml": `pipelines:\n  default:\n${stages}` });
+    expect(() => loadConfig(makeTree(yaml("    - { id: problem }\n    - { id: store-review }\n")))).toThrow(/pipelines\.default: stage "store-review" is not a canon stage; say by: agent or by: person/);
+    // A stage canon dropped from its default is the repo's own from then on: it must say who does it.
+    expect(() => loadConfig(makeTree(yaml("    - { id: problem }\n    - { id: options }\n")))).toThrow(/stage "options" is not a canon stage/);
+    const stages = loadConfig(makeTree(yaml("    - { id: problem }\n    - { id: store-review, by: person }\n    - { id: release }\n"))).config.pipelines.default ?? [];
+    expect(stages.map((stage) => [stage.id, stage.by])).toEqual([["problem", "agent"], ["store-review", "person"], ["release", "person"]]);
+  });
+
   test("a repo writes its own forks; a fork that cannot work is refused when the config loads", () => {
     const yaml = (stages: string) => ({ ".context/context.yaml": `pipelines:\n  default:\n${stages}` });
     const repo = makeTree(yaml("    - { id: a, by: agent }\n    - { id: b, by: agent, optional: true, after: [a] }\n    - { id: c, by: agent, after: [a, b] }\n"));
     expect(stagesOf(repo, loadConfig(repo).config).map((stage) => stage.after)).toEqual([[], ["a"], ["a", "b"]]);
-    expect(() => loadConfig(makeTree(yaml("    - { id: a }\n    - { id: b, after: [x] }\n")))).toThrow(/comes after x, which is not in this pipeline/);
-    expect(() => loadConfig(makeTree(yaml("    - { id: a }\n    - { id: b, after: [b] }\n")))).toThrow(/cannot come after itself/);
-    expect(() => loadConfig(makeTree(yaml("    - { id: a }\n    - { id: b, after: [c] }\n    - { id: c, after: [b] }\n")))).toThrow(/no path from "a" reaches b, c/);
+    expect(() => loadConfig(makeTree(yaml("    - { id: a, by: agent }\n    - { id: b, by: agent, after: [x] }\n")))).toThrow(/comes after x, which is not in this pipeline/);
+    expect(() => loadConfig(makeTree(yaml("    - { id: a, by: agent }\n    - { id: b, by: agent, after: [b] }\n")))).toThrow(/cannot come after itself/);
+    expect(() => loadConfig(makeTree(yaml("    - { id: a, by: agent }\n    - { id: b, by: agent, after: [c] }\n    - { id: c, by: agent, after: [b] }\n")))).toThrow(/no path from "a" reaches b, c/);
   });
 
   test("a stage named for a default inherits its wording but not its place", () => {

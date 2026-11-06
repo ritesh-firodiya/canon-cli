@@ -1,5 +1,5 @@
 ---
-last-verified: 2026-11-03
+last-verified: 2026-11-07
 ---
 # Default pipeline
 
@@ -11,6 +11,7 @@ last-verified: 2026-11-03
 - `after: [ids]` names the stages a stage may follow, which makes forks. With no
   `after:` a stage follows the one above it, so a plain list stays a line.
 - A stage named like a default takes its wording, not its place.
+- A stage not named like a default says `by: agent` or `by: person`. A stage canon drops from the default becomes the repo's own, so it stops loading until someone says who does it, instead of turning into a person's stage unseen (2026-11-07).
 - Work starts at `started-at:`, else the stage named for its kind, else the first stage.
 - Every stage checks that what it was given is true before using it.
 - A discarded or retried outcome opens a new problem at intake.

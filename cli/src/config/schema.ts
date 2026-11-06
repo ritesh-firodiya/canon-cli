@@ -207,7 +207,7 @@ const stage = z
     done: z.array(z.string().min(1)).optional(),
     /** A person must approve this stage on the record (`canon approve <id> --record <id>`) before any later stage runs. */
     gate: z.boolean().optional(),
-    /** Who does the work; a person when absent. */
+    /** Who does the work. Required, except on a stage named like one of canon's, which brings its own. */
     by: z.enum(["person", "agent"]).optional(),
     /** A stage the run may skip. `when` says in words when it is needed. */
     optional: z.boolean().optional(),
@@ -347,7 +347,7 @@ export type WikiTypeSpec = z.infer<typeof wikiType>;
 export type ContextFolderSpec = z.infer<typeof contextFolder>;
 export type StageEntry = z.infer<typeof stage>;
 /** A stage as resolved: an entry naming a default stage's id inherits what it does not set. */
-export type StageSpec = StageEntry & { done: string[]; gate: boolean };
+export type StageSpec = StageEntry & { done: string[]; gate: boolean; by: "person" | "agent" };
 export type ConnectorSpec = z.infer<typeof connector>;
 export type TriggerSpec = z.infer<typeof trigger>;
 export type RecordEntry = z.infer<typeof recordEntry>;

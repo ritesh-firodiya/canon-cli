@@ -68,7 +68,7 @@ describe("refs", () => {
   });
 
   test("a pipeline stage's done paths in context.yaml name what will exist later", () => {
-    expect(run({ ".context/context.yaml": "pipelines:\n  default:\n    - { id: live, done: [.context/support] }\n" })).toEqual([]);
+    expect(run({ ".context/context.yaml": "pipelines:\n  default:\n    - { id: live, by: person, done: [.context/support] }\n" })).toEqual([]);
   });
 
   test("a local-only .context/ (listed in .gitignore) is checked from disk", () => {

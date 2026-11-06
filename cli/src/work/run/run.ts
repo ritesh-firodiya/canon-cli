@@ -296,7 +296,7 @@ function moveRecord(repo: string, config: Config, recordId: string, agent: Agent
           continue;
         }
       }
-      if ((stage.by ?? "person") === "person") {
+      if (stage.by === "person") {
         if (!isApproved(stage, record.data)) return stop("waiting", stage.id, `${stage.id} is for a person. When it is done: canon approve ${stage.id} --record ${recordId}`);
       } else {
         const capUsd = stage.cap ?? config.cap ?? DEFAULT_CAP_USD;

@@ -70,7 +70,7 @@ describe("canon flow", () => {
     mkdirSync(repo);
     git({}, "init", "-q");
     git({}, "remote", "add", "origin", "git@github.com:me/myapp.git");
-    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipelines:\n  default:\n    - { id: idea, done: [x] }\n    - { id: plan, done: [x] }\n    - { id: code, done: [x] }\n    - { id: review, done: [x] }\n    - { id: live, done: [x] }\n");
+    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipelines:\n  default:\n    - { id: idea, done: [x] }\n    - { id: plan, done: [x] }\n    - { id: code, done: [x] }\n    - { id: review, done: [x] }\n    - { id: live, by: person, done: [x] }\n");
     commit("2026-10-01T11:00:00Z", ".context/plans/stats.md");
     commit("2026-10-01T13:00:00Z", "src/stats.ts");
     commit("2026-10-02T09:00:00Z", ".context/ops/release.yml", "surfaces:\n  ios: { live: '1.0.0' }\n");
@@ -109,7 +109,7 @@ describe("canon flow", () => {
     mkdirSync(repo);
     git({}, "init", "-q");
     git({}, "remote", "add", "origin", "git@github.com:me/site.git");
-    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipelines:\n  default:\n    - { id: idea, done: [x] }\n    - { id: code, done: [x] }\n    - { id: live, done: [x] }\n");
+    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipelines:\n  default:\n    - { id: idea, done: [x] }\n    - { id: code, done: [x] }\n    - { id: live, by: person, done: [x] }\n");
     git(at("2026-10-01T10:00:00Z"), "tag", "v0.1.0");
     commit("2026-10-02T10:00:00Z", "src/page.ts");
     const deployed = git({}, "rev-parse", "HEAD").toString().trim();
@@ -139,7 +139,7 @@ describe("canon flow", () => {
     mkdirSync(repo);
     git({}, "init", "-q");
     git({}, "remote", "add", "origin", "git@github.com:me/myapp.git");
-    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipelines:\n  default:\n    - { id: idea, done: [x] }\n    - { id: campaign, done: [.context/campaigns] }\n");
+    commit("2026-10-01T10:00:00Z", ".context/context.yaml", "pipelines:\n  default:\n    - { id: idea, done: [x] }\n    - { id: campaign, by: agent, done: [.context/campaigns] }\n");
     commit("2026-10-01T11:00:00Z", ".context/campaigns/0001-launch.md");
     const projects = makeTree({
       "p/one.jsonl": [
