@@ -12,9 +12,17 @@ describe("context-layout", () => {
   });
 
   test("a missing required folder is an error", () => {
-    const { ".context/wiki/index.md": _, ...rest } = VALID_CONTEXT;
+    const { ".context/features/index.md": _, ...rest } = VALID_CONTEXT;
     const findings = contextLayout.run(contextFor(makeTree(rest)));
-    expect(findings).toEqual([expect.objectContaining({ level: "error", file: ".context/wiki" })]);
+    expect(findings).toEqual([expect.objectContaining({ level: "error", file: ".context/features" })]);
+  });
+
+  test("a missing start-minimum page is a warning that says what the page answers", () => {
+    const { ".context/wiki/concepts/glossary.md": _, ".context/ops/run.md": __, ...rest } = VALID_CONTEXT;
+    expect(contextLayout.run(contextFor(makeTree(rest)))).toEqual([
+      expect.objectContaining({ level: "warn", file: ".context/wiki/concepts/glossary.md", message: expect.stringMatching(/words/) }),
+      expect.objectContaining({ level: "warn", file: ".context/ops/run.md", message: expect.stringMatching(/run, test and release/) }),
+    ]);
   });
 
   test("designs/ is never required, even with the design module on", () => {

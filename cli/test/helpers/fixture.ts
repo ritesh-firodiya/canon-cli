@@ -22,6 +22,11 @@ export const VALID_CONTEXT = {
   ".context/tasks.md": "# Tasks\n",
   ".context/raw/.gitkeep": "",
   ".context/wiki/index.md": "# Index\n",
+  ".context/wiki/concepts/purpose.md": "# Purpose\n",
+  ".context/wiki/concepts/glossary.md": "# Glossary\n",
+  ".context/wiki/decisions/stack.md": "# Stack\n",
+  ".context/architecture/architecture.json": "{}\n",
+  ".context/ops/run.md": "# Run\n",
   ".context/features/index.md": "# Features\n",
   ".context/designs/mobile/routes.js": "window.ROUTES = {};\n",
 };

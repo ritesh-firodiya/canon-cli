@@ -10,6 +10,14 @@ export function requiredContext(modules: Module[], records: RecordKind[] = DEFAU
   const features = records.some((kind) => kind.folder === "features") ? ["features"] : [];
   return ["README.md", "tasks.md", ...(knowledge ? ["raw", "wiki", ...features] : [])];
 }
+/** The start minimum (the context standard): each page, and the question it answers. Only where the wiki is on. */
+const START_MINIMUM: [string, string][] = [
+  ["wiki/concepts/purpose.md", "what the product is, who it is for and what it is not"],
+  ["wiki/concepts/glossary.md", "the product's and the domain's words"],
+  ["wiki/decisions", "what was chosen and what was rejected"],
+  ["architecture/architecture.json", "how it is built and what it costs"],
+  ["ops/run.md", "how to run, test and release it"],
+];
 const ROOT_FILES = ["README.md", "tasks.md", basename(CONFIG_FILE), basename(LOCAL_CONFIG_FILE)];
 const LIVE_FOLDERS = ["marketing", "metrics", "support", "legal"];
 const ROOT_STRAYS = ["TODO.md", "STATUS.md", "SETUP.md"];
@@ -41,6 +49,11 @@ export const contextLayout: Check = {
     const findings = requiredContext(config.modules, config.records).filter((name) => !existsSync(join(context, name))).map((name) =>
       finding("error", `.context/${name}`, `required ${name} is missing`),
     );
+    if (requiredContext(config.modules, config.records).includes("wiki")) {
+      for (const [page, answers] of START_MINIMUM) {
+        if (!existsSync(join(context, page))) findings.push(finding("warn", `.context/${page}`, `start minimum: no page says ${answers}`));
+      }
+    }
     const allowed = [...CONTEXT_FOLDERS, ...config.records.map((kind) => kind.folder), ...config.context.folders.map((entry) => entry.folder)];
     for (const entry of readdirSync(context, { withFileTypes: true })) {
       if (entry.name === ".DS_Store") continue;
