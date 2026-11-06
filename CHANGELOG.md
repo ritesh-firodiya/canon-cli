@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **The canon plugin brings its own `canon`.** `bin/canon` is one bundled file, so a plugin update also updates the command, with no npm needed. Claude's shell finds it by name, and the band runs it from the plugin's folder. CI fails if `bin/canon` does not match the source.
+- **An org's own name for its main model is sized and priced automatically.** A settings `model` such as `acme.standard[1m]` is sized and priced as the newest Claude model its sessions name (the reply's `model` or Claude Code's `modelId`), shown as "list price of …". That is the public list price, not what the org pays. With no Claude model named, it stays `?`.
+
 ## 6.4.0 — 2026-11-06
 
 ### Changed

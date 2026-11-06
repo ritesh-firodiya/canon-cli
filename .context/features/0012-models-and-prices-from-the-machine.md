@@ -26,6 +26,7 @@ A company may run Claude through Bedrock, Vertex, a gateway or its own model ids
 - Given a model with no size, then it is listed but never routed to.
 - Given recent sessions ran `us.anthropic.claude-opus-…`, then that id is listed, and `opus` is priced as it.
 - Given a model id wrapped by Bedrock or Vertex, then the band and `canon learn --cost` price it as the model it wraps.
+- Given an org's own name as the settings `model` (`acme.standard[1m]`), then it is sized and priced as the newest Claude model its sessions name, labelled as list price; with none named, `?`.
 
 ## Out of scope
 - Routing by the scanned list instead of family names: PLAN-0002 step 2, after T010 decides whether routing stays.

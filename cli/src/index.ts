@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { resolve } from "node:path";
 import { Command } from "commander";
 import { registerAdd } from "./know/packs/add.command.ts";
 import { registerApprove } from "./work/pipeline/approve.command.ts";
@@ -21,9 +20,10 @@ import { registerModels } from "./setup/models/models.command.ts";
 import { registerBand } from "./serve/band/band.command.ts";
 import { registerFeatures } from "./setup/features/features.command.ts";
 import { canonVersion } from "./enforce/status/status.ts";
+import { CANON_ROOT } from "./lib/root.ts";
 
 const env: Env = {
-  canonRoot: resolve(import.meta.dirname, "..", ".."),
+  canonRoot: CANON_ROOT,
   workspace: process.env.CANON_WORKSPACE ?? findWorkspace(process.cwd()),
 };
 

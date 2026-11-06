@@ -63,6 +63,12 @@ const RED = '#ff7b72'
 const BLUE = '#8cc4ff'
 const GREEN = '#56d364'
 
+// The plugin's own canon, so a plugin update is enough; else the one on PATH.
+const canonBin = async ($: EngineInterface): Promise<string> => {
+  const root = await $.env.get('CLAUDE_PLUGIN_ROOT')
+  return root ? `${root}/bin/canon` : 'canon'
+}
+
 const facts = atom({ plugin: 'canon', key: 'facts' } as const, null as BandFacts | null)
 const workPath = atom({ plugin: 'canon', key: 'workPath' } as const, null as string | null)
 const isRouting = atom({ plugin: 'canon', key: 'isRouting' } as const, false)
@@ -120,7 +126,7 @@ async function setAwake($: EngineInterface, isOn: boolean): Promise<void> {
 
 async function refreshFacts($: EngineInterface): Promise<void> {
   const path = (await read($, workPath)) ?? (await $.session.cwd())
-  const run = await $.process.run(['canon', 'band', path]).catch(() => undefined)
+  const run = await $.process.run([await canonBin($), 'band', path]).catch(() => undefined)
   if (run?.exitCode !== 0) return void update($, facts, () => null)
   try {
     const parsed = JSON.parse(run.stdout) as BandFacts
@@ -213,7 +219,7 @@ async function gateRefusal($: EngineInterface, e: ToolCall): Promise<string | nu
   const before = e.tool === 'Edit' ? await $.fs.read(e.file_path).catch(() => null) : null
   const content = e.tool === 'Write' ? e.content : before === null ? null : afterEditText(before, e.old_string, e.new_string, Boolean(e.replace_all))
   if (content === null) return null
-  const run = await $.process.run(['canon', 'gate', e.file_path], { stdin: content, timeoutMs: GATE_TIMEOUT_MS }).catch(() => undefined)
+  const run = await $.process.run([await canonBin($), 'gate', e.file_path], { stdin: content, timeoutMs: GATE_TIMEOUT_MS }).catch(() => undefined)
   // No canon, or a canon without the gate: the write goes on, and `canon check` still judges it later.
   if (!run || run.exitCode !== 1 || !run.stdout.trim()) return null
   return `The knowledge gate refused this page. Fix it, or propose the change to the person instead of writing it:\n${run.stdout.trim()}`

@@ -22,3 +22,5 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm coverage
       - run: pnpm build && node cli/dist/index.js --version
+      - name: The plugin's bin/canon matches the source
+        run: pnpm bundle && git diff --exit-code bin/canon

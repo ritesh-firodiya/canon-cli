@@ -1,11 +1,12 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join } from "node:path";
 import { parse } from "yaml";
 import type { Config, RecordKind } from "../../config/schema.ts";
+import { CANON_ROOT } from "../../lib/root.ts";
 import { fieldProblem } from "./fields.ts";
 import { createRecord } from "./records.ts";
 
-const TEMPLATES = resolve(import.meta.dirname, "..", "..", "..", "..", "templates", "records");
+const TEMPLATES = join(CANON_ROOT, "templates", "records");
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 
 /** Documents that are not numbered records: named by topic, in the wiki, or by date in raw/. */

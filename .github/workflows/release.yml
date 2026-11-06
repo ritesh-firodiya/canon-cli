@@ -31,6 +31,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm test
+      - name: The plugin's bin/canon matches the source
+        run: pnpm bundle && git diff --exit-code bin/canon
 
       - name: Read version
         id: v
