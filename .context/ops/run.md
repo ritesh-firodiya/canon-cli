@@ -16,7 +16,7 @@ How to run, test and release canon-cli. Needs Node, pnpm, git and qmd ([runtime]
 
 ## Release
 
-Bump the version in `package.json` and `.claude-plugin/plugin.json`, then push `main`. `release.yml` publishes to npm, then creates the tag and the GitHub release itself.
+Bump the version in all five files that hold it: `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` (three entries) and `plugin.json` under each of `plugins/canon-process/` and `plugins/canon-knowledge/`. Rename `## Unreleased` in `CHANGELOG.md` to the version and date. Run `pnpm check`, then push `main`. `release.yml` publishes to npm, then creates the tag and the GitHub release itself.
 
 - Never push a tag by hand: the tag run races the main run and fails with npm E409, even when the main run published.
 - npm can take a few minutes to list a new version after "being processed".
