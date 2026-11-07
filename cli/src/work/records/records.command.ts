@@ -40,7 +40,7 @@ export function registerRecords(program: Command): void {
       const { config } = loadConfig(root);
       if (kind === "experiment") {
         if (!options.from) throw new Error("an experiment needs --from <stage>: the stage it starts at");
-        const { id, file } = startExperiment(root, config, title, { from: options.from, to: options.to, pipeline: options.pipeline });
+        const { id, file } = startExperiment(root, config, title, { from: options.from, to: options.to, pipeline: options.pipeline, fields: parsePairs(options.set) });
         return void console.log(`${id}: ${file}\nnext: canon run ${id}`);
       }
       const { id, file } = newPage(root, config, kind, title, parsePairs(options.set));

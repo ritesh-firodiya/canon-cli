@@ -239,6 +239,13 @@ describe("experiments", () => {
     expect(pipeline.run(contextFor(repo))).toEqual([]);
   });
 
+  test("an experiment keeps the fields it was started with, such as the problem and plan it carries out", () => {
+    const repo = makeTree({});
+    const { config } = loadConfig(repo);
+    const { id } = startExperiment(repo, config, "tester-outreach", { from: "research", to: "research", fields: { problem: "PROB-0005", plan: "PLAN-0002" } });
+    expect(findRecord(repo, config, id).data).toMatchObject({ problem: "PROB-0005", plan: "PLAN-0002", "started-at": "research", status: "running" });
+  });
+
   test("an experiment started at an optional stage runs it without asking", () => {
     const repo = makeTree({});
     const { config } = loadConfig(repo);
