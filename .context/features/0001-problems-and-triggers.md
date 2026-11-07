@@ -19,6 +19,7 @@ Work only starts today when someone opens a chat. Problems that arrive while the
 ## Acceptance scenarios
 - Given `canon new problem`, when a person fills it in, then one Problem doc lands in the repo with its source, priority, impact, cost and expected result.
 - Given a scheduled or polling trigger in config, when its condition is met, then a Problem opens and names the source.
+  - Built for schedule triggers (2026-11-07): `when` is `daily`, `weekly` or `weekly on <day>`, checked when config loads; `canon trigger` skips one that is not due. A connector trigger's free-text `when` ("a p0 error") is not read yet: filtering events by it needs a model to judge each one.
 - Given a second event matching an open Problem in the same repo, then it is added to that Problem and no new one opens.
 - Given a trigger past its spend cap, then it stops opening work and says so.
 - Given trigger text that contains instructions, then they are stored as data and never followed.

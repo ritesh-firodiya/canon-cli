@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CADENCE_FORMS, parseCadence } from "../work/run/schedule.ts";
 
 /** What a repo ships: an app to the stores, a site to the web, both, a package to a registry, or no code at all. */
 export const KINDS = ["mobile", "web", "mobile-and-web", "package", "content"] as const;
@@ -284,7 +285,11 @@ const trigger = z
     pipeline: kebab.optional(),
     priority: z.string().min(1).optional(),
   })
-  .strict();
+  .strict()
+  .refine((spec) => spec.source !== "schedule" || parseCadence(spec.when) !== null, {
+    message: `a schedule trigger's when is ${CADENCE_FORMS}`,
+    path: ["when"],
+  });
 
 const tool = z.object({ tool: z.string(), why: z.string(), hint: z.string() }).strict();
 

@@ -43,7 +43,7 @@ describe("pipeline check", () => {
   });
 
   test("a trigger must name a real source and pipeline", () => {
-    const yaml = (source: string, more = "") => `connectors:\n  - { id: sentry, via: cli }\ntriggers:\n  - { id: t, source: ${source}, when: x${more} }\n`;
+    const yaml = (source: string, more = "") => `connectors:\n  - { id: sentry, via: cli }\ntriggers:\n  - { id: t, source: ${source}, when: ${source === "schedule" ? "daily" : "x"}${more} }\n`;
     const check = (text: string) => pipeline.run(contextFor(makeTree({ ".context/context.yaml": text })));
     expect(check(yaml("sentry"))).toEqual([]);
     expect(check(yaml("schedule"))).toEqual([]);

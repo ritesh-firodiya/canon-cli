@@ -3,6 +3,8 @@ import { z } from "zod";
 import type { Config, ConnectorSpec, TriggerSpec } from "../../config/schema.ts";
 import { eventSchema, recordEvent, type TriggerEvent } from "../records/problems.ts";
 import { runRecord, type Agent } from "./run.ts";
+import { isDue, parseCadence } from "./schedule.ts";
+import { allRecords } from "../records/records.ts";
 
 const COMMAND_TIMEOUT_MS = 120_000;
 const eventsSchema = z.array(eventSchema);
@@ -41,6 +43,11 @@ export async function runTrigger(repo: string, config: Config, trigger: TriggerS
   const today = (options.now ?? new Date()).toISOString().slice(0, 10);
   const events = connector ? await (options.read ?? readEvents)(repo, connector) : [{ id: `${trigger.id}-${today}` }];
   const result: TriggerResult = { trigger: trigger.id, opened: [], joined: [], costUsd: 0, messages: [] };
+  const cadence = trigger.source === "schedule" ? parseCadence(trigger.when) : null;
+  if (cadence) {
+    const last = lastScheduled(repo, config, trigger.id);
+    if (!isDue(cadence, last, today)) return { ...result, messages: [`not due: ${trigger.when}, last opened ${last}`] };
+  }
   const created = events.map((event) => recordEvent(repo, config, trigger.source, event, { priority: trigger.priority, pipeline: trigger.pipeline, now: options.now }));
   for (const problem of created) (problem.isNew ? result.opened : result.joined).push(problem.id);
   if (!options.agent) return result;
@@ -54,4 +61,15 @@ export async function runTrigger(repo: string, config: Config, trigger: TriggerS
     result.messages.push(`${id}: ${run.message}`);
   }
   return result;
+}
+
+/** The date a schedule trigger last opened a problem, read from the `<trigger>-<YYYY-MM-DD>` ids it gives its events. */
+function lastScheduled(repo: string, config: Config, triggerId: string): string | undefined {
+  const prefix = `${triggerId}-`;
+  const dates = allRecords(repo, config).flatMap((record) =>
+    ((record.data.sources ?? []) as { source: string; id: string }[])
+      .filter((entry) => entry.source === "schedule" && entry.id.startsWith(prefix))
+      .map((entry) => entry.id.slice(prefix.length)),
+  );
+  return dates.sort().at(-1);
 }

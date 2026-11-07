@@ -392,7 +392,7 @@ pipelines:
 });
 
 describe("problems and triggers", () => {
-  const TRIGGERS = `connectors:\n  - { id: sentry, via: cli, target: "echo" }\ntriggers:\n  - { id: crash, source: sentry, when: p0, pipeline: hotfix, priority: p0, cap: 1 }\n  - { id: weekly, source: schedule, when: every week }\n${YAML}`;
+  const TRIGGERS = `connectors:\n  - { id: sentry, via: cli, target: "echo" }\ntriggers:\n  - { id: crash, source: sentry, when: p0, pipeline: hotfix, priority: p0, cap: 1 }\n  - { id: weekly, source: schedule, when: daily }\n${YAML}`;
 
   test("repeats join the open problem, keep only address and count, and never the text", () => {
     const { repo, config } = setup();
@@ -422,11 +422,37 @@ describe("problems and triggers", () => {
     expect(findRecord(repo, config, result.opened[0]).data).toMatchObject({ pipeline: "hotfix", priority: "p0", source: "sentry" });
   });
 
-  test("a scheduled trigger needs no connector and opens one problem a day", async () => {
+  test("a daily schedule needs no connector, opens one problem a day, and skips until the next day", async () => {
     const { repo, config } = setup(TRIGGERS);
-    const now = new Date("2026-11-02T00:00:00Z");
-    expect((await runTrigger(repo, config, config.triggers[1], { now })).opened).toHaveLength(1);
-    expect((await runTrigger(repo, config, config.triggers[1], { now })).joined).toHaveLength(1);
+    const on = (date: string) => runTrigger(repo, config, config.triggers[1], { now: new Date(`${date}T09:00:00Z`) });
+    expect((await on("2026-11-02")).opened).toHaveLength(1);
+    const again = await on("2026-11-02");
+    expect(again.opened).toHaveLength(0);
+    expect(again.messages).toEqual(["not due: daily, last opened 2026-11-02"]);
+    expect((await on("2026-11-03")).opened).toHaveLength(1);
+  });
+
+  test("a weekly schedule on a day is due once from that day, and a missed day still counts", async () => {
+    const { repo, config } = setup(`triggers:\n  - { id: review, source: schedule, when: weekly on monday }\n${YAML}`);
+    const on = async (date: string) => (await runTrigger(repo, config, config.triggers[0], { now: new Date(`${date}T09:00:00Z`) })).opened.length;
+    expect(await on("2026-11-04")).toBe(1); // nothing yet: due since Monday 2 November
+    expect(await on("2026-11-05")).toBe(0);
+    expect(await on("2026-11-09")).toBe(1); // the next Monday
+    expect(await on("2026-11-10")).toBe(0);
+  });
+
+  test("a plain weekly schedule is due seven days after the last one", async () => {
+    const { repo, config } = setup(`triggers:\n  - { id: digest, source: schedule, when: weekly }\n${YAML}`);
+    const on = async (date: string) => (await runTrigger(repo, config, config.triggers[0], { now: new Date(`${date}T09:00:00Z`) })).opened.length;
+    expect(await on("2026-11-02")).toBe(1);
+    expect(await on("2026-11-08")).toBe(0);
+    expect(await on("2026-11-09")).toBe(1);
+  });
+
+  test("a schedule trigger's when must be daily, weekly, or weekly on a day", () => {
+    const load = (when: string) => () => loadConfig(makeTree({ ".context/context.yaml": `triggers:\n  - { id: t, source: schedule, when: ${when} }\n${YAML}` }));
+    for (const ok of ["daily", "weekly", "weekly on monday", "weekly on Sunday"]) expect(load(ok)).not.toThrow();
+    for (const bad of ["every week", "weekly on someday", "hourly"]) expect(load(bad)).toThrow(/daily, weekly, or weekly on <day>/);
   });
 
   test("a connector's output is validated, and a custom command is read", async () => {

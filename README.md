@@ -200,6 +200,7 @@ records:                            # add, change or remove record kinds
   - { folder: campaigns, prefix: CAMP, statuses: [draft, live], sections: [Goal] }
 triggers:                           # what opens a Problem; source is a connector, manual or schedule
   - { id: new-error, source: sentry, when: a p0 error, pipeline: hotfix, cap: 2 }
+  - { id: weekly-review, source: schedule, when: weekly on monday }   # daily, weekly, or weekly on <day>
 commands:                           # your own checkers, run by `canon check`
   - { id: lint-copy, run: ./scripts/lint-copy.sh, if: .context/designs, module: design }
 copies:                             # files copied from one source repo, kept equal to it
@@ -222,6 +223,30 @@ first), and a repo that draws its screens always gets the design checks.
 Lists of names (`packs`, `standards`, `copies.use`) add up across the two files;
 `commands`, `doctor.tools`, `wiki.types`, `context.folders` and `context.rootFolders` merge by name.
 `context.rootFolders` (`{ folder, reason }`) declares a tracked root folder canon leaves alone; today only `docs` is checked.
+
+### Run triggers on a schedule (macOS)
+
+A schedule trigger opens a problem when it is due: `daily`, `weekly` (7 days after
+the last), or `weekly on <day>` (once from that day, so a missed day still counts).
+`canon trigger` skips it until then. One launchd job per repo runs it; without
+`--run` it only opens problems and spends nothing.
+
+```xml
+<!-- ~/Library/LaunchAgents/dev.canon.<product>.plist -->
+<plist version="1.0"><dict>
+  <key>Label</key><string>dev.canon.<product></string>
+  <key>WorkingDirectory</key><string>/path/to/<product></string>
+  <key>ProgramArguments</key><array><string>/path/to/canon</string><string>trigger</string></array>
+  <key>EnvironmentVariables</key><dict><key>PATH</key><string>/path/to/node/bin:/opt/homebrew/bin:/usr/bin:/bin</string></dict>
+  <key>StartCalendarInterval</key><dict><key>Hour</key><integer>9</integer><key>Minute</key><integer>7</integer></dict>
+  <key>StandardOutPath</key><string>~/.canon/logs/<product>.log</string>
+  <key>StandardErrorPath</key><string>~/.canon/logs/<product>.log</string>
+</dict></plist>
+```
+
+Load it with `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/dev.canon.<product>.plist`.
+launchd's own PATH is only `/usr/bin:/bin:/usr/sbin:/sbin`, so name node's folder. A run
+missed while the Mac sleeps fires on wake; one missed while it is off is skipped.
 
 ## Layout
 
