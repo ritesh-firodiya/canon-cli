@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { designs, designsFirst, designSurfaces } from "../../src/enforce/checks/designs.ts";
+import { designs, designsFirst, designSurfaces, failureReport } from "../../src/enforce/checks/designs.ts";
 import { loadConfig } from "../../src/config/load.ts";
 import { makeTree } from "../helpers/fixture.ts";
 import { contextFor } from "../helpers/context.ts";
@@ -39,6 +39,27 @@ describe("designs", () => {
       expect(run({ ".context/designs/shell.js": "", ".context/designs/_shell/boot.js": "" })).toEqual([
         ".context/designs/_shell: the shell lives in canon — delete this copy",
       ]);
+    });
+  });
+
+  describe("a failing surface's report", () => {
+    const passes = (n: number) => Array.from({ length: n }, (_, i) => `== check ${i}\n   ok`).join("\n");
+
+    test("keeps every FAIL line, however long the report, and its count", () => {
+      const output = ["== tokens", "   FAIL console/a.html uses ring-faint — declared nowhere", passes(20), "2 FAILURES"].join("\n");
+      expect(failureReport(output)).toBe("   FAIL console/a.html uses ring-faint — declared nowhere\n2 FAILURES");
+    });
+
+    test("caps a long list of FAIL lines and says how many more there are", () => {
+      const output = [...Array.from({ length: 20 }, (_, i) => `   FAIL page${i}.html`), "20 FAILURES"].join("\n");
+      const lines = failureReport(output).split("\n");
+      expect(lines).toHaveLength(17);
+      expect(lines.at(-2)).toBe("   … and 5 more");
+      expect(lines.at(-1)).toBe("20 FAILURES");
+    });
+
+    test("with no FAIL line to show, falls back to the end of the report", () => {
+      expect(failureReport([passes(20), "1 FAILURES"].join("\n")).split("\n").at(-1)).toBe("1 FAILURES");
     });
   });
 

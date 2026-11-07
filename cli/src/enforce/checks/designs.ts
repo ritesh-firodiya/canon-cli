@@ -9,6 +9,15 @@ const MAX_OUTPUT_LINES = 15;
 // A pin stops at its major for good: `@0` still serves 0.30.0, with no fix since.
 const PINNED_SHELL = /@freetesh\/canon@/;
 
+/** The FAIL lines of a surface's report and its count line. The end of the report alone hid the failures above it. */
+export function failureReport(output: string): string {
+  const lines = output.trim().split("\n");
+  const fails = lines.filter((line) => /\bFAIL\b/.test(line));
+  if (!fails.length) return lines.slice(-MAX_OUTPUT_LINES).join("\n");
+  const more = fails.length - MAX_OUTPUT_LINES;
+  return [...fails.slice(0, MAX_OUTPUT_LINES), ...(more > 0 ? [`   … and ${more} more`] : []), lines.at(-1)].join("\n");
+}
+
 /**
  * Every drawn surface: in a Babul set (design.js beside the sizes), each size folder with its journey (index.html).
  */
@@ -48,8 +57,7 @@ export const designs: Check = {
         return [{ check: "designs", level: "error", file: surface, message: `the design checks crashed: ${(error as Error).message}` }];
       }
       if (result.fail === 0) return [];
-      const output = result.output.trim().split("\n").slice(-MAX_OUTPUT_LINES).join("\n");
-      return [{ check: "designs", level: "error", file: surface, message: output }];
+      return [{ check: "designs", level: "error", file: surface, message: failureReport(result.output) }];
     }));
   },
 };
