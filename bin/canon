@@ -30535,6 +30535,33 @@ function date4(params) {
   return _coercedDate(ZodDate, params);
 }
 
+// cli/src/work/run/schedule.ts
+var DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+var DAY_MS = 864e5;
+var WEEK_DAYS = 7;
+var CADENCE_FORMS = "daily, weekly, or weekly on <day>";
+function parseCadence(when) {
+  const text = when.trim().toLowerCase();
+  if (text === "daily") return { every: "day" };
+  if (text === "weekly") return { every: "week" };
+  const day2 = DAYS.indexOf(/^weekly on (\w+)$/.exec(text)?.[1] ?? "");
+  return day2 < 0 ? null : { every: "week", day: day2 };
+}
+function isDue(cadence, last, today) {
+  if (!last) return true;
+  if (cadence.every === "day") return last < today;
+  if (cadence.day === void 0) return daysBetween(last, today) >= WEEK_DAYS;
+  return last < mostRecent(cadence.day, today);
+}
+function mostRecent(day2, today) {
+  const date5 = /* @__PURE__ */ new Date(`${today}T00:00:00Z`);
+  const back = (date5.getUTCDay() - day2 + WEEK_DAYS) % WEEK_DAYS;
+  return new Date(date5.getTime() - back * DAY_MS).toISOString().slice(0, 10);
+}
+function daysBetween(from, to) {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY_MS);
+}
+
 // cli/src/config/schema.ts
 var KINDS = ["mobile", "web", "mobile-and-web", "package", "content"];
 var FEATURES = ["routing", "process", "knowledge"];
@@ -30741,7 +30768,10 @@ var trigger = external_exports.object({
   /** The named pipeline its problems follow. */
   pipeline: kebab.optional(),
   priority: external_exports.string().min(1).optional()
-}).strict();
+}).strict().refine((spec) => spec.source !== "schedule" || parseCadence(spec.when) !== null, {
+  message: `a schedule trigger's when is ${CADENCE_FORMS}`,
+  path: ["when"]
+});
 var tool = external_exports.object({ tool: external_exports.string(), why: external_exports.string(), hint: external_exports.string() }).strict();
 var layerSchema = external_exports.object({
   canon: external_exports.string(),
@@ -31372,7 +31402,7 @@ var REQUIRED_FIELDS = ["last-verified"];
 var PLACEHOLDER = /\bTBD\b|\bnone yet\b|\bpopulate when\b/i;
 var CODE_BLOCK = /```[\s\S]*?```/g;
 var STALE_AFTER_DAYS = 90;
-var DAY_MS = 864e5;
+var DAY_MS2 = 864e5;
 var NOT_PAGES = ["index.md", "CLAUDE.md"];
 var OLDEST_SHOWN = 3;
 function wikiPages(repo) {
@@ -31414,7 +31444,7 @@ var wikiFrontmatter = {
       const placeholder = body.replace(CODE_BLOCK, "").match(PLACEHOLDER);
       if (placeholder) add("warn", file2, `placeholder "${placeholder[0]}" \u2014 write the fact or delete the section`);
       const verified = asDate(data["last-verified"]);
-      const age = verified ? Math.floor((today.getTime() - verified.getTime()) / DAY_MS) : 0;
+      const age = verified ? Math.floor((today.getTime() - verified.getTime()) / DAY_MS2) : 0;
       if (verified && age > STALE_AFTER_DAYS) stale.push({ file: file2, age });
       if (verified && age < 0) add("error", file2, `last-verified ${data["last-verified"]} is in the future`);
       if (data.id) filesById.set(String(data.id), [...filesById.get(String(data.id)) ?? [], file2]);
@@ -31436,7 +31466,7 @@ var CODE_BLOCK2 = /```[\s\S]*?```/g;
 var BACKTICKED = /`([^`\n]+)`/g;
 var EXTENSION = /\.[A-Za-z][A-Za-z0-9]*$/;
 var NOT_A_PATH = /\s|:\/\/|[*?{]|^(~\/|\/|\.\.?\/|\.context\/)/;
-var DAY_MS2 = 864e5;
+var DAY_MS3 = 864e5;
 function namedPaths(body) {
   const tokens3 = [...body.replace(CODE_BLOCK2, "").matchAll(BACKTICKED)].map((match) => match[1]);
   const paths = tokens3.filter((token) => token.includes("/") && !NOT_A_PATH.test(token) && EXTENSION.test(token) && !token.endsWith(".md"));
@@ -31454,7 +31484,7 @@ function runDrift(repo) {
     if (!verified) continue;
     const named = namedPaths(body);
     const gone = named.filter((path2) => !existsSync6(join8(repo, path2)));
-    const changed = named.filter((path2) => !gone.includes(path2) && (lastChanged(repo, path2)?.getTime() ?? 0) > verified.getTime() + DAY_MS2);
+    const changed = named.filter((path2) => !gone.includes(path2) && (lastChanged(repo, path2)?.getTime() ?? 0) > verified.getTime() + DAY_MS3);
     if (gone.length > 0) findings.push({ check: "drift", level: "error", file: file2, message: `a file no longer in the tree: ${gone.join(", ")}` });
     if (changed.length > 0) {
       findings.push({ check: "drift", level: "warn", file: file2, message: `the code changed after ${verified.toISOString().slice(0, 10)}: ${changed.join(", ")}` });
@@ -32543,7 +32573,7 @@ var FILE = `${FOLDER}/architecture.json`;
 var OLD_FOLDER = ".context/wiki/concepts/architecture";
 var BASES = ["measured", "stated", "code", "assumed", "unknown"];
 var STALE_DAYS = 90;
-var DAY_MS3 = 864e5;
+var DAY_MS4 = 864e5;
 function basisProblems(what, value) {
   if (!value?.basis || !BASES.includes(value.basis)) return [`${what} has no valid basis`];
   if (value.basis !== "unknown" && !value.source) return [`${what} is "${value.basis}" but names no source`];
@@ -32591,7 +32621,7 @@ var diagrams = {
     } catch (error62) {
       return [...old, finding("error", FILE, `not valid JSON: ${error62.message}`)];
     }
-    const age = architecture2.verified ? (today.getTime() - new Date(architecture2.verified).getTime()) / DAY_MS3 : Infinity;
+    const age = architecture2.verified ? (today.getTime() - new Date(architecture2.verified).getTime()) / DAY_MS4 : Infinity;
     return [
       ...old,
       ...problems(architecture2).map((message) => finding("error", FILE, message)),
@@ -36065,7 +36095,7 @@ function formatReport(report) {
 }
 
 // cli/src/learn/usage/cost.ts
-var DAY_MS4 = 24 * 60 * 60 * 1e3;
+var DAY_MS5 = 24 * 60 * 60 * 1e3;
 var DEFAULT_DAYS = 30;
 function weighReport(weeks, verdicts, since, rework) {
   const rows2 = new Map(weeks.map((row) => [row.week, { ...row, ...Object.fromEntries(OUTCOMES2.map((o) => [o, 0])) }]));
@@ -36093,7 +36123,7 @@ function formatWeigh(report) {
 async function printCost(env2, options) {
   const days = Number(options.days ?? DEFAULT_DAYS);
   if (!Number.isInteger(days) || days <= 0) throw new Error(`--days must be a whole number above 0, not ${options.days}`);
-  const tally = newTally(new Date(Date.now() - days * DAY_MS4), installedSkills());
+  const tally = newTally(new Date(Date.now() - days * DAY_MS5), installedSkills());
   const repos = env2.workspace ? findProducts(env2.workspace) : [];
   const products = new Set(repos.map((repo) => basename13(resolve12(repo))));
   await readTranscripts(tally, TRANSCRIPTS, { products, workspace: env2.workspace ?? null });
@@ -36343,6 +36373,11 @@ async function runTrigger(repo, config2, trigger2, options) {
   const today = (options.now ?? /* @__PURE__ */ new Date()).toISOString().slice(0, 10);
   const events = connector2 ? await (options.read ?? readEvents)(repo, connector2) : [{ id: `${trigger2.id}-${today}` }];
   const result = { trigger: trigger2.id, opened: [], joined: [], costUsd: 0, messages: [] };
+  const cadence = trigger2.source === "schedule" ? parseCadence(trigger2.when) : null;
+  if (cadence) {
+    const last = lastScheduled(repo, config2, trigger2.id);
+    if (!isDue(cadence, last, today)) return { ...result, messages: [`not due: ${trigger2.when}, last opened ${last}`] };
+  }
   const created = events.map((event) => recordEvent(repo, config2, trigger2.source, event, { priority: trigger2.priority, pipeline: trigger2.pipeline, now: options.now }));
   for (const problem of created) (problem.isNew ? result.opened : result.joined).push(problem.id);
   if (!options.agent) return result;
@@ -36356,6 +36391,13 @@ async function runTrigger(repo, config2, trigger2, options) {
     result.messages.push(`${id}: ${run2.message}`);
   }
   return result;
+}
+function lastScheduled(repo, config2, triggerId) {
+  const prefix = `${triggerId}-`;
+  const dates = allRecords(repo, config2).flatMap(
+    (record2) => (record2.data.sources ?? []).filter((entry) => entry.source === "schedule" && entry.id.startsWith(prefix)).map((entry) => entry.id.slice(prefix.length))
+  );
+  return dates.sort().at(-1);
 }
 
 // cli/src/work/run/run.command.ts
