@@ -27,6 +27,8 @@ if [ -x "$source/node" ]; then
   printf '#!/bin/sh\nexec "%s" "%s/cli/src/index.ts" "$@"\n' "$copy/node" "$copy" > "$bin/canon"
   chmod +x "$bin/canon"
   printf '[tools]\nnode = "%s"\n' "$version" > "$HOME/.config/mise/config.toml"
+  # The agent's shell inherits your PATH, whose canon copies the sandbox cannot read: put this one first.
+  for rc in .zshenv .zshrc .bashrc .profile; do printf 'export PATH="%s:$PATH"\n' "$bin" >> "$HOME/$rc"; done
 fi
 command -v qmd >/dev/null || exit 0
 qmd init >/dev/null

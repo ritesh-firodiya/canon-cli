@@ -13,12 +13,8 @@ cp -R "$repo/plugins/canon-process" "$work/plugin"
 mkdir -p "$work/plugin/skills" && cp -R "$repo/plugins/canon-knowledge/skills/ingest" "$work/plugin/skills/"
 cp -R "$repo/evals" "$work/plugin/evals"
 rm -rf "$work/plugin/evals/results"
-mkdir -p "$work/bin"
-# The skills call `canon`: this checkout's, not the installed release.
-printf '#!/bin/sh\nexec node "%s/cli/src/index.ts" "$@"\n' "$repo" > "$work/bin/canon"
-chmod +x "$work/bin/canon"
-# A copy of node and this checkout for the sandbox, which cannot read your home
-# folder; _scaffold/fixture.sh installs them there. APFS clones cost no disk.
+# The skills call `canon`: this checkout's, not the installed release. The sandbox cannot
+# read your home folder, so a copy of node and this checkout go in; _scaffold/fixture.sh installs them there. APFS clones cost no disk.
 mkdir -p "$work/canon"
 cp -cR "$repo/." "$work/canon/" 2>/dev/null || cp -R "$repo/." "$work/canon/"
 cp -c "$(node -p process.execPath)" "$work/canon/node" 2>/dev/null || cp "$(node -p process.execPath)" "$work/canon/node"
@@ -28,4 +24,6 @@ else
   mode=(--ablation none --runs 1 --concurrency 8 --max-cost-usd 3)
 fi
 cd "$work"
-PATH="$work/bin:$PATH" claude plugin eval ./plugin --eval-dir evals --trust-plugin --judge-model sonnet --scaffold ${KEEP:+--keep-temp} --allow-tools Write Edit Bash "${mode[@]}" ${CASE:+--case "$CASE"} --json "$repo/evals/results/latest.json"
+# An installed plugin's bin/ (this machine's own canon) is outside what the sandbox may read: keep it off PATH.
+clean_path="$(printf %s "$PATH" | tr ':' '\n' | grep -v '/.claude/plugins/' | paste -sd: -)"
+PATH="$clean_path" claude plugin eval ./plugin --eval-dir evals --trust-plugin --judge-model sonnet --scaffold ${KEEP:+--keep-temp} --allow-tools Write Edit Bash "${mode[@]}" ${CASE:+--case "$CASE"} --json "$repo/evals/results/latest.json"
