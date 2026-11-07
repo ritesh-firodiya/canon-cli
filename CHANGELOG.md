@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 6.7.0 — 2026-11-07
+
+### Fixed
+
+- The plugin's `bin/canon` matches the source again; two fixes had landed without it. `pnpm check` now fails when the bundle is out of date.
+- `canon new experiment` keeps its `--set` fields, and a failing design surface reports its FAIL lines.
 
 ### Changed
 

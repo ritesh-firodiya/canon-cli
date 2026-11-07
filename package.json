@@ -1,6 +1,6 @@
 {
   "name": "@freetesh/canon",
-  "version": "6.6.0",
+  "version": "6.7.0",
   "description": "canon CLI: keep your domain knowledge and AI rules in your repo, and enforce them.",
   "license": "MIT",
   "author": "Ritesh Firodiya",
@@ -31,7 +31,7 @@
   "packageManager": "pnpm@12.3.4",
   "scripts": {
     "canon": "node cli/src/index.ts",
-    "check": "node cli/src/index.ts check . && pnpm typecheck && pnpm test",
+    "check": "node cli/src/index.ts check . && pnpm typecheck && pnpm test && pnpm bundle && git diff --exit-code --stat bin/canon",
     "build": "rm -rf cli/dist && tsc -p cli/tsconfig.build.json && pnpm bundle",
     "test": "vitest run --root cli",
     "test:band": "d=$(mktemp -d) && mkdir -p $d/cli/src && cp -R hooks .claude-plugin $d && mkdir -p $d/cli/src/setup && cp -R cli/src/setup/models $d/cli/src/setup && claude plugin test $d",

@@ -32485,6 +32485,13 @@ function checkSurface(repo, surface, shell) {
 var DESIGNS = ".context/designs";
 var MAX_OUTPUT_LINES2 = 15;
 var PINNED_SHELL = /@freetesh\/canon@/;
+function failureReport(output2) {
+  const lines = output2.trim().split("\n");
+  const fails = lines.filter((line) => /\bFAIL\b/.test(line));
+  if (!fails.length) return lines.slice(-MAX_OUTPUT_LINES2).join("\n");
+  const more = fails.length - MAX_OUTPUT_LINES2;
+  return [...fails.slice(0, MAX_OUTPUT_LINES2), ...more > 0 ? [`   \u2026 and ${more} more`] : [], lines.at(-1)].join("\n");
+}
 function designSurfaces(repo) {
   const root = join21(repo, DESIGNS);
   if (!existsSync16(root)) return [];
@@ -32512,8 +32519,7 @@ var designs = {
         return [{ check: "designs", level: "error", file: surface, message: `the design checks crashed: ${error62.message}` }];
       }
       if (result.fail === 0) return [];
-      const output2 = result.output.trim().split("\n").slice(-MAX_OUTPUT_LINES2).join("\n");
-      return [{ check: "designs", level: "error", file: surface, message: output2 }];
+      return [{ check: "designs", level: "error", file: surface, message: failureReport(result.output) }];
     }));
   }
 };
@@ -36171,7 +36177,7 @@ function startExperiment(repo, config2, name, options) {
   const ids = stages.map((stage2) => stage2.id);
   if (!ids.includes(options.from)) throw new Error(`no stage "${options.from}" in ${pipeline2}: ${ids.join(", ")}`);
   if (options.to && options.to !== options.from && !stagesAfter(stages, options.from).has(options.to)) throw new Error(`"${options.to}" does not come after "${options.from}" in ${pipeline2}`);
-  return newPage(repo, config2, "experiments", name, { status: "running", "started-at": options.from, ...options.to ? { "stops-at": options.to } : {}, ...pipeline2 === "default" ? {} : { pipeline: pipeline2 } });
+  return newPage(repo, config2, "experiments", name, { ...options.fields, status: "running", "started-at": options.from, ...options.to ? { "stops-at": options.to } : {}, ...pipeline2 === "default" ? {} : { pipeline: pipeline2 } });
 }
 
 // cli/src/work/records/queue.ts
@@ -36238,7 +36244,7 @@ function registerRecords(program3) {
     const { config: config2 } = loadConfig(root);
     if (kind === "experiment") {
       if (!options.from) throw new Error("an experiment needs --from <stage>: the stage it starts at");
-      const { id: id2, file: file3 } = startExperiment(root, config2, title, { from: options.from, to: options.to, pipeline: options.pipeline });
+      const { id: id2, file: file3 } = startExperiment(root, config2, title, { from: options.from, to: options.to, pipeline: options.pipeline, fields: parsePairs(options.set) });
       return void console.log(`${id2}: ${file3}
 next: canon run ${id2}`);
     }
