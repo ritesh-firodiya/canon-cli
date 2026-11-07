@@ -35,7 +35,7 @@ Source to ingest: `$ARGUMENTS`
 
 6. **Leave the source where it is.** `.context/raw/` is immutable: a source is "processed" when a wiki page lists it under `Sources`, not when it moves.
 
-7. **Report**: list each page created or updated with its ID and path. Flag any links to non-existent pages as "TODO targets".
+7. **Report**: list each page created or updated with its ID and path. For a page of a type from `wiki.types`, name the type, say the repo's `.context/context.yaml` declares it, and list the sections used. Flag any links to non-existent pages as "TODO targets".
 
 ## Rules
 
