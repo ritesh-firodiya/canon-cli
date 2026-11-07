@@ -1,6 +1,5 @@
 ---
 name: ingest
-disable-model-invocation: true
 description: Turn a raw source (wireframe, meeting note, research doc) — or, with no argument, what this session taught — into wiki pages that pass the admission test, and update .context/wiki/index.md. Usage `/ingest [path-to-raw-file]`.
 ---
 

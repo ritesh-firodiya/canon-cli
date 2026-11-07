@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **Claude can start `ingest` itself.** Asking to write something up in the wiki now runs canon's ingest skill without typing `/ingest`. Its report names a page type the repo added, says the repo's config declares it, and lists the sections used.
+
 ## 6.6.0 — 2026-11-07
 
 ### Changed

@@ -9,6 +9,8 @@ repo="$(cd "$(dirname "$0")/.." && pwd)"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 cp -R "$repo/plugins/canon-process" "$work/plugin"
+# The wiki cases need canon-knowledge's ingest skill, so it rides along with the weigh plugin.
+mkdir -p "$work/plugin/skills" && cp -R "$repo/plugins/canon-knowledge/skills/ingest" "$work/plugin/skills/"
 cp -R "$repo/evals" "$work/plugin/evals"
 rm -rf "$work/plugin/evals/results"
 mkdir -p "$work/bin"
@@ -26,4 +28,4 @@ else
   mode=(--ablation none --runs 1 --concurrency 8 --max-cost-usd 3)
 fi
 cd "$work"
-PATH="$work/bin:$PATH" claude plugin eval ./plugin --eval-dir evals --trust-plugin --scaffold ${KEEP:+--keep-temp} --allow-tools Write Edit Bash "${mode[@]}" ${CASE:+--case "$CASE"} --json "$repo/evals/results/latest.json"
+PATH="$work/bin:$PATH" claude plugin eval ./plugin --eval-dir evals --trust-plugin --judge-model sonnet --scaffold ${KEEP:+--keep-temp} --allow-tools Write Edit Bash "${mode[@]}" ${CASE:+--case "$CASE"} --json "$repo/evals/results/latest.json"
